@@ -16,6 +16,7 @@ export const products = [
     description: "Premium vintage oversized hoodie in a warm cream tone. Soft heavyweight cotton blend with a lived-in feel. Perfect layering piece for the colder months.",
     size: "L",
     brand: "Champion",
+    department: "men",
     tags: ["vintage", "oversized", "streetwear"],
   },
   {
@@ -35,6 +36,7 @@ export const products = [
     description: "Authentic retro graphic tee with unique abstract artwork. Medium weight cotton, pre-shrunk. A statement piece for any streetwear collection.",
     size: "M",
     brand: "Stüssy",
+    department: "men",
     tags: ["graphic", "retro", "vintage"],
   },
   {
@@ -54,6 +56,7 @@ export const products = [
     description: "Hand-distressed vintage denim jacket with authentic wear patterns. Heavy 14oz selvedge denim. Each piece is unique with its own character.",
     size: "L",
     brand: "Levi's",
+    department: "women",
     tags: ["denim", "distressed", "vintage"],
   },
   {
@@ -73,6 +76,7 @@ export const products = [
     description: "Rare vintage sneakers in muted earth tones. Original box included. Minimal heel drag, excellent sole condition. A collector's find.",
     size: "US 10",
     brand: "New Balance",
+    department: "objects",
     tags: ["sneakers", "vintage", "rare"],
   },
   {
@@ -92,6 +96,7 @@ export const products = [
     description: "Military-inspired cargo pants in olive. Relaxed fit with multiple utility pockets. Garment-dyed for a worn-in look from day one.",
     size: "32",
     brand: "Carhartt WIP",
+    department: "men",
     tags: ["cargo", "streetwear", "military"],
   },
   {
@@ -111,6 +116,7 @@ export const products = [
     description: "Authentic 90s windbreaker in muted colorblock design. Lightweight nylon shell with mesh lining. Packable into its own pocket.",
     size: "XL",
     brand: "Nike",
+    department: "women",
     tags: ["90s", "windbreaker", "vintage"],
   },
 ];

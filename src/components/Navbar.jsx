@@ -32,9 +32,9 @@ export default function Navbar() {
               
               {/* Left Nav (Men, Women, Objects) */}
               <div className="hidden lg:flex items-center gap-8">
-                <Link to="/" className="text-[11px] font-bold tracking-[0.1em] uppercase text-text-secondary hover:text-charcoal transition-colors">Men</Link>
-                <Link to="/" className="text-[11px] font-bold tracking-[0.1em] uppercase text-text-secondary hover:text-charcoal transition-colors">Women</Link>
-                <Link to="/" className="text-[11px] font-bold tracking-[0.1em] uppercase text-text-secondary hover:text-charcoal transition-colors">Objects</Link>
+                <Link to="/department/men" className="text-[11px] font-bold tracking-[0.1em] uppercase text-text-secondary hover:text-charcoal transition-colors">Men</Link>
+                <Link to="/department/women" className="text-[11px] font-bold tracking-[0.1em] uppercase text-text-secondary hover:text-charcoal transition-colors">Women</Link>
+                <Link to="/department/objects" className="text-[11px] font-bold tracking-[0.1em] uppercase text-text-secondary hover:text-charcoal transition-colors">Objects</Link>
               </div>
 
               {/* Center Logo */}

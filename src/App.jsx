@@ -9,6 +9,7 @@ import Checkout from './pages/Checkout';
 import Account from './pages/Account';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import DepartmentPage from './pages/DepartmentPage';
 
 function AppLayout() {
   const location = useLocation();
@@ -20,6 +21,7 @@ function AppLayout() {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Marketplace />} />
+          <Route path="/department/:departmentName" element={<DepartmentPage />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
