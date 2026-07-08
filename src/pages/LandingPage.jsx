@@ -155,10 +155,13 @@ export default function LandingPage() {
           <h3 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-8 leading-tight">
             Revolutionizing the overall online shopping experience.
           </h3>
-          <p className="text-lg text-white/70 max-w-2xl mx-auto leading-relaxed mb-12">
+          <p className="text-center text-lg text-white/70 max-w-2xl mx-auto leading-relaxed mb-12">
             We believe that buying preloved fashion should be as seamless, safe, and technologically advanced as buying retail. We are building the future of circular fashion in Pakistan.
           </p>
-          <Link to="/signup" className="inline-block bg-accent text-white px-12 py-4 text-sm font-bold uppercase tracking-widest hover:bg-white hover:text-charcoal transition-all shadow-xl">
+          <Link 
+            to="/signup" 
+            className="inline-flex items-center justify-center bg-accent text-white px-10 py-4.5 rounded-full text-xs font-black uppercase tracking-widest hover:bg-white hover:text-charcoal hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 shadow-xl shadow-accent/15 border border-transparent hover:border-white"
+          >
             Join The Revolution
           </Link>
         </div>
