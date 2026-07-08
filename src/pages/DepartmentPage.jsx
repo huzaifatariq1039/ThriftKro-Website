@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ProductGrid from '../components/ProductGrid';
 import { products, categories } from '../data/products';
-import { Filter, SlidersHorizontal } from 'lucide-react';
+import { Filter, SlidersHorizontal, Sparkles } from 'lucide-react';
 
 export default function DepartmentPage() {
   const { departmentName } = useParams();
@@ -20,55 +20,54 @@ export default function DepartmentPage() {
   }, [activeCategory, departmentProducts]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#F9FAFB] pt-20">
       {/* Department Header */}
-      <section className="pt-32 pb-12 lg:pt-40 lg:pb-16 px-6 sm:px-8 lg:px-16 w-full max-w-7xl mx-auto animate-fade-in">
+      <section className="pt-16 pb-10 px-6 sm:px-8 lg:px-12 w-full max-w-7xl mx-auto animate-fade-in">
         <div className="flex flex-col items-center text-center">
-          <p className="text-[11px] font-bold tracking-[0.2em] uppercase text-text-muted mb-4">
-            Department
-          </p>
-          <h1 className="font-sans font-extrabold text-5xl sm:text-6xl lg:text-7xl text-charcoal tracking-tight mb-6 capitalize">
+          <span className="text-xs font-bold tracking-[0.25em] text-accent uppercase mb-3 block flex items-center gap-1">
+            <Sparkles className="w-3.5 h-3.5 fill-current" /> Curated Collection
+          </span>
+          <h1 className="font-sans font-black text-5xl sm:text-6xl lg:text-7xl text-charcoal tracking-tight mb-4 capitalize leading-none">
             {departmentName}
           </h1>
           <p className="text-sm sm:text-base text-text-secondary max-w-md mx-auto leading-relaxed font-medium">
-            Discover the latest verified vintage pieces and curated streetwear in our {departmentName} collection.
+            Discover verified vintage streetwear pieces in our {departmentName} collection.
           </p>
         </div>
       </section>
 
-      {/* Minimal Category Tabs */}
-      <section className="px-6 sm:px-8 lg:px-16 w-full max-w-7xl mx-auto mb-12 border-b border-border">
-        <div className="flex items-center gap-8 overflow-x-auto scrollbar-hide pb-5">
+      {/* Modern Capsule Category Tabs */}
+      <section className="px-6 sm:px-8 lg:px-12 w-full max-w-7xl mx-auto mb-10">
+        <div className="flex items-center gap-2.5 overflow-x-auto scrollbar-hide pb-2">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
               className={`
-                shrink-0 text-[12px] font-bold tracking-[0.08em] uppercase transition-colors relative
-                ${activeCategory === cat ? 'text-charcoal' : 'text-text-muted hover:text-charcoal'}
+                shrink-0 px-5 py-2.5 rounded-full text-xs font-extrabold tracking-wider uppercase border transition-all duration-200
+                ${activeCategory === cat 
+                  ? 'bg-charcoal border-charcoal text-white shadow-sm hover:scale-[1.02]' 
+                  : 'bg-white border-border/40 text-text-secondary hover:border-charcoal hover:text-charcoal'}
               `}
             >
               {cat}
-              {activeCategory === cat && (
-                <span className="absolute -bottom-[21px] left-0 right-0 h-0.5 bg-accent" />
-              )}
             </button>
           ))}
         </div>
       </section>
 
       {/* Product Grid & Filters */}
-      <section className="px-6 sm:px-8 lg:px-16 w-full max-w-7xl mx-auto mb-32">
-        <div className="flex justify-between items-center mb-8">
-          <span className="text-[11px] font-bold text-text-muted uppercase tracking-widest">
-            {filtered.length} Items
+      <section className="px-6 sm:px-8 lg:px-12 w-full max-w-7xl mx-auto mb-32">
+        <div className="flex justify-between items-center mb-8 bg-white p-4 rounded-2xl border border-border/40 shadow-sm">
+          <span className="text-[10px] font-extrabold text-text-secondary uppercase tracking-widest pl-2">
+            {filtered.length} Items Available
           </span>
           <div className="flex items-center gap-6">
-            <button className="flex items-center gap-2 text-[11px] font-bold text-charcoal uppercase tracking-widest hover:opacity-70 transition-opacity">
+            <button className="flex items-center gap-1.5 text-[11px] font-bold text-charcoal uppercase tracking-widest hover:text-accent transition-colors">
               <SlidersHorizontal className="w-3.5 h-3.5" />
               Filter
             </button>
-            <button className="flex items-center gap-2 text-[11px] font-bold text-charcoal uppercase tracking-widest hover:opacity-70 transition-opacity">
+            <button className="flex items-center gap-1.5 text-[11px] font-bold text-charcoal uppercase tracking-widest hover:text-accent transition-colors">
               <Filter className="w-3.5 h-3.5" />
               Sort
             </button>
@@ -78,9 +77,9 @@ export default function DepartmentPage() {
         {filtered.length > 0 ? (
           <ProductGrid products={filtered} />
         ) : (
-          <div className="text-center py-24 bg-surface rounded-2xl border border-border/50 border-dashed">
-            <h3 className="text-lg font-extrabold text-charcoal mb-2">No items found</h3>
-            <p className="text-sm text-text-muted">We couldn't find any items in this category for {departmentName}.</p>
+          <div className="text-center py-20 bg-white rounded-3xl border border-border/40 shadow-sm">
+            <h3 className="text-base font-black text-charcoal mb-2 uppercase tracking-wide">No items found</h3>
+            <p className="text-xs text-text-secondary font-medium max-w-xs mx-auto leading-relaxed">We couldn't find any items in this category for {departmentName}. New drops are added daily, please check back soon.</p>
             <button 
               onClick={() => setActiveCategory('All')}
               className="mt-6 btn-outline px-6 py-2.5 text-xs"
