@@ -81,8 +81,8 @@ export default function LandingPage() {
       </section>
 
       {/* Top Ranked Stores */}
-      <section className="py-48 bg-surface-raised overflow-hidden border-t border-b border-border/30">
-        <div className="max-w-6xl mx-auto px-12 lg:px-24">
+      <section className="py-48 bg-surface-raised overflow-hidden border-t border-b border-border/30 flex flex-col items-center justify-center w-full">
+        <div className="w-full max-w-6xl px-12 lg:px-24">
           <div className="text-center mb-24">
             <h2 className="text-sm font-bold tracking-[0.2em] text-accent uppercase mb-3">Community Favorites</h2>
             <h3 className="text-4xl sm:text-5xl font-extrabold text-charcoal tracking-tight">Top Ranked Stores</h3>
@@ -112,8 +112,8 @@ export default function LandingPage() {
       </section>
 
       {/* Platform Features */}
-      <section className="py-48 bg-white">
-        <div className="max-w-6xl mx-auto px-12 lg:px-24">
+      <section className="py-48 bg-white flex flex-col items-center justify-center w-full">
+        <div className="w-full max-w-6xl px-12 lg:px-24">
           <div className="text-center mb-28">
             <h2 className="text-sm font-bold tracking-[0.2em] text-accent uppercase mb-3">Why Thrift Kro?</h2>
             <h3 className="text-4xl sm:text-5xl font-extrabold text-charcoal tracking-tight">Powered by Technology</h3>
@@ -148,9 +148,9 @@ export default function LandingPage() {
       </section>
 
       {/* Our Vision */}
-      <section className="py-40 lg:py-56 bg-charcoal text-white relative overflow-hidden">
+      <section className="py-40 lg:py-56 bg-charcoal text-white relative overflow-hidden flex flex-col items-center justify-center w-full">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?q=80&w=2000')] opacity-10 bg-cover bg-center mix-blend-overlay"></div>
-        <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
+        <div className="w-full max-w-4xl px-6 text-center relative z-10">
           <h2 className="text-sm font-bold tracking-[0.2em] text-accent uppercase mb-6">Our Vision</h2>
           <h3 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-8 leading-tight">
             Revolutionizing the overall online shopping experience.
