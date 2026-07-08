@@ -33,11 +33,14 @@ const recentActivity = [
 
 export default function SellerDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
   return (
     <div className="flex min-h-screen bg-[#F9FAFB]">
       {/* Sidebar */}
       <SellerSidebar
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         mobileOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
@@ -46,7 +49,16 @@ export default function SellerDashboard() {
       <main className="flex-1 min-w-0 flex flex-col">
         {/* Top bar */}
         <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-border/40 h-20 flex items-center justify-between px-6 lg:px-10">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            {/* Menu Toggle for Desktop */}
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="hidden lg:flex p-2.5 rounded-xl hover:bg-surface border border-border/50 transition-all text-charcoal hover:scale-105"
+              aria-label="Toggle sidebar"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            {/* Menu Toggle for Mobile */}
             <button
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden p-2.5 rounded-xl hover:bg-surface border border-border/50 transition-colors"
@@ -56,7 +68,6 @@ export default function SellerDashboard() {
             </button>
             <div>
               <h1 className="text-xl font-bold text-charcoal tracking-tight">Overview</h1>
-              <p className="text-xs text-text-secondary mt-0.5">Track your store performance and AI scans.</p>
             </div>
           </div>
 
@@ -124,7 +135,6 @@ export default function SellerDashboard() {
                       Active Escrow Payouts
                     </h2>
                   </div>
-                  <span className="text-xs font-semibold text-text-secondary bg-surface px-3 py-1 rounded-full">{escrowPayouts.length} transactions</span>
                 </div>
 
                 {/* Table */}
@@ -180,7 +190,6 @@ export default function SellerDashboard() {
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h3 className="text-sm font-bold text-charcoal uppercase tracking-wider">Weekly Store Traffic</h3>
-                    <p className="text-[11px] text-text-secondary mt-0.5">Visitor trends and try-on engagements.</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-text-secondary bg-surface px-2.5 py-1 rounded-lg">
@@ -249,19 +258,12 @@ export default function SellerDashboard() {
                   <p className="text-xs font-bold text-charcoal mb-1">
                     Upload Flat-Lay Photo
                   </p>
-                  <p className="text-[10px] text-text-secondary text-center leading-relaxed max-w-[200px]">
-                    AI will automatically detect brands, scan defects, and draft listing metadata.
-                  </p>
                 </div>
 
                 <button className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-accent text-white font-bold text-xs uppercase tracking-widest hover:bg-charcoal transition-all shadow-md shadow-accent/10 hover:scale-[1.02] active:scale-[0.98]">
                   <ScanLine className="w-4.5 h-4.5" />
                   Start AI Scan
                 </button>
-
-                <p className="text-[9px] text-text-secondary text-center mt-3 font-medium">
-                  Supports JPG, PNG up to 10MB. Natural lighting required.
-                </p>
               </div>
 
               {/* Recent AI / Shop Activities */}
@@ -293,7 +295,7 @@ export default function SellerDashboard() {
                   <div>
                     <h4 className="text-xs font-bold uppercase tracking-wider text-white">Seller Optimization Tip</h4>
                     <p className="text-[11px] text-white/70 leading-relaxed mt-2">
-                      Products listed with AI Virtual Try-On enabled receive <strong>3.5x higher visitor engagement</strong> and are sold on average in under 48 hours.
+                      AI Virtual Try-On boosts visitor engagement by 3.5x.
                     </p>
                     <a href="#optimization" className="inline-flex items-center gap-1 text-[10px] font-bold text-accent uppercase tracking-wider mt-4 hover:underline">
                       Learn More <ArrowUpRight className="w-3 h-3" />
