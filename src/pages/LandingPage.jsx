@@ -18,7 +18,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white">
       {/* Top Header / Branding - Minimal */}
       <header className="absolute top-0 left-0 right-0 z-50">
-        <div className="max-w-6xl mx-auto px-12 lg:px-24 py-8 flex justify-between items-center">
+        <div className="max-w-6xl mx-auto px-12 lg:px-24 py-8 flex justify-center items-center">
           <div className="font-sans text-3xl font-extrabold tracking-tight text-charcoal">Thrift Kro</div>
         </div>
       </header>
@@ -26,7 +26,7 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="pt-48 pb-32 px-12 lg:px-24 w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
         {/* Left Side: Tagline & CTAs */}
-        <div className="flex flex-col items-center lg:items-start text-center lg:text-left justify-center mx-auto w-full">
+        <div className="flex flex-col items-center text-center justify-center mx-auto w-full">
           <h1 className="font-sans font-extrabold text-6xl sm:text-7xl lg:text-[85px] xl:text-[100px] text-charcoal tracking-tight mb-6 leading-[1.05] py-2">
             Try kro.<br />
             Buy kro.<br />
@@ -35,7 +35,7 @@ export default function LandingPage() {
           <p className="text-[13px] sm:text-sm text-text-secondary max-w-sm mb-8 leading-relaxed font-medium">
             Pakistan's first AI-powered preloved streetwear marketplace. Secure escrow payments, virtual try-on, and authentic vintage.
           </p>
-          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-4">
             <Link to="/login" className="btn-accent text-white px-10 py-4 text-sm tracking-wide shadow-xl shadow-accent/20 hover:scale-105 transition-transform">
               Login
             </Link>
@@ -48,7 +48,7 @@ export default function LandingPage() {
         {/* Right Side: Product Slideshow (Floating Images) */}
         <div className="w-full relative flex justify-center mt-12 lg:mt-0 lg:translate-x-[8%] pr-[5%] lg:pr-0">
           <div className="w-full max-w-sm sm:max-w-lg lg:max-w-[500px] xl:max-w-[560px]">
-            <div className="flex items-center justify-center lg:justify-end mb-6 px-4">
+            <div className="flex items-center justify-center mb-6 px-4">
               <div className="flex gap-2">
                 {heroProducts.map((_, idx) => (
                   <button 

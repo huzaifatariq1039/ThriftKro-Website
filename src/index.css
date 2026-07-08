@@ -220,3 +220,29 @@ body {
   background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
   opacity: 0.5;
 }
+
+/* =========================================
+   Global Layout & Section Spacing 
+   ========================================= */
+
+/* Forces every section to have dedicated breathing room */
+section {
+  position: relative;
+  width: 100%;
+  padding-top: 5rem;    /* 80px top spacing for mobile */
+  padding-bottom: 5rem; /* 80px bottom spacing for mobile */
+}
+
+/* Increases the spacing for desktop screens to prevent congestion */
+@media (min-width: 1024px) {
+  section {
+    padding-top: 8rem;    /* 128px top spacing for desktop */
+    padding-bottom: 8rem; /* 128px bottom spacing for desktop */
+  }
+}
+
+/* Optional utility class if you want specific sections to be closer together */
+.section-tight {
+  padding-top: 3rem !important;
+  padding-bottom: 3rem !important;
+}
