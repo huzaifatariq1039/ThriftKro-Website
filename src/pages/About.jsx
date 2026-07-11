@@ -10,11 +10,11 @@ export default function About() {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/5 rounded-full blur-[120px] pointer-events-none"></div>
         
         <div className="max-w-[1000px] mx-auto px-6 text-center animate-slide-up relative z-10">
-          <span className="text-xs font-bold tracking-[0.25em] text-accent uppercase mb-4 block">Our Manifesto</span>
-          <h1 className="font-sans font-black text-4xl sm:text-5xl lg:text-6xl tracking-tight mb-6 uppercase leading-none">
+          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-accent text-[12px] font-semibold uppercase tracking-wider mb-4">Our Manifesto</span>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 leading-none">
             Redefining <span className="text-accent">Thrift</span> in Pakistan
           </h1>
-          <p className="text-base sm:text-lg text-white/60 max-w-2xl mx-auto leading-relaxed font-medium">
+          <p className="text-base sm:text-lg text-white/60 max-w-2xl mx-auto leading-relaxed">
             Thrift Kro is Pakistan's first AI-powered marketplace for pre-loved fashion. We eliminate the risk of online thrifting through advanced AI verification and secure escrow payments.
           </p>
         </div>
@@ -31,14 +31,14 @@ export default function About() {
           ].map((feature, i) => (
             <div 
               key={i} 
-              className="bg-white p-8 rounded-3xl border border-border/40 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 animate-fade-up" 
+              className="bg-white p-8 rounded-2xl border border-[#EAEAEA] hover:shadow-lg hover:border-accent/20 transition-all duration-300 animate-fade-up" 
               style={{ animationDelay: `${i * 0.08}s` }}
             >
               <div className="w-12 h-12 bg-accent-ultralight text-accent rounded-2xl flex items-center justify-center mb-6">
                 <feature.icon className="w-5 h-5" />
               </div>
-              <h3 className="text-base font-bold text-charcoal uppercase tracking-wider mb-2">{feature.title}</h3>
-              <p className="text-xs text-text-secondary leading-relaxed font-medium">{feature.desc}</p>
+              <h3 className="text-[15px] font-bold text-charcoal mb-2">{feature.title}</h3>
+              <p className="text-[13px] text-text-secondary leading-relaxed">{feature.desc}</p>
             </div>
           ))}
         </div>
@@ -48,8 +48,8 @@ export default function About() {
       <section className="py-16 lg:py-24 max-w-6xl mx-auto px-6">
         <div className="grid md:grid-cols-12 gap-12 items-center">
           <div className="md:col-span-7 space-y-6">
-            <span className="text-xs font-bold tracking-[0.2em] text-accent uppercase block">HOW WE WORK</span>
-            <h2 className="text-3xl font-black text-charcoal uppercase tracking-tight leading-none">The Thrift Kro Vision</h2>
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-ultralight text-accent text-[11px] font-semibold uppercase tracking-wider">How We Work</span>
+            <h2 className="text-3xl font-bold text-charcoal tracking-tight leading-none mt-3">The Thrift Kro Vision</h2>
             <div className="space-y-4 text-sm text-text-secondary leading-relaxed font-medium">
               <p>
                 Buying second-hand clothing online has always been a gamble. Misrepresented condition, counterfeit drops, and transaction scams have kept many from embracing sustainable fashion.
@@ -62,10 +62,10 @@ export default function About() {
               </p>
             </div>
             <div className="pt-2">
-              <Link to="/seller" className="btn-primary py-3.5 text-xs shadow-sm">Start Selling Now</Link>
+              <Link to="/seller" className="btn-accent py-3.5 text-[13px]">Start Selling Now</Link>
             </div>
           </div>
-          <div className="md:col-span-5 aspect-[4/5] bg-white border border-border/40 p-4 rounded-3xl shadow-sm overflow-hidden select-none">
+          <div className="md:col-span-5 aspect-[4/5] bg-white border border-[#EAEAEA] p-4 rounded-2xl overflow-hidden select-none">
             <img src="/images/hoodie.png" alt="Thrift Kro Vision" className="w-full h-full object-contain drop-shadow-xl hover:scale-105 transition-transform duration-700" />
           </div>
         </div>

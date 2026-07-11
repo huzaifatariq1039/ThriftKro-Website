@@ -14,67 +14,57 @@ export default function RoleSelection() {
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] flex flex-col items-center justify-center p-6 select-none">
-      {/* Header - Elegant & Understated */}
+      {/* Header */}
       <div className="text-center mb-10">
-        <span className="block text-[10px] font-extrabold tracking-[0.3em] text-[#888888] uppercase mb-2">
-          Thrift Kro Portal
-        </span>
-        <h3 className="text-sm font-black text-[#121212] tracking-[0.25em] uppercase">
-          Choose Your Path
-        </h3>
+        <div className="flex items-center justify-center gap-2.5 mb-5">
+          <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center shadow-sm">
+            <span className="text-white font-bold text-base">TK</span>
+          </div>
+        </div>
+        <h3 className="text-xl font-bold text-charcoal mb-2">Choose your role</h3>
+        <p className="text-[13px] text-text-muted max-w-xs mx-auto">Select how you'd like to use Thrift Kro today</p>
       </div>
 
-      {/* Cards - Two Refined Minimalist Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[700px] w-full">
+      {/* Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-[680px] w-full">
         
         {/* Buyer Card */}
         <button 
           onClick={() => handleRoleSelect('buyer')}
-          className="bg-white p-8 rounded-2xl border border-[#EAEAEA] hover:border-[#121212] shadow-[0_4px_20px_rgba(0,0,0,0.01)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.02)] transition-all duration-300 group flex flex-col items-center text-center cursor-pointer focus:outline-none"
+          className="bg-white p-7 rounded-2xl border border-[#EAEAEA] hover:border-accent/40 hover:shadow-lg transition-all duration-300 group flex flex-col items-start text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent/20"
         >
-          <div className="w-12 h-12 rounded-xl bg-[#F9FAFB] flex items-center justify-center mb-5 text-[#121212] border border-[#EAEAEA] group-hover:scale-105 transition-transform">
-            <ShoppingBag className="w-5 h-5 stroke-[1.25]" />
+          <div className="w-12 h-12 rounded-xl bg-accent-ultralight flex items-center justify-center mb-5 text-accent group-hover:scale-105 group-hover:bg-accent group-hover:text-white transition-all duration-300">
+            <ShoppingBag className="w-5 h-5" strokeWidth={1.75} />
           </div>
           
-          <h4 className="text-xs font-bold text-[#121212] uppercase tracking-wider mb-2">
-            Buyer Mode
-          </h4>
-          
-          <p className="text-[11px] text-[#888888] leading-relaxed font-medium max-w-[220px]">
-            Shop authenticated pre-loved streetwear and try on items using our virtual fitting room.
+          <h4 className="text-[15px] font-bold text-charcoal mb-2">Buyer Mode</h4>
+          <p className="text-[13px] text-text-muted leading-relaxed mb-6">
+            Browse authenticated pre-loved streetwear and try items on with our virtual fitting room.
           </p>
 
-          <div className="w-full mt-6">
-            <span className="w-full py-2.5 border border-[#121212] text-[#121212] rounded-xl text-[9px] font-extrabold uppercase tracking-wider flex items-center justify-center gap-1.5 group-hover:bg-[#121212] group-hover:text-white transition-all">
-              Enter Marketplace <ArrowRight className="w-3 h-3" />
-            </span>
-          </div>
+          <span className="w-full py-3 border border-[#EAEAEA] text-charcoal rounded-xl text-[12px] font-semibold flex items-center justify-center gap-2 group-hover:bg-charcoal group-hover:text-white group-hover:border-charcoal transition-all duration-300">
+            Enter Marketplace <ArrowRight className="w-3.5 h-3.5" />
+          </span>
         </button>
 
         {/* Seller Card */}
         <button 
           onClick={() => handleRoleSelect('seller')}
-          className="bg-white p-8 rounded-2xl border border-[#EAEAEA] hover:border-[#121212] shadow-[0_4px_20px_rgba(0,0,0,0.01)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.02)] transition-all duration-300 group flex flex-col items-center text-center cursor-pointer focus:outline-none"
+          className="bg-white p-7 rounded-2xl border border-[#EAEAEA] hover:border-accent/40 hover:shadow-lg transition-all duration-300 group flex flex-col items-start text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent/20"
         >
-          <div className="w-12 h-12 rounded-xl bg-[#F9FAFB] flex items-center justify-center mb-5 text-[#121212] border border-[#EAEAEA] group-hover:scale-105 transition-transform">
-            <Store className="w-5 h-5 stroke-[1.25]" />
+          <div className="w-12 h-12 rounded-xl bg-accent-ultralight flex items-center justify-center mb-5 text-accent group-hover:scale-105 group-hover:bg-accent group-hover:text-white transition-all duration-300">
+            <Store className="w-5 h-5" strokeWidth={1.75} />
           </div>
           
-          <h4 className="text-xs font-bold text-[#121212] uppercase tracking-wider mb-2">
-            Seller Portal
-          </h4>
-          
-          <p className="text-[11px] text-[#888888] leading-relaxed font-medium max-w-[220px]">
-            Create listings with automatic AI scanning, manage orders, and payout balances.
+          <h4 className="text-[15px] font-bold text-charcoal mb-2">Seller Portal</h4>
+          <p className="text-[13px] text-text-muted leading-relaxed mb-6">
+            Create AI-verified listings, manage orders, and track your escrow payouts seamlessly.
           </p>
 
-          <div className="w-full mt-6">
-            <span className="w-full py-2.5 bg-[#121212] text-white rounded-xl text-[9px] font-extrabold uppercase tracking-wider flex items-center justify-center gap-1.5 hover:bg-[#2A2A2A] transition-all shadow-sm">
-              Open Dashboard <ArrowRight className="w-3 h-3" />
-            </span>
-          </div>
+          <span className="w-full py-3 bg-accent text-white rounded-xl text-[12px] font-semibold flex items-center justify-center gap-2 hover:bg-accent-dark transition-all duration-300 shadow-sm">
+            Open Dashboard <ArrowRight className="w-3.5 h-3.5" />
+          </span>
         </button>
-
       </div>
     </div>
   );

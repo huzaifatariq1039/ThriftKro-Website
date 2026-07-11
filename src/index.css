@@ -18,7 +18,8 @@
   --color-text-secondary: #4A4A4A;
   --color-text-muted: #888888;
   --color-text-inverse: #FFFFFF;
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
 
   --animate-fade-up: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-fade-in: fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -62,6 +63,11 @@
   100% { transform: translateX(-50%); }
 }
 
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 92, 0, 0.15); }
+  50% { box-shadow: 0 0 0 8px rgba(255, 92, 0, 0); }
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -83,42 +89,62 @@ body {
 }
 
 /* Custom scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #E5E5E5; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #CCCCCC; }
+::-webkit-scrollbar-thumb { background: #D4D4D4; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #AAAAAA; }
 
-/* Global Input Fields styling for Consistency */
-input[type="text"], input[type="email"], input[type="password"], input[type="tel"], select, textarea {
-  background-color: #F9FAFB;
-  border: 1px solid rgba(18, 18, 18, 0.08);
-  border-radius: 14px;
-  padding: 0.875rem 1.25rem;
+/* ==========================================
+   Global Input / Select / Textarea Styles
+   ========================================== */
+input[type="text"], input[type="email"], input[type="password"], input[type="tel"], input[type="number"], select, textarea {
+  background-color: #FFFFFF;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
   font-size: 0.875rem;
   color: var(--color-charcoal);
   font-weight: 500;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--font-sans);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
-input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, input[type="tel"]:focus, select:focus, textarea:focus {
+input[type="text"]:hover, input[type="email"]:hover, input[type="password"]:hover, input[type="tel"]:hover, input[type="number"]:hover, select:hover, textarea:hover {
+  border-color: #D1D5DB;
+}
+input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, input[type="tel"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
   outline: none;
-  background-color: #FFFFFF;
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 4px rgba(255, 92, 0, 0.08);
+  box-shadow: 0 0 0 3px rgba(255, 92, 0, 0.08);
+  background-color: #FFFFFF;
+}
+input::placeholder, textarea::placeholder {
+  color: #9CA3AF;
+  font-weight: 400;
+}
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  background-size: 1.25em 1.25em;
+  padding-right: 2.5rem;
 }
 
-/* Depth system — flattened for modern streetwear aesthetic */
+/* ==========================================
+   Depth System (Modern Soft Shadows)
+   ========================================== */
 .elevation-0 { box-shadow: none; }
-.elevation-1 { box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 8px 24px rgba(0,0,0,0.02); }
-.elevation-2 { box-shadow: 0 4px 16px rgba(0,0,0,0.03), 0 16px 40px rgba(0,0,0,0.03); }
-.elevation-3 { box-shadow: 0 12px 32px rgba(0,0,0,0.04), 0 32px 72px rgba(0,0,0,0.04); }
+.elevation-1 { box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06); }
+.elevation-2 { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05); }
+.elevation-3 { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.06), 0 4px 6px -4px rgba(0,0,0,0.06); }
 
-/* Card hover — subtle, flat */
+/* Card hover — refined lift */
 .card-hover {
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.05), 0 32px 72px rgba(0,0,0,0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.06), 0 8px 10px -6px rgba(0,0,0,0.04);
 }
 
 /* Image zoom */
@@ -142,32 +168,35 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
   -webkit-backdrop-filter: blur(16px);
 }
 
-/* Button styles - minimal, typographic, active-compressed */
+/* ==========================================
+   Button System — Modern, Rounded, Polished
+   ========================================== */
 .btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.875rem 2.25rem;
-  border-radius: 9999px;
-  font-weight: 700;
+  padding: 0.8125rem 2rem;
+  border-radius: 12px;
+  font-weight: 600;
   font-size: 0.8125rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   background: var(--color-charcoal);
   color: white;
-  border: 1px solid var(--color-charcoal);
+  border: 1.5px solid var(--color-charcoal);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .btn-primary:hover {
   background: var(--color-charcoal-light);
   border-color: var(--color-charcoal-light);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(18, 18, 18, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(18, 18, 18, 0.2);
 }
 .btn-primary:active {
-  transform: translateY(0) scale(0.97);
+  transform: translateY(0) scale(0.98);
+  box-shadow: none;
 }
 
 .btn-accent {
@@ -175,26 +204,27 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.875rem 2.25rem;
-  border-radius: 9999px;
-  font-weight: 700;
+  padding: 0.8125rem 2rem;
+  border-radius: 12px;
+  font-weight: 600;
   font-size: 0.8125rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   background: var(--color-accent);
   color: white;
-  border: 1px solid var(--color-accent);
+  border: 1.5px solid var(--color-accent);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .btn-accent:hover {
   background: var(--color-accent-dark);
   border-color: var(--color-accent-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(255, 92, 0, 0.25);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(255, 92, 0, 0.3);
 }
 .btn-accent:active {
-  transform: translateY(0) scale(0.97);
+  transform: translateY(0) scale(0.98);
+  box-shadow: none;
 }
 
 .btn-outline {
@@ -202,29 +232,32 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.875rem 2.25rem;
-  border-radius: 9999px;
-  font-weight: 700;
+  padding: 0.8125rem 2rem;
+  border-radius: 12px;
+  font-weight: 600;
   font-size: 0.8125rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   background: transparent;
   color: var(--color-charcoal);
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid #D1D5DB;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .btn-outline:hover {
   border-color: var(--color-charcoal);
   background: var(--color-charcoal);
   color: white;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(18, 18, 18, 0.15);
 }
 .btn-outline:active {
-  transform: translateY(0) scale(0.97);
+  transform: translateY(0) scale(0.98);
 }
 
-/* Stagger children animations */
+/* ==========================================
+   Animations
+   ========================================== */
 .stagger-children > * {
   animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -254,24 +287,20 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
 /* =========================================
    Global Layout & Section Spacing 
    ========================================= */
-
-/* Forces every section to have dedicated breathing room */
 section {
   position: relative;
   width: 100%;
-  padding-top: 5rem;    /* 80px top spacing for mobile */
-  padding-bottom: 5rem; /* 80px bottom spacing for mobile */
+  padding-top: 5rem;
+  padding-bottom: 5rem;
 }
 
-/* Increases the spacing for desktop screens to prevent congestion */
 @media (min-width: 1024px) {
   section {
-    padding-top: 8rem;    /* 128px top spacing for desktop */
-    padding-bottom: 8rem; /* 128px bottom spacing for desktop */
+    padding-top: 8rem;
+    padding-bottom: 8rem;
   }
 }
 
-/* Optional utility class if you want specific sections to be closer together */
 .section-tight {
   padding-top: 3.5rem !important;
   padding-bottom: 3.5rem !important;

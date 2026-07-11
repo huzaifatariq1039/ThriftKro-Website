@@ -11,15 +11,16 @@ export default function Marketplace() {
     <div className="min-h-screen bg-[#F9FAFB] pt-20">
       {/* Categories in Focus */}
       <section className="pt-16 w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 mb-16">
-        <div className="flex justify-between items-end mb-8">
+        <div className="flex justify-between items-end mb-10">
           <div>
-            <span className="text-xs font-bold tracking-[0.2em] text-accent uppercase mb-2 block flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 fill-current" /> Curated Drops
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-charcoal tracking-tight uppercase">Categories in Focus</h2>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-ultralight text-accent mb-3">
+              <Sparkles className="w-3.5 h-3.5 fill-current" />
+              <span className="text-[11px] font-semibold uppercase tracking-wider">Curated Drops</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-charcoal tracking-tight">Categories in Focus</h2>
           </div>
-          <Link to="/department/men" className="text-[11px] font-bold text-accent uppercase tracking-widest hover:text-accent-dark hover:underline transition-all flex items-center gap-1">
-            View All <ArrowRight className="w-3 h-3" />
+          <Link to="/department/men" className="text-[12px] font-semibold text-accent hover:text-accent-dark transition-colors flex items-center gap-1">
+            View All <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
@@ -30,17 +31,13 @@ export default function Marketplace() {
             { name: "Sneaker Vault", img: "/images/sneakers.png", link: "/department/objects", count: "45 Pieces" },
             { name: "Heavyweight Hoodies", img: "/images/hoodie.png", link: "/department/men", count: "98 Pieces" },
           ].map((cat, idx) => (
-            <Link key={idx} to={cat.link} className="group relative aspect-[3/4] rounded-3xl overflow-hidden bg-white border border-border/40 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl">
-              <div className="w-full h-full flex items-center justify-center p-8">
-                <img src={cat.img} alt={cat.name} className="w-full h-full object-contain drop-shadow-xl transition-transform duration-700 group-hover:scale-105" />
+            <Link key={idx} to={cat.link} className="group relative aspect-[3/4] bg-white rounded-2xl border border-[#EAEAEA] overflow-hidden hover:shadow-lg hover:border-accent/20 transition-all duration-500">
+              <div className="w-full h-[70%] flex items-center justify-center p-8 mt-2">
+                <img src={cat.img} alt={cat.name} className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-110" />
               </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-charcoal/90 via-charcoal/20 to-transparent" />
-              <div className="absolute bottom-6 left-6 right-6 text-white">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-accent-light bg-accent/20 px-2 py-0.5 rounded-md mb-2 inline-block">{cat.count}</span>
-                <h3 className="text-xl font-bold uppercase tracking-wide leading-tight">{cat.name}</h3>
-                <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest mt-1 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 flex items-center gap-1">
-                  Shop Drop <ArrowRight className="w-3 h-3 text-accent" />
-                </p>
+              <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white via-white/95 to-transparent">
+                <h3 className="text-lg font-bold text-charcoal tracking-tight group-hover:text-accent transition-colors duration-300">{cat.name}</h3>
+                <span className="text-[11px] text-text-muted mt-0.5 block">{cat.count}</span>
               </div>
             </Link>
           ))}
@@ -84,12 +81,14 @@ export default function Marketplace() {
       {/* The Vault Edit */}
       <section className="w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 mb-16">
         <div className="mb-8">
-          <span className="text-xs font-bold tracking-[0.2em] text-accent uppercase mb-2 block">HIGHLY DESIRED</span>
-          <h2 className="text-2xl sm:text-3xl font-black text-charcoal tracking-tight uppercase">The Vault Edit</h2>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-ultralight text-accent mb-3">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Highly Desired</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-charcoal tracking-tight">The Vault Edit</h2>
         </div>
         <div className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide snap-x">
           {products.slice(0, 5).map((product, index) => (
-            <div key={product.id} className="shrink-0 w-[280px] sm:w-[320px] snap-start bg-white p-4 rounded-3xl border border-border/40 shadow-sm hover:shadow-lg transition-shadow duration-300">
+            <div key={product.id} className="shrink-0 w-[280px] sm:w-[320px] snap-start bg-white p-4 rounded-2xl border border-[#EAEAEA] hover:shadow-lg hover:border-accent/20 transition-all duration-300">
               <ProductCard product={product} index={index} />
             </div>
           ))}
@@ -102,9 +101,9 @@ export default function Marketplace() {
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-accent/5 rounded-full blur-[100px] pointer-events-none"></div>
         
         <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
-          <span className="text-xs font-bold tracking-[0.25em] text-accent uppercase mb-3 block">STREETWEAR COMMUNITY</span>
-          <h2 className="text-3xl sm:text-4xl font-black tracking-tight uppercase mb-4">Join The Club</h2>
-          <p className="text-sm text-white/60 mb-8 font-medium max-w-md mx-auto leading-relaxed">
+          <span className="text-[12px] font-semibold tracking-widest text-accent uppercase mb-3 block">Streetwear Community</span>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Join The Club</h2>
+          <p className="text-[14px] text-white/60 mb-8 max-w-md mx-auto leading-relaxed">
             Subscribe for early access to vintage drops, exclusive discount codes, and AI styling suggestions.
           </p>
           <form onSubmit={(e) => e.preventDefault()} className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
@@ -112,9 +111,9 @@ export default function Marketplace() {
               type="email" 
               required
               placeholder="Enter your email address" 
-              className="bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:bg-white/10 focus:border-accent text-white placeholder:text-white/30 w-full uppercase tracking-wider"
+              className="bg-white/10 border border-white/15 rounded-xl px-5 py-3.5 text-[13px] focus:outline-none focus:bg-white/15 focus:border-accent focus:ring-2 focus:ring-accent/20 text-white placeholder:text-white/40 w-full"
             />
-            <button type="submit" className="btn-accent px-8 py-3.5 shadow-lg shadow-accent/15 shrink-0 text-white font-bold uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all">
+            <button type="submit" className="btn-accent px-8 py-3.5 shadow-lg shadow-accent/20 shrink-0">
               Subscribe
             </button>
           </form>
