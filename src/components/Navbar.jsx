@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Search, ShoppingBag, User, Menu, X } from 'lucide-react';
 
 export default function Navbar() {
@@ -33,13 +33,20 @@ export default function Navbar() {
             {/* Left Nav (Men, Women, Objects) */}
             <div className="hidden lg:flex items-center gap-8">
               {['Men', 'Women', 'Objects'].map((dept) => (
-                <Link 
+                <NavLink 
                   key={dept} 
                   to={`/department/${dept.toLowerCase()}`} 
-                  className="text-[13px] font-medium text-text-secondary hover:text-charcoal transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-accent after:transition-all after:duration-300 hover:after:w-full"
+                  className={({ isActive }) => `
+                    text-[13px] font-medium transition-colors relative
+                    after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:bg-accent after:transition-all after:duration-300
+                    ${isActive 
+                      ? 'text-charcoal after:w-full font-semibold' 
+                      : 'text-text-secondary hover:text-charcoal after:w-0 hover:after:w-full'
+                    }
+                  `}
                 >
                   {dept}
-                </Link>
+                </NavLink>
               ))}
             </div>
             
@@ -109,14 +116,17 @@ export default function Navbar() {
           <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-b border-[#EAEAEA] animate-fade-in shadow-lg">
             <div className="px-6 py-8 flex flex-col gap-1">
               {['Men', 'Women', 'Objects'].map((dept) => (
-                <Link 
+                <NavLink 
                   key={dept} 
                   to={`/department/${dept.toLowerCase()}`} 
-                  className="text-[15px] font-semibold text-charcoal py-3 px-4 rounded-xl hover:bg-surface transition-colors"
+                  className={({ isActive }) => `
+                    text-[15px] py-3 px-4 rounded-xl hover:bg-surface transition-colors
+                    ${isActive ? 'font-bold text-accent bg-accent-ultralight' : 'font-semibold text-charcoal'}
+                  `}
                   onClick={() => setMobileOpen(false)}
                 >
                   {dept}
-                </Link>
+                </NavLink>
               ))}
               <div className="h-px w-full bg-[#F0F0F0] my-3" />
               <Link to="/seller" className="text-[14px] font-medium text-text-secondary py-3 px-4 rounded-xl hover:bg-surface transition-colors" onClick={() => setMobileOpen(false)}>Sell on Thrift Kro</Link>
