@@ -79,16 +79,23 @@ export default function SellerSidebar({ collapsed, onToggleCollapse, mobileOpen,
               onClick={onClose}
               title={collapsed && !mobileOpen ? item.label : undefined}
               className={({ isActive }) => `
-                flex items-center gap-3 rounded-xl transition-all duration-200
+                group flex items-center gap-3 rounded-xl transition-all duration-300 relative overflow-hidden
                 ${collapsed && !mobileOpen ? 'justify-center p-3' : 'px-4 py-2.5'}
                 ${isActive
-                  ? 'bg-accent-ultralight text-accent font-semibold'
+                  ? 'bg-accent/10 text-accent font-bold shadow-sm'
                   : 'text-text-secondary hover:bg-surface hover:text-charcoal'
                 }
               `}
             >
-              <item.icon className={`w-[18px] h-[18px] shrink-0 ${collapsed && !mobileOpen ? '' : ''}`} strokeWidth={1.75} />
-              {(!collapsed || mobileOpen) && <span className="text-[13px] animate-fade-in">{item.label}</span>}
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-3/5 bg-accent rounded-r-full" />
+                  )}
+                  <item.icon className={`w-[18px] h-[18px] shrink-0 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'scale-110' : ''}`} strokeWidth={1.75} />
+                  {(!collapsed || mobileOpen) && <span className="text-[13px] animate-fade-in">{item.label}</span>}
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -102,12 +109,12 @@ export default function SellerSidebar({ collapsed, onToggleCollapse, mobileOpen,
               flex items-center justify-center gap-2.5 rounded-xl
               text-[12px] font-semibold
               bg-surface text-text-secondary border border-[#EAEAEA]
-              hover:bg-charcoal hover:text-white hover:border-charcoal
-              transition-all duration-300
+              hover:bg-charcoal hover:text-white hover:border-charcoal hover:shadow-[0_8px_20px_rgba(18,18,18,0.2)]
+              transition-all duration-300 group
               ${collapsed && !mobileOpen ? 'p-3' : 'px-4 py-2.5'}
             `}
           >
-            <ArrowRightLeft className="w-4 h-4 shrink-0" strokeWidth={1.75} />
+            <ArrowRightLeft className="w-4 h-4 shrink-0 transition-transform duration-500 group-hover:rotate-180" strokeWidth={1.75} />
             {(!collapsed || mobileOpen) && <span className="animate-fade-in">Marketplace</span>}
           </NavLink>
         </div>

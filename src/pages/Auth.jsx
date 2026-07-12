@@ -24,12 +24,12 @@ export default function Auth() {
         <img 
           src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070" 
           alt="High fashion editorial" 
-          className="absolute inset-0 w-full h-full object-cover opacity-60"
+          className="absolute inset-0 w-full h-full object-cover opacity-60 animate-ken-burns"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/40 to-transparent" />
         <div className="absolute bottom-16 left-16 z-20">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-11 h-11 rounded-xl bg-accent flex items-center justify-center shadow-lg">
+            <div className="w-11 h-11 rounded-xl bg-accent flex items-center justify-center shadow-lg animate-float-slow">
               <span className="text-white font-bold text-lg">TK</span>
             </div>
             <span className="text-2xl font-bold text-white tracking-tight">Thrift Kro</span>
@@ -114,7 +114,7 @@ export default function Auth() {
 
             <button 
               type="submit" 
-              className="w-full bg-accent text-white py-3.5 text-[13px] font-semibold rounded-xl hover:bg-accent-dark active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md mt-2"
+              className="w-full bg-accent text-white py-3.5 text-[13px] font-semibold rounded-xl hover:bg-accent-dark active:scale-[0.98] transition-all duration-300 shadow-sm hover:shadow-[0_4px_20px_rgba(255,92,0,0.3)] mt-2"
             >
               {isLogin ? 'Sign In' : 'Create Account'}
             </button>

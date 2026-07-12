@@ -64,7 +64,7 @@ export default function Navbar() {
             <div className="hidden lg:flex items-center gap-6 ml-auto pr-6">
               <button 
                 onClick={() => setSearchOpen(!searchOpen)}
-                className="p-2 rounded-xl hover:bg-surface transition-colors text-text-secondary hover:text-charcoal"
+                className="p-2 rounded-xl hover:bg-surface transition-all duration-200 text-text-secondary hover:text-accent hover:scale-110 active:scale-95"
               >
                 <Search className="w-[18px] h-[18px]" strokeWidth={1.75} />
               </button>
@@ -75,13 +75,13 @@ export default function Navbar() {
 
             {/* Far Right: Profile & Cart */}
             <div className="flex items-center gap-4 relative z-10">
-              <Link to="/account" className="hidden sm:flex p-2 rounded-xl hover:bg-surface transition-colors text-text-secondary hover:text-charcoal">
+              <Link to="/account" className="hidden sm:flex p-2 rounded-xl hover:bg-surface transition-all duration-200 text-text-secondary hover:text-accent hover:scale-110 active:scale-95">
                 <User className="w-[18px] h-[18px]" strokeWidth={1.75} />
               </Link>
               
-              <Link to="/cart" className="p-2 rounded-xl hover:bg-surface transition-colors text-text-secondary hover:text-charcoal relative">
-                <ShoppingBag className="w-[18px] h-[18px]" strokeWidth={1.75} />
-                <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-accent text-white text-[9px] font-bold flex items-center justify-center rounded-full ring-2 ring-white">2</span>
+              <Link to="/cart" className="p-2 rounded-xl hover:bg-surface transition-all duration-200 text-text-secondary hover:text-accent hover:scale-110 active:scale-95 relative group">
+                <ShoppingBag className="w-[18px] h-[18px] transition-transform duration-300 group-hover:-translate-y-0.5" strokeWidth={1.75} />
+                <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-accent text-white text-[9px] font-bold flex items-center justify-center rounded-full ring-2 ring-white transition-transform duration-300 group-hover:scale-110">2</span>
               </Link>
 
               <button
@@ -96,7 +96,7 @@ export default function Navbar() {
 
         {/* Expandable Search Bar */}
         {searchOpen && (
-          <div className="border-t border-[#F0F0F0] animate-fade-in">
+          <div className="absolute top-full left-0 right-0 border-t border-[#F0F0F0] animate-slide-down bg-white/85 backdrop-blur-xl shadow-lg shadow-black/5 origin-top z-40">
             <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16 py-4">
               <div className="relative max-w-lg mx-auto">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />

@@ -31,7 +31,7 @@ export default function Marketplace() {
             { name: "Sneaker Vault", img: "/images/sneakers.png", link: "/department/objects", count: "45 Pieces" },
             { name: "Heavyweight Hoodies", img: "/images/hoodie.png", link: "/department/men", count: "98 Pieces" },
           ].map((cat, idx) => (
-            <Link key={idx} to={cat.link} className="group relative aspect-[3/4] bg-white rounded-2xl border border-[#EAEAEA] overflow-hidden hover:shadow-lg hover:border-accent/20 transition-all duration-500">
+            <Link key={idx} to={cat.link} className="group relative aspect-[3/4] bg-white rounded-2xl border border-[#EAEAEA] overflow-hidden hover:shadow-[0_12px_30px_-10px_rgba(255,92,0,0.15)] hover:border-accent/30 hover:-translate-y-1 transition-all duration-500">
               <div className="w-full h-[70%] flex items-center justify-center p-8 mt-2">
                 <img src={cat.img} alt={cat.name} className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-110" />
               </div>
@@ -48,7 +48,7 @@ export default function Marketplace() {
       <section className="w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 mb-16">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Banner 1 */}
-          <div className="relative aspect-[4/5] sm:aspect-square md:aspect-[4/5] rounded-3xl overflow-hidden bg-charcoal group shadow-md hover:shadow-xl transition-shadow duration-300">
+          <div className="relative aspect-[4/5] sm:aspect-square md:aspect-[4/5] rounded-3xl overflow-hidden bg-charcoal group shadow-md hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.4)] hover:-translate-y-1 transition-all duration-500">
             <div className="absolute inset-0 flex items-center justify-center p-12 select-none">
               <img src="/images/windbreaker.png" alt="New Arrivals" className="w-4/5 h-4/5 object-contain drop-shadow-2xl opacity-80 mix-blend-lighten transition-transform duration-1000 group-hover:scale-105" />
             </div>
@@ -62,7 +62,7 @@ export default function Marketplace() {
             </div>
           </div>
           {/* Banner 2 */}
-          <div className="relative aspect-[4/5] sm:aspect-square md:aspect-[4/5] rounded-3xl overflow-hidden bg-white border border-border/40 group shadow-md hover:shadow-xl transition-shadow duration-300">
+          <div className="relative aspect-[4/5] sm:aspect-square md:aspect-[4/5] rounded-3xl overflow-hidden bg-white border border-border/40 group shadow-md hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all duration-500">
             <div className="absolute inset-0 flex items-center justify-center p-12 select-none">
               <img src="/images/cargo-pants.png" alt="Utility Essentials" className="w-4/5 h-4/5 object-contain drop-shadow-2xl transition-transform duration-1000 group-hover:scale-105" />
             </div>
@@ -88,7 +88,7 @@ export default function Marketplace() {
         </div>
         <div className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide snap-x">
           {products.slice(0, 5).map((product, index) => (
-            <div key={product.id} className="shrink-0 w-[280px] sm:w-[320px] snap-start bg-white p-4 rounded-2xl border border-[#EAEAEA] hover:shadow-lg hover:border-accent/20 transition-all duration-300">
+            <div key={product.id} className="shrink-0 w-[280px] sm:w-[320px] snap-start bg-white p-4 rounded-2xl border border-[#EAEAEA] hover:shadow-[0_12px_24px_-8px_rgba(0,0,0,0.1)] hover:border-accent/30 hover:-translate-y-1 transition-all duration-500">
               <ProductCard product={product} index={index} />
             </div>
           ))}
