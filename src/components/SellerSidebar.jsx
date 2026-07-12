@@ -7,6 +7,7 @@ import {
   Wallet,
   ArrowRightLeft,
   X,
+  Store,
 } from 'lucide-react';
 
 const navItems = [
@@ -15,6 +16,7 @@ const navItems = [
   { label: 'AI Verification', icon: ScanLine, path: '/seller/verification' },
   { label: 'Orders', icon: ClipboardList, path: '/seller/orders' },
   { label: 'Wallet', icon: Wallet, path: '/seller/wallet' },
+  { label: 'Store Profile', icon: Store, path: '/seller/profile' },
 ];
 
 export default function SellerSidebar({ collapsed, onToggleCollapse, mobileOpen, onClose }) {

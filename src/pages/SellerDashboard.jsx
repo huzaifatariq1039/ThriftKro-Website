@@ -9,6 +9,7 @@ import SellerListings from './seller/SellerListings';
 import SellerVerification from './seller/SellerVerification';
 import SellerOrders from './seller/SellerOrders';
 import SellerWallet from './seller/SellerWallet';
+import SellerProfile from './seller/SellerProfile';
 
 export default function SellerDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -22,6 +23,7 @@ export default function SellerDashboard() {
     if (path === '/seller/verification') return 'AI Verification';
     if (path === '/seller/orders') return 'Orders';
     if (path === '/seller/wallet') return 'Wallet';
+    if (path === '/seller/profile') return 'Store Profile';
     return 'Dashboard';
   };
 
@@ -84,6 +86,7 @@ export default function SellerDashboard() {
             <Route path="/verification" element={<SellerVerification />} />
             <Route path="/orders" element={<SellerOrders />} />
             <Route path="/wallet" element={<SellerWallet />} />
+            <Route path="/profile" element={<SellerProfile />} />
           </Routes>
         </div>
       </main>

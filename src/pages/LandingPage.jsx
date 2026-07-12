@@ -36,10 +36,10 @@ export default function LandingPage() {
             Pakistan's first AI-powered preloved streetwear marketplace. Secure escrow payments, virtual try-on, and authentic vintage.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <Link to="/login" className="btn-accent text-white px-10 py-4 text-sm tracking-wide shadow-xl shadow-accent/20 hover:scale-105 transition-transform">
+            <Link to="/login" className="btn-hero-accent text-white px-10 py-4 text-sm tracking-wide shadow-xl shadow-accent/20 hover:scale-105 transition-transform">
               Login
             </Link>
-            <Link to="/signup" className="btn-outline px-10 py-4 text-sm tracking-wide bg-white hover:bg-charcoal hover:text-white transition-all">
+            <Link to="/signup" className="btn-hero-outline px-10 py-4 text-sm tracking-wide bg-white hover:bg-charcoal hover:text-white transition-all">
               Sign Up
             </Link>
           </div>
