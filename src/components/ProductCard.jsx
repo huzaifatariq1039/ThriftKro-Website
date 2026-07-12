@@ -59,15 +59,15 @@ export default function ProductCard({ product, index = 0 }) {
               }}
               className={`
                 p-2 rounded-full backdrop-blur-md transition-all duration-200
-                opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0
+                sm:opacity-0 sm:group-hover:opacity-100 sm:translate-y-1 sm:group-hover:translate-y-0
                 ${liked
-                  ? 'bg-red-50 text-red-500 opacity-100 translate-y-0'
-                  : 'bg-white/90 text-charcoal/50 hover:text-charcoal'
+                  ? 'bg-red-50 text-red-500 !opacity-100 !translate-y-0'
+                  : 'bg-white/90 text-charcoal/40 hover:text-red-500'
                 }
               `}
               aria-label="Add to wishlist"
             >
-              <Heart className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} />
+              <Heart className={`w-4 h-4 transition-transform duration-200 hover:scale-110 ${liked ? 'fill-current' : ''}`} />
             </button>
           </div>
 
@@ -87,14 +87,7 @@ export default function ProductCard({ product, index = 0 }) {
             )}
           </div>
 
-          {/* Quick-view bar */}
-          <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-full group-hover:translate-y-0">
-            <div className="glass-dark rounded-xl py-2.5 text-center">
-              <span className="text-[11px] font-semibold text-white tracking-wide uppercase">
-                Quick View
-              </span>
-            </div>
-          </div>
+
         </div>
       </Link>
 

@@ -1,6 +1,15 @@
+import { useState } from 'react';
 import { ClipboardList, Search } from 'lucide-react';
 
 export default function SellerOrders() {
+  const [activeTab, setActiveTab] = useState('all');
+  const tabs = [
+    { id: 'all', label: 'All Orders' },
+    { id: 'pending', label: 'Pending' },
+    { id: 'shipped', label: 'Shipped' },
+    { id: 'completed', label: 'Completed' },
+  ];
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -18,16 +27,33 @@ export default function SellerOrders() {
         </div>
       </div>
 
+      {/* Filter Tabs */}
+      <div className="flex items-center gap-1 bg-surface p-1 rounded-xl w-fit">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-2 rounded-lg text-[12px] font-semibold transition-all duration-200 ${
+              activeTab === tab.id
+                ? 'bg-white text-charcoal shadow-sm'
+                : 'text-text-muted hover:text-charcoal'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       <div className="bg-white rounded-2xl border border-[#EAEAEA] overflow-hidden">
-        <div className="p-12 flex flex-col items-center justify-center text-center border-b border-[#F0F0F0]">
-          <div className="w-16 h-16 bg-surface rounded-2xl flex items-center justify-center mb-4">
+        <div className="empty-state">
+          <div className="empty-state-icon">
             <ClipboardList className="w-8 h-8 text-text-muted" />
           </div>
-          <h3 className="text-[15px] font-bold text-charcoal mb-2">No recent orders</h3>
-          <p className="text-[13px] text-text-secondary max-w-sm">When buyers purchase your items, their fulfillment details will appear here.</p>
+          <h3>No {activeTab === 'all' ? 'recent' : activeTab} orders</h3>
+          <p>When buyers purchase your items, their fulfillment details will appear here.</p>
         </div>
-        <div className="bg-[#FAFAFA] p-4 text-center">
-          <a href="#" className="text-[12px] font-semibold text-accent hover:text-accent-dark">View Order History Archive</a>
+        <div className="bg-[#FAFAFA] p-4 text-center border-t border-[#F0F0F0]">
+          <a href="#" className="text-[12px] font-semibold text-accent hover:text-accent-dark transition-colors">View Order History Archive</a>
         </div>
       </div>
     </div>

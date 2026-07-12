@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Lock, ShieldCheck, CreditCard, Wallet, MapPin, Truck } from 'lucide-react';
+import { Lock, ShieldCheck, CreditCard, Wallet, Truck, Check } from 'lucide-react';
 import { products } from '../data/products';
 
 export default function Checkout() {
@@ -12,10 +12,30 @@ export default function Checkout() {
   const total = subtotal + escrowFee + shipping;
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] pt-32 pb-24">
+    <div className="min-h-screen bg-[#F9FAFB] pt-28 pb-24">
       <div className="max-w-[1100px] mx-auto px-6 sm:px-12 animate-fade-in">
         
-        <div className="flex items-center gap-2 mb-10">
+        {/* Step Progress Indicator */}
+        <div className="mb-10">
+          <div className="step-progress max-w-md">
+            <div className="step-item completed">
+              <div className="step-dot"><Check className="w-3.5 h-3.5" /></div>
+              <span className="hidden sm:inline">Bag</span>
+            </div>
+            <div className="step-connector completed" />
+            <div className="step-item active">
+              <div className="step-dot">2</div>
+              <span className="hidden sm:inline">Checkout</span>
+            </div>
+            <div className="step-connector" />
+            <div className="step-item">
+              <div className="step-dot">3</div>
+              <span className="hidden sm:inline">Confirmation</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 mb-8">
           <Lock className="w-5 h-5 text-accent" />
           <h1 className="text-2xl font-bold text-charcoal tracking-tight">Secure Checkout</h1>
         </div>
@@ -26,7 +46,7 @@ export default function Checkout() {
           <div className="lg:col-span-7 space-y-6">
             
             {/* Step 1: Shipping */}
-            <div className="bg-white p-8 rounded-2xl border border-[#EAEAEA]">
+            <div className="bg-white p-8 rounded-2xl border border-[#EAEAEA] shadow-sm">
               <div className="flex items-center gap-2.5 mb-6 pb-4 border-b border-[#F0F0F0]">
                 <div className="w-8 h-8 rounded-lg bg-accent-ultralight flex items-center justify-center"><Truck className="w-4 h-4 text-accent" /></div>
                 <h2 className="text-[14px] font-semibold text-charcoal">1. Shipping Address</h2>
@@ -57,15 +77,15 @@ export default function Checkout() {
             </div>
 
             {/* Step 2: Escrow */}
-            <div className="bg-white p-8 rounded-2xl border border-[#EAEAEA]">
+            <div className="bg-white p-8 rounded-2xl border border-[#EAEAEA] shadow-sm">
               <div className="flex items-center justify-between border-b border-[#F0F0F0] pb-4 mb-6">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-accent-ultralight flex items-center justify-center"><Wallet className="w-4 h-4 text-accent" /></div>
                   <h2 className="text-[14px] font-semibold text-charcoal">2. Escrow Payment</h2>
                 </div>
-                <div className="flex items-center gap-1 text-verified">
-                  <Lock className="w-3.5 h-3.5 fill-current" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">Secured</span>
+                <div className="badge badge-success">
+                  <Lock className="w-3 h-3" />
+                  Secured
                 </div>
               </div>
 
@@ -75,12 +95,12 @@ export default function Checkout() {
                   className={`
                     flex items-center justify-between p-5 rounded-xl border-2 cursor-pointer transition-all duration-300
                     ${paymentMethod === 'wallet' 
-                      ? 'border-accent bg-accent-ultralight/30' 
+                      ? 'border-accent bg-accent-ultralight/30 shadow-sm' 
                       : 'border-[#EAEAEA] hover:border-charcoal/30'}
                   `}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${paymentMethod === 'wallet' ? 'border-accent' : 'border-border'}`}>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${paymentMethod === 'wallet' ? 'border-accent' : 'border-border'}`}>
                       {paymentMethod === 'wallet' && <div className="w-2.5 h-2.5 bg-accent rounded-full animate-scale-in" />}
                     </div>
                     <div>
@@ -96,12 +116,12 @@ export default function Checkout() {
                   className={`
                     flex items-center justify-between p-5 rounded-xl border-2 cursor-pointer transition-all duration-300
                     ${paymentMethod === 'card' 
-                      ? 'border-accent bg-accent-ultralight/30' 
+                      ? 'border-accent bg-accent-ultralight/30 shadow-sm' 
                       : 'border-[#EAEAEA] hover:border-charcoal/30'}
                   `}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${paymentMethod === 'card' ? 'border-accent' : 'border-border'}`}>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${paymentMethod === 'card' ? 'border-accent' : 'border-border'}`}>
                       {paymentMethod === 'card' && <div className="w-2.5 h-2.5 bg-accent rounded-full animate-scale-in" />}
                     </div>
                     <div>
@@ -114,14 +134,14 @@ export default function Checkout() {
               </div>
             </div>
 
-            <button className="btn-accent w-full py-3.5 text-[13px] tracking-wide flex items-center justify-center gap-2">
+            <button className="btn-accent w-full py-3.5 text-[13px] tracking-wide flex items-center justify-center gap-2 shadow-md">
               <Lock className="w-4 h-4" /> Pay Rs. {total.toLocaleString()} to Escrow
             </button>
           </div>
 
           {/* Sidebar */}
           <div className="lg:col-span-5">
-            <div className="bg-white p-8 rounded-2xl border border-[#EAEAEA] sticky top-32">
+            <div className="bg-white p-8 rounded-2xl border border-[#EAEAEA] sticky top-32 shadow-sm">
               <h3 className="text-[14px] font-semibold text-charcoal mb-6 border-b border-[#F0F0F0] pb-4">Order Summary</h3>
               
               <div className="space-y-4 mb-6 max-h-[320px] overflow-y-auto pr-2 scrollbar-hide">

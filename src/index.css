@@ -381,3 +381,147 @@ section {
   padding-top: 3.5rem !important;
   padding-bottom: 3.5rem !important;
 }
+
+/* ==========================================
+   Badge System — Consistent Status Pills
+   ========================================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+}
+.badge-success { color: #059669; background: #ECFDF5; }
+.badge-warning { color: #D97706; background: #FFFBEB; }
+.badge-info    { color: #2563EB; background: #EFF6FF; }
+.badge-danger  { color: #DC2626; background: #FEF2F2; }
+.badge-neutral { color: #4A4A4A; background: #F3F4F6; }
+.badge-accent  { color: var(--color-accent-dark); background: var(--color-accent-ultralight); }
+
+.badge-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: currentColor;
+}
+
+/* ==========================================
+   Ghost Button — Icon-only / Subtle actions
+   ========================================== */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-ghost:hover {
+  background: var(--color-surface);
+  color: var(--color-charcoal);
+}
+.btn-ghost:active {
+  transform: scale(0.95);
+}
+
+/* ==========================================
+   Empty State — Reusable empty-content block
+   ========================================== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem;
+}
+.empty-state-icon {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 1.25rem;
+  background: linear-gradient(135deg, var(--color-surface) 0%, #EAEAEA 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+.empty-state h3 {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-charcoal);
+  margin-bottom: 0.5rem;
+}
+.empty-state p {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  max-width: 22rem;
+  line-height: 1.6;
+}
+
+/* ==========================================
+   Step Progress — Checkout / Multi-step
+   ========================================== */
+.step-progress {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  transition: color 0.3s;
+}
+.step-item.active {
+  color: var(--color-accent);
+}
+.step-item.completed {
+  color: var(--color-charcoal);
+}
+.step-dot {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  border: 2px solid #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  transition: all 0.3s;
+}
+.step-item.active .step-dot {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: white;
+}
+.step-item.completed .step-dot {
+  border-color: var(--color-charcoal);
+  background: var(--color-charcoal);
+  color: white;
+}
+.step-connector {
+  flex: 1;
+  height: 2px;
+  background: #E5E7EB;
+  margin: 0 0.75rem;
+  min-width: 2rem;
+}
+.step-connector.active {
+  background: var(--color-accent);
+}
+.step-connector.completed {
+  background: var(--color-charcoal);
+}

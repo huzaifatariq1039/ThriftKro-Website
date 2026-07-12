@@ -2,22 +2,31 @@ import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ProductGrid from '../components/ProductGrid';
 import { products, categories } from '../data/products';
-import { Filter, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { Filter, SlidersHorizontal, Sparkles, ChevronDown } from 'lucide-react';
 
 export default function DepartmentPage() {
   const { departmentName } = useParams();
   const [activeCategory, setActiveCategory] = useState('All');
+  const [sortBy, setSortBy] = useState('newest');
+  const [showFilters, setShowFilters] = useState(false);
+  const [priceRange, setPriceRange] = useState('all');
+  const [conditionFilter, setConditionFilter] = useState('all');
 
-  // Filter products by the current department first
   const departmentProducts = useMemo(() => {
     return products.filter((p) => p.department?.toLowerCase() === departmentName?.toLowerCase());
   }, [departmentName]);
 
-  // Then filter by the selected category (All, Hoodies, etc.)
   const filtered = useMemo(() => {
-    if (activeCategory === 'All') return departmentProducts;
-    return departmentProducts.filter((p) => p.category === activeCategory);
-  }, [activeCategory, departmentProducts]);
+    let result = activeCategory === 'All' ? departmentProducts : departmentProducts.filter((p) => p.category === activeCategory);
+    
+    if (priceRange === 'under3k') result = result.filter(p => p.price < 3000);
+    else if (priceRange === '3k-5k') result = result.filter(p => p.price >= 3000 && p.price <= 5000);
+    else if (priceRange === 'over5k') result = result.filter(p => p.price > 5000);
+    
+    if (conditionFilter !== 'all') result = result.filter(p => p.condition === conditionFilter);
+    
+    return result;
+  }, [activeCategory, departmentProducts, priceRange, conditionFilter]);
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] pt-20">
@@ -58,30 +67,78 @@ export default function DepartmentPage() {
 
       {/* Product Grid & Filters */}
       <section className="px-6 sm:px-8 lg:px-12 w-full max-w-7xl mx-auto mb-32">
-        <div className="flex justify-between items-center mb-8 bg-white p-4 rounded-2xl border border-border/40 shadow-sm">
+        <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-2xl border border-border/40 shadow-sm">
           <span className="text-[10px] font-extrabold text-text-secondary uppercase tracking-widest pl-2">
             {filtered.length} Items Available
           </span>
-          <div className="flex items-center gap-6">
-            <button className="flex items-center gap-1.5 text-[11px] font-bold text-charcoal uppercase tracking-widest hover:text-accent transition-colors">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${showFilters ? 'bg-charcoal text-white' : 'text-charcoal hover:bg-surface'}`}
+            >
               <SlidersHorizontal className="w-3.5 h-3.5" />
               Filter
             </button>
-            <button className="flex items-center gap-1.5 text-[11px] font-bold text-charcoal uppercase tracking-widest hover:text-accent transition-colors">
-              <Filter className="w-3.5 h-3.5" />
-              Sort
-            </button>
+            <div className="relative">
+              <select 
+                value={sortBy} 
+                onChange={e => setSortBy(e.target.value)}
+                className="appearance-none bg-transparent text-[11px] font-bold text-charcoal uppercase tracking-widest pr-6 cursor-pointer focus:outline-none"
+              >
+                <option value="newest">Newest</option>
+                <option value="price-low">Price: Low</option>
+                <option value="price-high">Price: High</option>
+              </select>
+              <ChevronDown className="w-3 h-3 absolute right-0 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+            </div>
           </div>
         </div>
+
+        {/* Expandable Filter Panel */}
+        {showFilters && (
+          <div className="bg-white p-6 rounded-2xl border border-border/40 shadow-sm mb-6 animate-slide-down">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-2">Price Range</label>
+                <select value={priceRange} onChange={e => setPriceRange(e.target.value)} className="w-full text-[13px]">
+                  <option value="all">All Prices</option>
+                  <option value="under3k">Under Rs. 3,000</option>
+                  <option value="3k-5k">Rs. 3,000 – 5,000</option>
+                  <option value="over5k">Over Rs. 5,000</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-2">Condition</label>
+                <select value={conditionFilter} onChange={e => setConditionFilter(e.target.value)} className="w-full text-[13px]">
+                  <option value="all">All Conditions</option>
+                  <option value="Excellent">Excellent</option>
+                  <option value="Good">Good</option>
+                  <option value="Fair">Fair</option>
+                </select>
+              </div>
+              <div className="flex items-end">
+                <button 
+                  onClick={() => { setPriceRange('all'); setConditionFilter('all'); }}
+                  className="text-[12px] font-semibold text-accent hover:text-accent-dark transition-colors"
+                >
+                  Clear All Filters
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {filtered.length > 0 ? (
           <ProductGrid products={filtered} />
         ) : (
-          <div className="text-center py-20 bg-white rounded-3xl border border-border/40 shadow-sm">
-            <h3 className="text-base font-black text-charcoal mb-2 uppercase tracking-wide">No items found</h3>
-            <p className="text-xs text-text-secondary font-medium max-w-xs mx-auto leading-relaxed">We couldn't find any items in this category for {departmentName}. New drops are added daily, please check back soon.</p>
+          <div className="bg-white rounded-3xl border border-border/40 shadow-sm empty-state">
+            <div className="empty-state-icon">
+              <Filter className="w-8 h-8 text-text-muted" />
+            </div>
+            <h3>No items found</h3>
+            <p>We couldn't find any items matching your filters for {departmentName}. New drops are added daily.</p>
             <button 
-              onClick={() => setActiveCategory('All')}
+              onClick={() => { setActiveCategory('All'); setPriceRange('all'); setConditionFilter('all'); }}
               className="mt-6 btn-outline px-6 py-2.5 text-xs"
             >
               Clear Filters

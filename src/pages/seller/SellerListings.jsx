@@ -1,4 +1,4 @@
-import { Package, Plus } from 'lucide-react';
+import { Package, Plus, Upload, Camera, Tag } from 'lucide-react';
 
 export default function SellerListings() {
   return (
@@ -13,13 +13,36 @@ export default function SellerListings() {
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-[#EAEAEA] p-12 flex flex-col items-center justify-center text-center">
-        <div className="w-16 h-16 bg-surface rounded-2xl flex items-center justify-center mb-4">
-          <Package className="w-8 h-8 text-text-muted" />
+      <div className="bg-white rounded-2xl border border-[#EAEAEA] overflow-hidden">
+        <div className="empty-state py-16">
+          <div className="empty-state-icon">
+            <Package className="w-8 h-8 text-text-muted" />
+          </div>
+          <h3>No listings yet</h3>
+          <p>Start building your portfolio by uploading your first item. Our AI will handle the rest.</p>
         </div>
-        <h3 className="text-[15px] font-bold text-charcoal mb-2">No listings yet</h3>
-        <p className="text-[13px] text-text-secondary max-w-sm mb-6">You haven't added any items to your portfolio. Upload a flat-lay photo to start the AI verification process.</p>
-        <button className="btn-outline px-6 py-2.5 text-[12px]">Upload Photo</button>
+
+        {/* Step-by-step guide */}
+        <div className="border-t border-[#F0F0F0] px-8 py-6">
+          <h4 className="text-[12px] font-bold text-text-muted uppercase tracking-wider mb-4">How to list an item</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { icon: Camera, step: '1', title: 'Upload Photos', desc: 'Take flat-lay photos of your item' },
+              { icon: Tag, step: '2', title: 'Set Details', desc: 'Add brand, size, price and condition' },
+              { icon: Upload, step: '3', title: 'AI Verifies', desc: 'Our AI scans and grades authenticity' },
+            ].map((s) => (
+              <div key={s.step} className="flex items-start gap-3 p-4 bg-surface rounded-xl">
+                <div className="w-8 h-8 rounded-lg bg-accent-ultralight text-accent flex items-center justify-center shrink-0 text-[11px] font-bold">
+                  {s.step}
+                </div>
+                <div>
+                  <p className="text-[12px] font-bold text-charcoal">{s.title}</p>
+                  <p className="text-[11px] text-text-muted mt-0.5">{s.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

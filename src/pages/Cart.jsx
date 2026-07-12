@@ -1,14 +1,23 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Trash2, ShieldCheck, ArrowRight, ShoppingBag } from 'lucide-react';
+import { Trash2, ShieldCheck, ShoppingBag, Plus, Minus, ArrowLeft } from 'lucide-react';
 import { products } from '../data/products';
 
 export default function Cart() {
+  const [quantities, setQuantities] = useState({ [products[0].id]: 1, [products[1].id]: 1 });
   const cartItems = [products[0], products[1]];
   
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price, 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + item.price * (quantities[item.id] || 1), 0);
   const escrowFee = Math.round(subtotal * 0.02);
   const shipping = 500;
   const total = subtotal + escrowFee + shipping;
+
+  const updateQty = (id, delta) => {
+    setQuantities(prev => ({
+      ...prev,
+      [id]: Math.max(1, (prev[id] || 1) + delta)
+    }));
+  };
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] pt-32 pb-24">
@@ -20,7 +29,7 @@ export default function Cart() {
           </div>
           <div>
             <h1 className="font-sans font-black text-3xl text-charcoal tracking-tight uppercase">Shopping Bag</h1>
-            <p className="text-xs font-bold text-text-secondary uppercase tracking-wider mt-0.5">2 items eligible for Escrow Protection</p>
+            <p className="text-xs font-bold text-text-secondary uppercase tracking-wider mt-0.5">{cartItems.length} items eligible for Escrow Protection</p>
           </div>
         </div>
 
@@ -40,8 +49,8 @@ export default function Cart() {
                       <Link to={`/product/${item.id}`} className="text-base font-bold text-charcoal hover:text-accent transition-colors line-clamp-1 uppercase tracking-wide">
                         {item.name}
                       </Link>
-                      <button className="w-8 h-8 rounded-xl bg-surface hover:bg-rose-50 text-text-muted hover:text-rose-600 transition-colors flex items-center justify-center shrink-0">
-                        <Trash2 className="w-4 h-4" />
+                      <button className="w-8 h-8 rounded-xl bg-surface hover:bg-rose-50 text-text-muted hover:text-rose-600 transition-colors flex items-center justify-center shrink-0 group">
+                        <Trash2 className="w-4 h-4 transition-transform group-hover:scale-110" />
                       </button>
                     </div>
                     <p className="text-[10px] font-extrabold tracking-widest text-accent uppercase mt-1">
@@ -49,16 +58,34 @@ export default function Cart() {
                     </p>
                   </div>
                   
-                  <div>
-                    <div className="flex gap-4 text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-3">
-                      <span>Size: {item.size}</span>
-                      <span>Cond: {item.condition}</span>
+                  <div className="flex items-end justify-between">
+                    <div>
+                      <div className="flex gap-4 text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-2">
+                        <span>Size: {item.size}</span>
+                        <span>Cond: {item.condition}</span>
+                      </div>
+                      <p className="text-base font-extrabold text-charcoal">Rs. {(item.price * (quantities[item.id] || 1)).toLocaleString()}</p>
                     </div>
-                    <p className="text-base font-extrabold text-charcoal">Rs. {item.price.toLocaleString()}</p>
+                    
+                    {/* Quantity Selector */}
+                    <div className="flex items-center gap-1 bg-surface rounded-xl border border-border/40 p-1">
+                      <button onClick={() => updateQty(item.id, -1)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white text-text-muted hover:text-charcoal transition-colors">
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="w-8 text-center text-[13px] font-bold text-charcoal">{quantities[item.id] || 1}</span>
+                      <button onClick={() => updateQty(item.id, 1)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white text-text-muted hover:text-charcoal transition-colors">
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             ))}
+
+            {/* Continue Shopping */}
+            <Link to="/marketplace" className="inline-flex items-center gap-2 text-[13px] font-semibold text-text-secondary hover:text-accent transition-colors mt-2">
+              <ArrowLeft className="w-4 h-4" /> Continue Shopping
+            </Link>
           </div>
 
           {/* Sticky Summary Panel */}
