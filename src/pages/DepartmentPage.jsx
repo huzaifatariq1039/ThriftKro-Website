@@ -29,7 +29,7 @@ export default function DepartmentPage() {
   }, [activeCategory, departmentProducts, priceRange, conditionFilter]);
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] pt-20">
+    <div className="min-h-screen pt-[68px]" style={{ background: '#FBF9F8' }}>
       {/* Department Header */}
       <section className="pt-16 pb-10 px-6 sm:px-8 lg:px-12 w-full max-w-7xl mx-auto animate-fade-in">
         <div className="flex flex-col items-center text-center">

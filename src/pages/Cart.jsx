@@ -1,134 +1,171 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Trash2, ShieldCheck, ShoppingBag, Plus, Minus, ArrowLeft } from 'lucide-react';
+import { Trash2, ShieldCheck, ShoppingBag, Plus, Minus, ArrowLeft, Shield } from 'lucide-react';
 import { products } from '../data/products';
 
 export default function Cart() {
-  const [quantities, setQuantities] = useState({ [products[0].id]: 1, [products[1].id]: 1 });
-  const cartItems = [products[0], products[1]];
-  
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * (quantities[item.id] || 1), 0);
-  const escrowFee = Math.round(subtotal * 0.02);
-  const shipping = 500;
-  const total = subtotal + escrowFee + shipping;
+  const [cartItems, setCartItems] = useState([products[0], products[1]]);
 
-  const updateQty = (id, delta) => {
-    setQuantities(prev => ({
-      ...prev,
-      [id]: Math.max(1, (prev[id] || 1) + delta)
-    }));
+  const removeItem = (id) => {
+    setCartItems(prev => prev.filter(item => item.id !== id));
   };
 
+  const subtotal = cartItems.reduce((sum, item) => sum + item.price, 0);
+  const shipping = cartItems.length ? 199 : 0;
+  const total = subtotal + shipping;
+
+  const pk = (n) => `Rs. ${n.toLocaleString()}`;
+
   return (
-    <div className="min-h-screen bg-[#F9FAFB] pt-32 pb-24">
-      <div className="max-w-[1100px] mx-auto px-6 sm:px-12 animate-fade-in">
-        
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-accent-ultralight flex items-center justify-center text-accent">
-            <ShoppingBag className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="font-sans font-black text-3xl text-charcoal tracking-tight uppercase">Shopping Bag</h1>
-            <p className="text-xs font-bold text-text-secondary uppercase tracking-wider mt-0.5">{cartItems.length} items eligible for Escrow Protection</p>
-          </div>
-        </div>
+    <div className="min-h-screen pt-[68px]" style={{ background: '#FBF9F8' }}>
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 py-8 animate-fade-in">
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* Cart Items List */}
-          <div className="lg:col-span-7 space-y-4">
-            {cartItems.map((item) => (
-              <div key={item.id} className="bg-white p-6 rounded-3xl border border-border/40 flex gap-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-                <div className="w-24 h-32 bg-surface rounded-2xl overflow-hidden shrink-0 border border-border/30">
-                  <img src={item.image} alt={item.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
-                </div>
-                
-                <div className="flex-1 flex flex-col justify-between py-1">
-                  <div>
-                    <div className="flex justify-between items-start gap-4">
-                      <Link to={`/product/${item.id}`} className="text-base font-bold text-charcoal hover:text-accent transition-colors line-clamp-1 uppercase tracking-wide">
-                        {item.name}
-                      </Link>
-                      <button className="w-8 h-8 rounded-xl bg-surface hover:bg-rose-50 text-text-muted hover:text-rose-600 transition-colors flex items-center justify-center shrink-0 group">
-                        <Trash2 className="w-4 h-4 transition-transform group-hover:scale-110" />
-                      </button>
-                    </div>
-                    <p className="text-[10px] font-extrabold tracking-widest text-accent uppercase mt-1">
-                      {item.brand || item.seller}
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-end justify-between">
-                    <div>
-                      <div className="flex gap-4 text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-2">
-                        <span>Size: {item.size}</span>
-                        <span>Cond: {item.condition}</span>
-                      </div>
-                      <p className="text-base font-extrabold text-charcoal">Rs. {(item.price * (quantities[item.id] || 1)).toLocaleString()}</p>
-                    </div>
-                    
-                    {/* Quantity Selector */}
-                    <div className="flex items-center gap-1 bg-surface rounded-xl border border-border/40 p-1">
-                      <button onClick={() => updateQty(item.id, -1)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white text-text-muted hover:text-charcoal transition-colors">
-                        <Minus className="w-3.5 h-3.5" />
-                      </button>
-                      <span className="w-8 text-center text-[13px] font-bold text-charcoal">{quantities[item.id] || 1}</span>
-                      <button onClick={() => updateQty(item.id, 1)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white text-text-muted hover:text-charcoal transition-colors">
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+        <h1
+          className="font-extrabold mb-8"
+          style={{ fontSize: 34, letterSpacing: '-0.03em', color: '#1A1108' }}
+        >
+          Your Cart
+        </h1>
 
-            {/* Continue Shopping */}
-            <Link to="/marketplace" className="inline-flex items-center gap-2 text-[13px] font-semibold text-text-secondary hover:text-accent transition-colors mt-2">
-              <ArrowLeft className="w-4 h-4" /> Continue Shopping
+        {cartItems.length === 0 ? (
+          /* ─── Empty State ─── */
+          <div className="text-center py-24">
+            <ShoppingBag
+              size={48}
+              style={{ color: 'rgba(26,17,8,0.2)' }}
+              className="mx-auto mb-4"
+            />
+            <p className="font-bold text-lg" style={{ color: '#1A1108' }}>
+              Your cart is empty
+            </p>
+            <p className="text-sm mb-6" style={{ color: 'rgba(26,17,8,0.5)' }}>
+              Find something you love.
+            </p>
+            <Link
+              to="/marketplace"
+              className="inline-block px-6 py-3 rounded-full font-extrabold text-white"
+              style={{ background: '#FF5C00' }}
+            >
+              Start shopping
             </Link>
           </div>
+        ) : (
+          /* ─── Cart Content ─── */
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-          {/* Sticky Summary Panel */}
-          <div className="lg:col-span-5">
-            <div className="bg-white p-8 rounded-3xl border border-border/40 shadow-sm sticky top-32">
-              <h2 className="text-[11px] font-bold tracking-[0.15em] uppercase text-text-secondary mb-6 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-accent rounded-full"></span> Order Summary
-              </h2>
-              
-              <div className="space-y-4 mb-6">
-                <div className="flex justify-between text-sm font-medium text-text-secondary">
-                  <span>Subtotal</span>
-                  <span className="text-charcoal font-bold">Rs. {subtotal.toLocaleString()}</span>
+            {/* Items */}
+            <div className="lg:col-span-2 space-y-4">
+              {cartItems.map(item => (
+                <div
+                  key={item.id}
+                  className="flex gap-4 p-4 rounded-2xl bg-white"
+                  style={{ boxShadow: '0 0 0 1px rgba(26,17,8,0.06)' }}
+                >
+                  <Link to={`/product/${item.id}`}>
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-24 h-24 rounded-xl object-cover hover:opacity-80 transition-opacity"
+                    />
+                  </Link>
+                  <div className="flex-1">
+                    <span
+                      className="text-[10px] font-bold tracking-wider uppercase block"
+                      style={{
+                        color: 'rgba(26,17,8,0.5)',
+                        fontFamily: "'JetBrains Mono', monospace",
+                      }}
+                    >
+                      {(item.brand || item.seller).toUpperCase()} · {item.condition}
+                    </span>
+                    <Link
+                      to={`/product/${item.id}`}
+                      className="font-bold block hover:opacity-70 transition-opacity"
+                      style={{ color: '#1A1108' }}
+                    >
+                      {item.name}
+                    </Link>
+                    <p className="text-xs" style={{ color: 'rgba(26,17,8,0.5)' }}>
+                      Size {item.size} · {item.seller}
+                    </p>
+                    <p className="font-extrabold mt-2" style={{ color: '#FF5C00' }}>
+                      {pk(item.price)}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => removeItem(item.id)}
+                    className="self-start w-9 h-9 rounded-full flex items-center justify-center transition-colors hover:bg-rose-100"
+                    style={{ background: '#FDECEA' }}
+                  >
+                    <Trash2 size={16} style={{ color: '#DC2626' }} />
+                  </button>
                 </div>
-                <div className="flex justify-between text-sm font-medium text-text-secondary">
-                  <span>Escrow Fee (2%)</span>
-                  <span className="text-charcoal font-bold">Rs. {escrowFee.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-sm font-medium text-text-secondary">
-                  <span>Shipping</span>
-                  <span className="text-charcoal font-bold">Rs. {shipping.toLocaleString()}</span>
-                </div>
-              </div>
-              
-              <div className="border-t border-border pt-5 mb-6 flex justify-between items-end">
-                <span className="text-xs font-bold uppercase tracking-widest text-text-secondary mb-0.5">Total Amount</span>
-                <span className="text-2xl font-black text-accent">Rs. {total.toLocaleString()}</span>
-              </div>
+              ))}
 
-              <Link to="/checkout" className="btn-primary w-full text-center py-4 text-xs tracking-widest mb-6 shadow-sm">
-                Proceed to Checkout
+              <Link
+                to="/marketplace"
+                className="inline-flex items-center gap-2 text-sm font-semibold mt-2"
+                style={{ color: 'rgba(26,17,8,0.6)' }}
+              >
+                <ArrowLeft size={16} /> Continue shopping
               </Link>
-              
-              <div className="flex items-start gap-3 p-4 bg-accent-ultralight border border-accent/10 rounded-2xl">
-                <ShieldCheck className="w-5 h-5 text-accent shrink-0 mt-0.5" />
-                <p className="text-[11px] leading-relaxed text-text-secondary font-medium">
-                  Escrow Protection active. The seller is not paid until you verify the item's condition.
-                </p>
+            </div>
+
+            {/* Summary */}
+            <div
+              className="rounded-2xl p-6 bg-white h-fit sticky top-24"
+              style={{ boxShadow: '0 0 0 1px rgba(26,17,8,0.06)' }}
+            >
+              <h3 className="font-extrabold mb-4" style={{ color: '#1A1108' }}>
+                Order Summary
+              </h3>
+
+              {[
+                ['Subtotal', subtotal],
+                ['Shipping', shipping],
+              ].map(([label, value]) => (
+                <div
+                  key={label}
+                  className="flex justify-between text-sm py-1.5"
+                  style={{ color: 'rgba(26,17,8,0.6)' }}
+                >
+                  <span>{label}</span>
+                  <span className="font-semibold" style={{ color: '#1A1108' }}>
+                    {pk(value)}
+                  </span>
+                </div>
+              ))}
+
+              <div
+                className="border-t my-3"
+                style={{ borderColor: 'rgba(26,17,8,0.08)' }}
+              />
+
+              <div
+                className="flex justify-between font-extrabold text-lg mb-5"
+                style={{ color: '#1A1108' }}
+              >
+                <span>Total</span>
+                <span style={{ color: '#FF5C00' }}>{pk(total)}</span>
+              </div>
+
+              <Link
+                to="/checkout"
+                className="w-full py-4 rounded-xl font-extrabold text-white text-center block"
+                style={{ background: '#FF5C00' }}
+              >
+                Checkout · {pk(total)}
+              </Link>
+
+              <div
+                className="flex items-center justify-center gap-2 mt-4 text-xs"
+                style={{ color: 'rgba(26,17,8,0.5)' }}
+              >
+                <Shield size={14} /> Secure checkout · Buyer protection
               </div>
             </div>
           </div>
-
-        </div>
+        )}
       </div>
     </div>
   );

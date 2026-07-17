@@ -1,171 +1,195 @@
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowRight, Sparkles, Recycle, ShieldCheck } from 'lucide-react';
 import { products } from '../data/products';
-import { Star, ShieldCheck, Shirt, Handshake } from 'lucide-react';
 
 export default function LandingPage() {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const heroProducts = products.slice(0, 5);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroProducts.length);
-    }, 4000);
-    return () => clearInterval(timer);
-  }, [heroProducts.length]);
-
   return (
-    <div className="min-h-screen bg-white">
-      {/* Top Header / Branding - Minimal */}
-      <header className="absolute top-0 left-0 right-0 z-50">
-        <div className="max-w-6xl mx-auto px-12 lg:px-24 py-8 flex justify-center items-center">
-          <div className="font-sans text-3xl font-extrabold tracking-tight text-charcoal">Thrift Kro</div>
-        </div>
+    <div className="min-h-screen" style={{ background: '#FBF9F8' }}>
+
+      {/* ─── Header ─── */}
+      <header className="max-w-7xl mx-auto px-6 sm:px-8 h-20 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2.5">
+          <img src="/Thrift kro.png" alt="Thrift Kro" className="h-9 w-9 rounded-xl object-cover" />
+          <span className="text-[17px] font-extrabold tracking-tight hidden sm:block" style={{ color: '#1A1108' }}>
+            Thrift Kro
+          </span>
+        </Link>
+        <nav className="hidden md:flex items-center gap-8">
+          {[
+            { label: 'Discover', to: '/marketplace' },
+            { label: 'Try-On', to: '/vto' },
+            { label: 'Sell', to: '/seller' },
+            { label: 'About', to: '/about' },
+          ].map(x => (
+            <Link
+              key={x.label}
+              to={x.to}
+              className="text-sm font-semibold hover:opacity-60 transition-opacity"
+              style={{ color: '#1A1108' }}
+            >
+              {x.label}
+            </Link>
+          ))}
+        </nav>
+        <Link
+          to="/role-selection"
+          className="px-5 py-2.5 rounded-full text-sm font-extrabold"
+          style={{ background: '#1A1108', color: 'white' }}
+        >
+          Get Started
+        </Link>
       </header>
 
-      {/* Hero Section */}
-      <section className="pt-48 pb-32 px-12 lg:px-24 w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-        {/* Left Side: Tagline & CTAs */}
-        <div className="flex flex-col items-center text-center justify-center mx-auto w-full">
-          <h1 className="font-sans font-extrabold text-6xl sm:text-7xl lg:text-[85px] xl:text-[100px] text-charcoal tracking-tight mb-6 leading-[1.05] py-2">
-            Try kro.<br />
-            Buy kro.<br />
-            <span className="text-accent">Thrift kro.</span>
+      {/* ─── Hero Section ─── */}
+      <section className="max-w-7xl mx-auto px-6 sm:px-8 pt-10 pb-20 grid md:grid-cols-2 gap-12 items-center !pt-10 !pb-20">
+        <div>
+          {/* Badge */}
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6"
+            style={{ background: '#FFF3E0' }}
+          >
+            <Sparkles size={14} style={{ color: '#FF5C00' }} />
+            <span className="text-xs font-bold" style={{ color: '#FF5C00' }}>
+              Pakistan's #1 circular fashion marketplace
+            </span>
+          </div>
+
+          {/* Headline */}
+          <h1
+            className="font-extrabold"
+            style={{
+              fontSize: 'clamp(42px, 6vw, 68px)',
+              lineHeight: 0.95,
+              letterSpacing: '-0.04em',
+              color: '#1A1108',
+            }}
+          >
+            Thrift smarter.
+            <br />
+            Style <span style={{ color: '#FF5C00' }}>louder.</span>
           </h1>
-          <p className="text-[13px] sm:text-sm text-text-secondary max-w-sm mb-8 leading-relaxed font-medium">
-            Pakistan's first AI-powered preloved streetwear marketplace. Secure escrow payments, virtual try-on, and authentic vintage.
+
+          {/* Subtitle */}
+          <p className="mt-6 text-base max-w-md" style={{ color: 'rgba(26,17,8,0.6)' }}>
+            Buy & sell pre-loved streetwear, sneakers and vintage. Try them on with AR before you commit. Sustainable never looked this good.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            <Link to="/login" className="btn-hero-accent text-white px-10 py-4 text-sm tracking-wide shadow-xl shadow-accent/20 hover:scale-105 transition-transform">
-              Login
-            </Link>
-            <Link to="/signup" className="btn-hero-outline px-10 py-4 text-sm tracking-wide bg-white hover:bg-charcoal hover:text-white transition-all">
-              Sign Up
-            </Link>
-          </div>
-        </div>
 
-        {/* Right Side: Product Slideshow (Floating Images) */}
-        <div className="w-full relative flex justify-center mt-12 lg:mt-0 lg:translate-x-[15%] pr-[5%] lg:pr-0">
-          <div className="w-full max-w-sm sm:max-w-lg lg:max-w-[500px] xl:max-w-[560px]">
-            <div className="flex items-center justify-center mb-6 px-4">
-              <div className="flex gap-2">
-                {heroProducts.map((_, idx) => (
-                  <button 
-                    key={idx}
-                    onClick={() => setCurrentSlide(idx)}
-                    className={`w-1.5 h-1.5 rounded-full transition-all ${currentSlide === idx ? 'bg-accent w-5' : 'bg-border'}`}
-                  />
-                ))}
-              </div>
-            </div>
-            
-            <div className="relative aspect-square sm:aspect-[4/5] group cursor-pointer flex justify-center items-center">
-              {heroProducts.map((product, idx) => (
-                <div 
-                  key={product.id}
-                  className={`absolute inset-0 transition-opacity duration-1000 flex flex-col items-center justify-center ${currentSlide === idx ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}
-                >
-                  <div className="relative w-full flex-1 flex justify-center items-center">
-                    <img 
-                      src={product.image} 
-                      alt={product.name} 
-                      className="w-full h-full object-contain drop-shadow-2xl transition-transform duration-[2000ms] group-hover:scale-105" 
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+          {/* CTAs */}
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              to="/role-selection"
+              className="px-7 py-4 rounded-full font-extrabold flex items-center gap-2 text-white transition-all hover:opacity-90"
+              style={{ background: '#FF5C00' }}
+            >
+              Start Shopping <ArrowRight size={18} />
+            </Link>
+            <Link
+              to="/role-selection"
+              className="px-7 py-4 rounded-full font-extrabold transition-all hover:opacity-70"
+              style={{ boxShadow: '0 0 0 1.5px rgba(26,17,8,0.15)', color: '#1A1108' }}
+            >
+              Sell Your Closet
+            </Link>
           </div>
-        </div>
-      </section>
 
-      {/* Top Ranked Stores */}
-      <section className="py-48 bg-surface-raised overflow-hidden border-t border-b border-border/30 flex flex-col items-center justify-center w-full">
-        <div className="w-full max-w-6xl px-12 lg:px-24">
-          <div className="text-center mb-24">
-            <h2 className="text-sm font-bold tracking-[0.2em] text-accent uppercase mb-3">Community Favorites</h2>
-            <h3 className="text-4xl sm:text-5xl font-extrabold text-charcoal tracking-tight">Top Ranked Stores</h3>
-          </div>
-        </div>
-          
-        <div className="relative w-full overflow-hidden py-8">
-          <div className="flex animate-marquee gap-8 px-4 w-max">
-            {/* Double array for seamless loop */}
+          {/* Stats */}
+          <div className="mt-10 flex gap-10">
             {[
-              'RetroVault', 'DenimCulture', 'StreetArchive', 'KickVault', 'HypeBeastPk', 'VintageVibe',
-              'RetroVault', 'DenimCulture', 'StreetArchive', 'KickVault', 'HypeBeastPk', 'VintageVibe'
-            ].map((store, idx) => (
-              <div key={idx} className="w-[300px] bg-white p-8 rounded-3xl border border-border/50 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col items-center text-center cursor-pointer shrink-0 group">
-                <div className="w-20 h-20 rounded-full bg-charcoal text-white flex items-center justify-center text-2xl font-bold mb-6 group-hover:bg-accent transition-colors">
-                  {store.substring(0, 2).toUpperCase()}
-                </div>
-                <h4 className="text-xl font-bold text-charcoal mb-2">{store}</h4>
-                <div className="flex items-center gap-1 text-accent mb-4">
-                  {[1,2,3,4,5].map(star => <Star key={`${idx}-${star}`} className="w-4 h-4 fill-current" />)}
-                </div>
-                <p className="text-sm text-text-secondary leading-relaxed">Curated vintage and premium streetwear. Verified authenticity.</p>
+              ['50K+', 'Active users'],
+              ['120K+', 'Items listed'],
+              ['4.9★', 'Avg. rating'],
+            ].map(([num, label]) => (
+              <div key={label}>
+                <p
+                  className="font-extrabold"
+                  style={{ fontSize: 28, letterSpacing: '-0.02em', color: '#1A1108' }}
+                >
+                  {num}
+                </p>
+                <span
+                  className="text-[10px] font-bold tracking-[0.1em] uppercase"
+                  style={{
+                    color: 'rgba(26,17,8,0.4)',
+                    fontFamily: "'JetBrains Mono', monospace",
+                  }}
+                >
+                  {label}
+                </span>
               </div>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* Platform Features */}
-      <section className="py-48 bg-white flex flex-col items-center justify-center w-full">
-        <div className="w-full max-w-6xl px-12 lg:px-24">
-          <div className="text-center mb-28">
-            <h2 className="text-sm font-bold tracking-[0.2em] text-accent uppercase mb-3">Why Thrift Kro?</h2>
-            <h3 className="text-4xl sm:text-5xl font-extrabold text-charcoal tracking-tight">Powered by Technology</h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
-            <div className="flex flex-col items-center text-center p-8 rounded-3xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border border-transparent hover:border-border/50 bg-white group cursor-default">
-              <div className="w-20 h-20 bg-accent-ultralight text-accent rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 group-hover:bg-accent group-hover:text-white transition-all duration-300">
-                <Shirt className="w-10 h-10" />
-              </div>
-              <h4 className="text-2xl font-bold text-charcoal mb-4">Virtual Try-On</h4>
-              <p className="text-base text-text-secondary leading-relaxed">Upload a photo of yourself and see exactly how the garment fits before you buy, powered by our advanced AI VTON model.</p>
+        {/* Product Image Grid (staggered 2×2) */}
+        <div className="grid grid-cols-2 gap-4">
+          {products.slice(0, 4).map((p, i) => (
+            <div
+              key={p.id}
+              className={`rounded-3xl overflow-hidden ${i % 2 ? 'mt-8' : ''}`}
+              style={{ boxShadow: '0 20px 50px rgba(0,0,0,0.08)' }}
+            >
+              <img
+                src={p.image}
+                alt={p.name}
+                className="w-full aspect-square object-cover hover:scale-105 transition-transform duration-700"
+              />
             </div>
-
-            <div className="flex flex-col items-center text-center p-8 rounded-3xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border border-transparent hover:border-border/50 bg-white group cursor-default">
-              <div className="w-20 h-20 bg-accent-ultralight text-accent rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 group-hover:bg-accent group-hover:text-white transition-all duration-300">
-                <ShieldCheck className="w-10 h-10" />
-              </div>
-              <h4 className="text-2xl font-bold text-charcoal mb-4">AI Verification</h4>
-              <p className="text-base text-text-secondary leading-relaxed">Our AI automatically detects garment defects, verifies tags, and ensures authentic vintage condition to protect buyers.</p>
-            </div>
-
-            <div className="flex flex-col items-center text-center p-8 rounded-3xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border border-transparent hover:border-border/50 bg-white group cursor-default">
-              <div className="w-20 h-20 bg-accent-ultralight text-accent rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 group-hover:bg-accent group-hover:text-white transition-all duration-300">
-                <Handshake className="w-10 h-10" />
-              </div>
-              <h4 className="text-2xl font-bold text-charcoal mb-4">Price Negotiation</h4>
-              <p className="text-base text-text-secondary leading-relaxed">Found something you love? Make an offer directly to the seller using our secure built-in escrow and bidding system.</p>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* Our Vision */}
-      <section className="py-40 lg:py-56 bg-charcoal text-white relative overflow-hidden flex flex-col items-center justify-center w-full">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?q=80&w=2000')] opacity-10 bg-cover bg-center mix-blend-overlay"></div>
-        <div className="w-full max-w-4xl px-6 text-center relative z-10">
-          <h2 className="text-sm font-bold tracking-[0.2em] text-accent uppercase mb-6">Our Vision</h2>
-          <h3 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-8 leading-tight">
-            Revolutionizing the overall online shopping experience.
-          </h3>
-          <p className="text-center text-lg text-white/70 max-w-2xl mx-auto leading-relaxed mb-12">
-            We believe that buying preloved fashion should be as seamless, safe, and technologically advanced as buying retail. We are building the future of circular fashion in Pakistan.
-          </p>
-          <Link 
-            to="/signup" 
-            className="inline-flex items-center justify-center bg-accent text-white px-10 py-4.5 rounded-full text-xs font-black uppercase tracking-widest hover:bg-white hover:text-charcoal hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 shadow-xl shadow-accent/15 border border-transparent hover:border-white"
-          >
-            Join The Revolution
-          </Link>
+      {/* ─── Features Section (Dark) ─── */}
+      <section className="!py-16" style={{ background: '#1A1108' }}>
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 grid md:grid-cols-3 gap-8">
+          {[
+            {
+              icon: <Recycle size={24} />,
+              title: 'Circular by design',
+              desc: 'Every purchase keeps clothing out of landfills and in rotation.',
+            },
+            {
+              icon: <Sparkles size={24} />,
+              title: 'AR Try-On',
+              desc: 'See how sneakers & fits look on you before you buy — no guesswork.',
+            },
+            {
+              icon: <ShieldCheck size={24} />,
+              title: 'Buyer Protection',
+              desc: '7-day protection on every order. Shop with total peace of mind.',
+            },
+          ].map((feat, i) => (
+            <div key={i}>
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
+                style={{ background: '#FFD60A' }}
+              >
+                <span style={{ color: '#1A1108' }}>{feat.icon}</span>
+              </div>
+              <p className="font-extrabold text-white text-lg mb-2">{feat.title}</p>
+              <p className="text-sm text-white/50">{feat.desc}</p>
+            </div>
+          ))}
         </div>
       </section>
+
+      {/* ─── Footer ─── */}
+      <footer className="max-w-7xl mx-auto px-6 sm:px-8 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <Link to="/" className="flex items-center gap-2.5">
+          <img src="/Thrift kro.png" alt="Thrift Kro" className="h-9 w-9 rounded-xl object-cover" />
+          <span className="text-[17px] font-extrabold tracking-tight" style={{ color: '#1A1108' }}>
+            Thrift Kro
+          </span>
+        </Link>
+        <span
+          className="text-xs"
+          style={{
+            color: 'rgba(26,17,8,0.4)',
+            fontFamily: "'JetBrains Mono', monospace",
+          }}
+        >
+          © 2026 THRIFT KRO · MADE IN PAKISTAN
+        </span>
+      </footer>
     </div>
   );
 }

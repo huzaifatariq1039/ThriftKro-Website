@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Search, ShoppingBag, User, Menu, X } from 'lucide-react';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Search, ShoppingBag, Heart, User, Menu, X, RefreshCw } from 'lucide-react';
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -14,123 +14,198 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Close mobile menu on navigation
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
 
+  const navLinks = [
+    { to: '/marketplace', label: 'Discover' },
+    { to: '/vto', label: 'Try-On' },
+    { to: '/wishlist', label: 'Wishlist' },
+    { to: '/account/orders', label: 'Orders' },
+  ];
+
   return (
     <>
       <nav
-        className={`
-          fixed top-0 left-0 right-0 z-50 transition-all duration-300
-          ${scrolled ? 'bg-white/90 backdrop-blur-xl border-b border-[#F0F0F0] shadow-sm' : 'bg-white'}
-        `}
+        className="fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300"
+        style={{
+          background: scrolled ? 'rgba(251,250,248,0.85)' : 'rgba(251,250,248,0.95)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderColor: 'rgba(26,17,8,0.08)',
+        }}
       >
-        <div className="w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-16">
-          <div className="flex items-center justify-between w-full h-16 sm:h-[72px] relative">
-            
-            {/* Left Nav (Men, Women, Objects) */}
-            <div className="hidden lg:flex items-center gap-8">
-              {['Men', 'Women', 'Objects'].map((dept) => (
-                <NavLink 
-                  key={dept} 
-                  to={`/department/${dept.toLowerCase()}`} 
-                  className={({ isActive }) => `
-                    text-[13px] font-medium transition-colors relative
-                    after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:bg-accent after:transition-all after:duration-300
-                    ${isActive 
-                      ? 'text-charcoal after:w-full font-semibold' 
-                      : 'text-text-secondary hover:text-charcoal after:w-0 hover:after:w-full'
-                    }
-                  `}
+        <div className="w-full max-w-7xl mx-auto px-6 sm:px-8">
+          <div className="flex items-center justify-between h-[68px] gap-4 sm:gap-8">
+
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2.5 shrink-0">
+              <img
+                src="/Thrift kro.png"
+                alt="Thrift Kro"
+                className="h-9 w-9 rounded-xl object-cover"
+              />
+              <span
+                className="text-[17px] font-extrabold tracking-tight leading-none hidden sm:block whitespace-nowrap"
+                style={{ color: '#1A1108' }}
+              >
+                Thrift Kro
+              </span>
+            </Link>
+
+            {/* Desktop Nav Links */}
+            <nav className="hidden md:flex items-center gap-7 flex-1">
+              {navLinks.map(l => (
+                <NavLink
+                  key={l.to}
+                  to={l.to}
+                  className={({ isActive }) =>
+                    `text-sm font-semibold transition-colors hover:opacity-70 ${
+                      isActive ? 'text-accent' : ''
+                    }`
+                  }
+                  style={({ isActive }) => ({
+                    color: isActive ? '#FF5C00' : '#1A1108',
+                  })}
                 >
-                  {dept}
+                  {l.label}
                 </NavLink>
               ))}
-            </div>
-            
-            {/* Center Logo */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-              <Link to="/" className="flex items-center gap-2.5 shrink-0 pointer-events-auto">
-                <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center shadow-sm">
-                  <span className="text-white font-bold text-[11px]">TK</span>
-                </div>
-                <span className="text-[18px] font-bold tracking-tight text-charcoal leading-none hidden sm:block">Thrift Kro</span>
-              </Link>
-            </div>
+            </nav>
 
-            {/* Right Nav (Search, Sell) */}
-            <div className="hidden lg:flex items-center gap-6 ml-auto pr-6">
-              <button 
-                onClick={() => setSearchOpen(!searchOpen)}
-                className="p-2 rounded-xl hover:bg-surface transition-all duration-200 text-text-secondary hover:text-accent hover:scale-110 active:scale-95"
+            {/* Search bar (desktop) */}
+            <Link
+              to="/search"
+              className="hidden md:flex items-center gap-2 px-4 py-2.5 rounded-full flex-1 max-w-xs"
+              style={{
+                background: 'white',
+                boxShadow: '0 0 0 1px rgba(26,17,8,0.1)',
+              }}
+            >
+              <Search size={16} style={{ color: 'rgba(26,17,8,0.4)' }} />
+              <span className="text-sm" style={{ color: 'rgba(26,17,8,0.4)' }}>
+                Search sneakers, vintage…
+              </span>
+            </Link>
+
+            {/* Right Actions */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Wishlist */}
+              <Link
+                to="/wishlist"
+                className="relative w-10 h-10 rounded-full flex items-center justify-center"
+                style={{
+                  background: 'white',
+                  boxShadow: '0 0 0 1px rgba(26,17,8,0.1)',
+                }}
               >
-                <Search className="w-[18px] h-[18px]" strokeWidth={1.75} />
-              </button>
-              <Link to="/seller" className="text-[13px] font-medium text-text-secondary hover:text-charcoal transition-colors">
-                Sell
-              </Link>
-            </div>
-
-            {/* Far Right: Profile & Cart */}
-            <div className="flex items-center gap-4 relative z-10">
-              <Link to="/account" className="hidden sm:flex p-2 rounded-xl hover:bg-surface transition-all duration-200 text-text-secondary hover:text-accent hover:scale-110 active:scale-95">
-                <User className="w-[18px] h-[18px]" strokeWidth={1.75} />
-              </Link>
-              
-              <Link to="/cart" className="p-2 rounded-xl hover:bg-surface transition-all duration-200 text-text-secondary hover:text-accent hover:scale-110 active:scale-95 relative group">
-                <ShoppingBag className="w-[18px] h-[18px] transition-transform duration-300 group-hover:-translate-y-0.5" strokeWidth={1.75} />
-                <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-accent text-white text-[9px] font-bold flex items-center justify-center rounded-full ring-2 ring-white transition-transform duration-300 group-hover:scale-110">2</span>
+                <Heart size={18} style={{ color: '#1A1108' }} />
               </Link>
 
+              {/* Cart */}
+              <Link
+                to="/cart"
+                className="relative w-10 h-10 rounded-full flex items-center justify-center group"
+                style={{
+                  background: 'white',
+                  boxShadow: '0 0 0 1px rgba(26,17,8,0.1)',
+                }}
+              >
+                <ShoppingBag
+                  size={18}
+                  style={{ color: '#1A1108' }}
+                  className="transition-transform group-hover:-translate-y-0.5"
+                />
+                <span
+                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-white flex items-center justify-center"
+                  style={{
+                    background: '#FF5C00',
+                    fontSize: 9,
+                    fontFamily: "'JetBrains Mono', monospace",
+                  }}
+                >
+                  2
+                </span>
+              </Link>
+
+              {/* Profile */}
+              <Link
+                to="/account"
+                className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center"
+                style={{
+                  background: '#FFF3E0',
+                  boxShadow: '0 0 0 1px rgba(26,17,8,0.1)',
+                }}
+              >
+                <span className="text-xs font-bold" style={{ color: '#FF5C00' }}>JD</span>
+              </Link>
+
+              {/* Switch to Seller */}
+              <Link
+                to="/seller"
+                className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold"
+                style={{ background: '#1A1108', color: 'white' }}
+              >
+                <RefreshCw size={13} /> Switch
+              </Link>
+
+              {/* Mobile Menu Toggle */}
               <button
-                className="lg:hidden p-2 rounded-xl hover:bg-surface transition-colors text-charcoal"
+                className="md:hidden p-2 rounded-xl hover:bg-white/60 transition-colors"
                 onClick={() => setMobileOpen(!mobileOpen)}
+                style={{ color: '#1A1108' }}
               >
-                {mobileOpen ? <X className="w-5 h-5" strokeWidth={1.75} /> : <Menu className="w-5 h-5" strokeWidth={1.75} />}
+                {mobileOpen ? <X size={22} /> : <Menu size={22} />}
               </button>
             </div>
           </div>
         </div>
 
-        {/* Expandable Search Bar */}
-        {searchOpen && (
-          <div className="absolute top-full left-0 right-0 border-t border-[#F0F0F0] animate-slide-down bg-white/85 backdrop-blur-xl shadow-lg shadow-black/5 origin-top z-40">
-            <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16 py-4">
-              <div className="relative max-w-lg mx-auto">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                <input
-                  type="text"
-                  autoFocus
-                  placeholder="Search for brands, items, categories..."
-                  className="w-full pl-11 pr-4 py-3 bg-surface rounded-xl border border-[#EAEAEA] focus:border-accent focus:ring-2 focus:ring-accent/10 text-[13px]"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Mobile menu */}
         {mobileOpen && (
-          <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-b border-[#EAEAEA] animate-fade-in shadow-lg">
-            <div className="px-6 py-8 flex flex-col gap-1">
-              {['Men', 'Women', 'Objects'].map((dept) => (
-                <NavLink 
-                  key={dept} 
-                  to={`/department/${dept.toLowerCase()}`} 
-                  className={({ isActive }) => `
-                    text-[15px] py-3 px-4 rounded-xl hover:bg-surface transition-colors
-                    ${isActive ? 'font-bold text-accent bg-accent-ultralight' : 'font-semibold text-charcoal'}
-                  `}
+          <div
+            className="md:hidden border-t animate-fade-in"
+            style={{
+              background: 'rgba(251,250,248,0.98)',
+              borderColor: 'rgba(26,17,8,0.06)',
+            }}
+          >
+            <div className="px-6 py-6 flex flex-col gap-1">
+              {navLinks.map(l => (
+                <NavLink
+                  key={l.to}
+                  to={l.to}
+                  className={({ isActive }) =>
+                    `text-[15px] py-3 px-4 rounded-xl transition-colors font-semibold ${
+                      isActive ? 'bg-[#FFF3E0] text-accent' : 'hover:bg-white/60'
+                    }`
+                  }
+                  style={({ isActive }) => ({
+                    color: isActive ? '#FF5C00' : '#1A1108',
+                  })}
                   onClick={() => setMobileOpen(false)}
                 >
-                  {dept}
+                  {l.label}
                 </NavLink>
               ))}
-              <div className="h-px w-full bg-[#F0F0F0] my-3" />
-              <Link to="/seller" className="text-[14px] font-medium text-text-secondary py-3 px-4 rounded-xl hover:bg-surface transition-colors" onClick={() => setMobileOpen(false)}>Sell on Thrift Kro</Link>
-              <Link to="/account" className="text-[14px] font-medium text-text-secondary py-3 px-4 rounded-xl hover:bg-surface transition-colors" onClick={() => setMobileOpen(false)}>My Account</Link>
+              <div className="h-px w-full my-3" style={{ background: 'rgba(26,17,8,0.06)' }} />
+              <Link
+                to="/search"
+                className="text-[15px] py-3 px-4 rounded-xl font-semibold hover:bg-white/60 flex items-center gap-2"
+                style={{ color: '#1A1108' }}
+                onClick={() => setMobileOpen(false)}
+              >
+                <Search size={16} /> Search
+              </Link>
+              <Link
+                to="/seller"
+                className="text-[15px] py-3 px-4 rounded-xl font-semibold hover:bg-white/60"
+                style={{ color: 'rgba(26,17,8,0.6)' }}
+                onClick={() => setMobileOpen(false)}
+              >
+                Switch to Seller
+              </Link>
             </div>
           </div>
         )}

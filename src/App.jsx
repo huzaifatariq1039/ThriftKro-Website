@@ -14,6 +14,17 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import DepartmentPage from './pages/DepartmentPage';
 
+// Buyer sub-pages
+import BuyerOrders from './pages/buyer/BuyerOrders';
+import BuyerSaved from './pages/buyer/BuyerSaved';
+import BuyerProfile from './pages/buyer/BuyerProfile';
+import BuyerVto from './pages/buyer/BuyerVto';
+import BuyerAddresses from './pages/buyer/BuyerAddresses';
+import BuyerPayments from './pages/buyer/BuyerPayments';
+import BuyerNotifications from './pages/buyer/BuyerNotifications';
+import BuyerPrivacy from './pages/buyer/BuyerPrivacy';
+import BuyerSearch from './pages/buyer/BuyerSearch';
+
 function AppLayout() {
   const location = useLocation();
   const hiddenNavRoutes = ['/', '/login', '/signup', '/role-selection'];
@@ -36,9 +47,24 @@ function AppLayout() {
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
-          <Route path="/account/*" element={<Account />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+
+          {/* Buyer profile hub & sub-pages */}
+          <Route path="/account" element={<Account />} />
+          <Route path="/account/orders" element={<BuyerOrders />} />
+          <Route path="/account/settings" element={<BuyerProfile />} />
+          <Route path="/account/addresses" element={<BuyerAddresses />} />
+          <Route path="/account/payments" element={<BuyerPayments />} />
+          <Route path="/account/notifications" element={<BuyerNotifications />} />
+          <Route path="/account/privacy" element={<BuyerPrivacy />} />
+
+          {/* Standalone buyer pages */}
+          <Route path="/wishlist" element={<BuyerSaved />} />
+          <Route path="/vto" element={<BuyerVto />} />
+          <Route path="/search" element={<BuyerSearch />} />
+
+          {/* Seller */}
           <Route path="/seller/*" element={<SellerDashboard />} />
         </Routes>
       </main>

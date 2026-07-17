@@ -1,112 +1,174 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ShieldCheck, ArrowRight, Award, Ruler, Heart, ShoppingBag } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, Heart, ShoppingBag, Camera, Star, Truck, Shield, Plus, Minus, Sparkles } from 'lucide-react';
 import VTONModal from '../components/VTONModal';
+import ProductCard from '../components/ProductCard';
 import { products } from '../data/products';
 
 export default function ProductDetail() {
   const { id } = useParams();
   const [vtonOpen, setVtonOpen] = useState(false);
-  const [selectedSize, setSelectedSize] = useState('');
   const [liked, setLiked] = useState(false);
+  const [qty, setQty] = useState(1);
 
   const product = products.find((p) => p.id === parseInt(id));
-
   if (!product) return null;
 
   const sizes = ['XS', 'S', 'M', 'L', 'XL'];
-  const activeSize = selectedSize || product.size;
-  const conditionScore = product.conditionScore || 90;
+  const [selectedSize, setSelectedSize] = useState(product.size);
+  const discount = product.originalPrice
+    ? Math.round((1 - product.price / product.originalPrice) * 100)
+    : 0;
 
-  // Condition bar gradient color
-  const getConditionColor = (score) => {
-    if (score >= 80) return 'from-emerald-400 to-emerald-500';
-    if (score >= 60) return 'from-amber-400 to-amber-500';
-    return 'from-rose-400 to-rose-500';
-  };
+  const related = products.filter(p => p.id !== product.id).slice(0, 4);
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] pt-28 pb-32">
-      <div className="max-w-[1400px] mx-auto px-6 sm:px-12 lg:px-16 animate-fade-in">
-        
-        {/* Breadcrumb */}
-        <div className="mb-8 text-[11px] font-extrabold tracking-[0.15em] uppercase text-text-muted flex items-center gap-2">
-          <Link to="/" className="hover:text-accent transition-colors">Home</Link>
-          <span>/</span>
-          <Link to="/department/men" className="hover:text-accent transition-colors">Shop</Link>
-          <span>/</span>
-          <span className="text-charcoal">{product.name}</span>
-        </div>
+    <div className="min-h-screen pt-[68px]" style={{ background: '#FBF9F8' }}>
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 py-8 animate-fade-in">
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
-          
-          {/* Left Column — Image Gallery */}
-          <div className="lg:col-span-7">
-            <div className="aspect-[3/4] bg-white rounded-3xl overflow-hidden border border-border/40 relative group shadow-sm">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-full object-contain p-8 sm:p-12 transition-transform duration-1000 group-hover:scale-105"
+        {/* Back link */}
+        <Link
+          to="/marketplace"
+          className="flex items-center gap-2 text-sm font-semibold mb-6"
+          style={{ color: 'rgba(26,17,8,0.6)' }}
+        >
+          <ArrowLeft size={16} /> Back to discover
+        </Link>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+
+          {/* ─── Image ─── */}
+          <div
+            className="relative rounded-[2rem] overflow-hidden"
+            style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.1)' }}
+          >
+            <img
+              src={product.image}
+              alt={product.name}
+              className="w-full aspect-square object-cover"
+            />
+            {/* Heart */}
+            <button
+              onClick={() => setLiked(!liked)}
+              className="absolute top-5 right-5 w-11 h-11 rounded-full bg-white flex items-center justify-center"
+              style={{ boxShadow: '0 6px 16px rgba(0,0,0,0.12)' }}
+            >
+              <Heart
+                size={20}
+                fill={liked ? '#FF5C00' : 'none'}
+                style={{ color: liked ? '#FF5C00' : '#1A1108' }}
               />
-              {product.verified && (
-                <div className="absolute top-6 left-6 bg-white/95 backdrop-blur-md px-4 py-2 flex items-center gap-2 rounded-2xl shadow-sm border border-border/40">
-                  <ShieldCheck className="w-4 h-4 text-verified" />
-                  <span className="text-[10px] font-bold text-charcoal uppercase tracking-wider">AI Verified Authentic</span>
-                </div>
-              )}
-              {/* Wishlist button */}
-              <button
-                onClick={() => setLiked(!liked)}
-                className={`absolute top-6 right-6 p-3 rounded-xl backdrop-blur-md transition-all duration-200 border ${liked ? 'bg-red-50 border-red-200 text-red-500' : 'bg-white/90 border-border/40 text-charcoal/40 hover:text-red-500'}`}
-              >
-                <Heart className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
-              </button>
-            </div>
-            {/* Thumbnail dots */}
-            <div className="flex items-center justify-center gap-2 mt-4">
-              {[0, 1, 2, 3].map((i) => (
-                <button key={i} className={`w-2 h-2 rounded-full transition-all ${i === 0 ? 'bg-accent w-5' : 'bg-border hover:bg-charcoal/30'}`} />
-              ))}
-            </div>
+            </button>
+            {/* VTO button */}
+            <button
+              onClick={() => setVtonOpen(true)}
+              className="absolute bottom-5 left-5 flex items-center gap-2 px-4 py-2.5 rounded-full font-extrabold text-sm"
+              style={{ background: '#FFD60A', color: '#1A1108' }}
+            >
+              <Camera size={16} /> Try it on
+            </button>
           </div>
 
-          {/* Right Column — Details Panel */}
-          <div className="lg:col-span-5 bg-white p-8 sm:p-10 rounded-3xl border border-border/40 shadow-sm">
-            
-            <p className="text-[11px] font-bold tracking-[0.15em] uppercase text-accent mb-3">
-              {product.brand || product.seller}
-            </p>
-            
-            <h1 className="font-sans font-black text-3xl sm:text-4xl text-charcoal tracking-tight mb-4 uppercase leading-none">
+          {/* ─── Details ─── */}
+          <div>
+            {/* Brand label */}
+            <span
+              className="text-[10px] font-bold tracking-[0.15em] uppercase"
+              style={{
+                color: 'rgba(26,17,8,0.4)',
+                fontFamily: "'JetBrains Mono', monospace",
+              }}
+            >
+              {(product.brand || product.seller).toUpperCase()} · {product.category.toUpperCase()}
+            </span>
+
+            {/* Name */}
+            <h1
+              className="font-extrabold mt-2"
+              style={{
+                fontSize: 'clamp(28px, 4vw, 38px)',
+                lineHeight: 1.05,
+                letterSpacing: '-0.03em',
+                color: '#1A1108',
+              }}
+            >
               {product.name}
             </h1>
-            
-            <div className="flex items-end gap-3 mb-8">
-              <span className="text-2xl font-extrabold text-charcoal">Rs. {product.price.toLocaleString()}</span>
+
+            {/* Price */}
+            <div className="flex items-center gap-3 mt-4">
+              <span className="font-extrabold" style={{ fontSize: 30, color: '#FF5C00' }}>
+                Rs. {product.price.toLocaleString()}
+              </span>
               {product.originalPrice && (
-                <span className="text-sm text-text-muted line-through mb-1">Rs. {product.originalPrice.toLocaleString()}</span>
+                <span className="text-lg line-through" style={{ color: 'rgba(26,17,8,0.35)' }}>
+                  Rs. {product.originalPrice.toLocaleString()}
+                </span>
+              )}
+              {discount > 0 && (
+                <span
+                  className="px-2 py-1 rounded-full text-xs font-extrabold"
+                  style={{
+                    background: '#FFD60A',
+                    color: '#1A1108',
+                    fontFamily: "'JetBrains Mono', monospace",
+                  }}
+                >
+                  -{discount}%
+                </span>
               )}
             </div>
 
-            {/* Sizes Selection widget */}
-            <div className="mb-8">
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-text-secondary flex items-center gap-1">
-                  <Ruler className="w-3.5 h-3.5" /> Size in Focus
-                </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-accent">Selected: {activeSize}</span>
-              </div>
-              <div className="flex gap-2.5">
-                {sizes.map((sz) => (
+            {/* Info chips */}
+            <div className="flex gap-3 mt-6">
+              {[
+                ['Condition', product.condition],
+                ['Size', product.size],
+                ['Category', product.category],
+              ].map(([label, value]) => (
+                <div
+                  key={label}
+                  className="flex-1 rounded-2xl p-3 bg-white text-center"
+                  style={{ boxShadow: '0 0 0 1px rgba(26,17,8,0.08)' }}
+                >
+                  <span
+                    className="text-[10px] font-bold tracking-[0.1em] uppercase block"
+                    style={{
+                      color: 'rgba(26,17,8,0.4)',
+                      fontFamily: "'JetBrains Mono', monospace",
+                    }}
+                  >
+                    {label}
+                  </span>
+                  <p className="font-bold text-sm mt-1" style={{ color: '#1A1108' }}>
+                    {value}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Size selector */}
+            <div className="mt-6">
+              <span
+                className="text-[10px] font-bold tracking-[0.1em] uppercase block mb-2"
+                style={{
+                  color: 'rgba(26,17,8,0.4)',
+                  fontFamily: "'JetBrains Mono', monospace",
+                }}
+              >
+                Select size
+              </span>
+              <div className="flex gap-2">
+                {sizes.map(sz => (
                   <button
                     key={sz}
                     onClick={() => setSelectedSize(sz)}
-                    className={`
-                      w-11 h-11 text-xs font-bold rounded-xl border flex items-center justify-center transition-all duration-200
-                      ${activeSize === sz 
-                        ? 'bg-charcoal border-charcoal text-white shadow-md' 
-                        : 'border-border/60 hover:border-charcoal text-charcoal hover:bg-surface'}
-                    `}
+                    className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
+                    style={{
+                      background: selectedSize === sz ? '#1A1108' : 'white',
+                      color: selectedSize === sz ? 'white' : '#1A1108',
+                      boxShadow: '0 0 0 1px rgba(26,17,8,0.1)',
+                    }}
                   >
                     {sz}
                   </button>
@@ -114,53 +176,110 @@ export default function ProductDetail() {
               </div>
             </div>
 
-            {/* Condition Scoring visual meter */}
-            <div className="mb-8 p-5 bg-surface rounded-2xl border border-border/30">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-text-secondary flex items-center gap-1.5">
-                  <Award className="w-3.5 h-3.5 text-accent" /> Condition Score
+            {/* Quantity */}
+            <div className="flex items-center gap-4 mt-6">
+              <span
+                className="text-[10px] font-bold tracking-[0.1em] uppercase"
+                style={{
+                  color: 'rgba(26,17,8,0.4)',
+                  fontFamily: "'JetBrains Mono', monospace",
+                }}
+              >
+                Quantity
+              </span>
+              <div
+                className="flex items-center gap-3 rounded-full px-2 py-1 bg-white"
+                style={{ boxShadow: '0 0 0 1px rgba(26,17,8,0.1)' }}
+              >
+                <button
+                  onClick={() => setQty(q => Math.max(1, q - 1))}
+                  className="w-8 h-8 rounded-full flex items-center justify-center"
+                  style={{ background: '#F2EFE9' }}
+                >
+                  <Minus size={15} />
+                </button>
+                <span
+                  className="font-bold w-5 text-center"
+                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                >
+                  {qty}
                 </span>
-                <span className="text-xs font-extrabold text-charcoal">{conditionScore}/100 ({product.condition})</span>
-              </div>
-              <div className="w-full h-2.5 bg-border/40 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full bg-gradient-to-r ${getConditionColor(conditionScore)} transition-all duration-700 rounded-full`}
-                  style={{ width: `${conditionScore}%` }}
-                />
+                <button
+                  onClick={() => setQty(q => q + 1)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center"
+                  style={{ background: '#F2EFE9' }}
+                >
+                  <Plus size={15} />
+                </button>
               </div>
             </div>
 
-            <p className="text-sm text-text-secondary leading-relaxed mb-8 font-medium">
+            {/* Seller card */}
+            <div
+              className="flex items-center gap-3 mt-6 p-4 rounded-2xl bg-white"
+              style={{ boxShadow: '0 0 0 1px rgba(26,17,8,0.08)' }}
+            >
+              <div
+                className="w-11 h-11 rounded-full flex items-center justify-center"
+                style={{ background: '#FFF3E0' }}
+              >
+                <Star size={18} fill="#FF5C00" style={{ color: '#FF5C00' }} />
+              </div>
+              <div className="flex-1">
+                <p className="font-bold text-sm" style={{ color: '#1A1108' }}>
+                  {product.seller}
+                </p>
+                <p className="text-xs" style={{ color: 'rgba(26,17,8,0.5)' }}>
+                  {product.rating} rating · Verified seller
+                </p>
+              </div>
+              <Shield size={18} style={{ color: '#FF5C00' }} />
+            </div>
+
+            {/* Description */}
+            <p className="text-sm mt-6 leading-relaxed" style={{ color: 'rgba(26,17,8,0.6)' }}>
               {product.description}
             </p>
 
-            {/* CTAs */}
-            <div className="flex flex-col gap-3.5 mb-8">
-              <button className="btn-primary w-full py-4 text-xs tracking-widest shadow-md flex items-center justify-center gap-2">
-                <ShoppingBag className="w-4 h-4" /> Add to Bag — Escrow Secured
+            {/* CTA Buttons */}
+            <div className="flex gap-3 mt-6">
+              <button
+                className="flex-1 py-4 rounded-xl font-extrabold transition-all hover:opacity-80"
+                style={{
+                  boxShadow: '0 0 0 1.5px rgba(26,17,8,0.15)',
+                  color: '#1A1108',
+                }}
+              >
+                Add to Cart
               </button>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <button className="btn-outline py-4 text-xs tracking-wider">
-                  Make Offer
-                </button>
-                <button 
-                  onClick={() => setVtonOpen(true)}
-                  className="btn-accent py-4 text-xs tracking-wider flex items-center justify-center gap-1.5 shadow-sm"
-                >
-                  Virtual Try-On
-                </button>
-              </div>
+              <Link
+                to="/cart"
+                className="flex-1 py-4 rounded-xl font-extrabold text-white text-center transition-all hover:opacity-90"
+                style={{ background: '#FF5C00' }}
+              >
+                Buy Now
+              </Link>
             </div>
 
-            {/* Escrow note */}
-            <div className="flex items-start gap-3 p-4 bg-accent-ultralight rounded-2xl border border-accent/10">
-              <ShieldCheck className="w-5 h-5 text-accent shrink-0 mt-0.5" />
-              <p className="text-[11px] text-text-secondary leading-relaxed font-medium">
-                Payment is held in secure escrow. The seller is not paid until you receive the item and verify its condition matches our AI scan.
-              </p>
+            {/* Trust line */}
+            <div className="flex items-center gap-2 mt-4 text-xs" style={{ color: 'rgba(26,17,8,0.5)' }}>
+              <Truck size={14} /> Delivery in 2-3 days · <Shield size={14} /> 7-day buyer protection
             </div>
+          </div>
+        </div>
 
+        {/* ─── Related Products ─── */}
+        <div className="mt-16">
+          <h2
+            className="font-extrabold mb-6"
+            style={{ fontSize: 24, letterSpacing: '-0.02em', color: '#1A1108' }}
+          >
+            You might also like
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {related.map((p, i) => (
+              <ProductCard key={p.id} product={p} index={i} />
+            ))}
           </div>
         </div>
       </div>

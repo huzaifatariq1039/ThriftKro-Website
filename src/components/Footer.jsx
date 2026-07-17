@@ -2,11 +2,11 @@ import { Link } from 'react-router-dom';
 
 export default function Footer() {
   return (
-    <footer className="bg-charcoal text-white/40 relative">
+    <footer style={{ background: '#1A1108' }} className="text-white/40 relative">
       {/* Accent gradient top border */}
       <div className="h-px w-full bg-gradient-to-r from-transparent via-accent to-transparent opacity-40" />
       
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-16">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-12 lg:gap-8 mb-12">
           {/* Brand Col */}
           <div className="col-span-2 md:col-span-1">
@@ -14,7 +14,12 @@ export default function Footer() {
               <img src="/Thrift kro.png" alt="Thrift Kro" className="h-10 w-10 rounded-xl object-cover transition-transform duration-300 group-hover:scale-105" />
               <div>
                 <span className="text-[17px] font-bold text-white tracking-tight block leading-none">Thrift Kro</span>
-                <span className="text-[9px] tracking-[0.2em] uppercase text-white/40 font-medium">AI Marketplace</span>
+                <span
+                  className="text-[9px] tracking-[0.2em] uppercase text-white/40 font-medium"
+                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                >
+                  AI Marketplace
+                </span>
               </div>
             </Link>
             <p className="text-[13px] leading-relaxed max-w-xs text-white/50">
@@ -27,10 +32,10 @@ export default function Footer() {
             {
               title: 'Shop',
               links: [
-                { name: 'All Pieces', path: '/' },
-                { name: 'New Arrivals', path: '/' },
-                { name: 'Streetwear', path: '/' },
-                { name: 'Vintage', path: '/' }
+                { name: 'Discover', path: '/marketplace' },
+                { name: 'Trending', path: '/marketplace' },
+                { name: 'Virtual Try-On', path: '/vto' },
+                { name: 'Search', path: '/search' }
               ]
             },
             {
@@ -53,7 +58,12 @@ export default function Footer() {
             }
           ].map((col) => (
             <div key={col.title}>
-              <h4 className="text-[12px] font-bold text-white tracking-[0.15em] uppercase mb-6">{col.title}</h4>
+              <h4
+                className="text-[10px] font-bold text-white tracking-[0.15em] uppercase mb-6"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                {col.title}
+              </h4>
               <ul className="space-y-3.5">
                 {col.links.map((link) => (
                   <li key={link.name}>

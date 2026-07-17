@@ -1,87 +1,94 @@
-import { useNavigate } from 'react-router-dom';
-import { ShoppingBag, Store, ArrowRight, Check } from 'lucide-react';
-import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ShoppingBag, Package, ArrowRight } from 'lucide-react';
 
 export default function RoleSelection() {
-  const navigate = useNavigate();
-  const [hoveredRole, setHoveredRole] = useState(null);
-
-  const handleRoleSelect = (role) => {
-    if (role === 'buyer') {
-      navigate('/marketplace');
-    } else {
-      navigate('/seller');
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-[#F9FAFB] flex flex-col items-center justify-center p-6 select-none">
-      {/* Header */}
-      <div className="text-center mb-10">
-        <div className="flex items-center justify-center gap-2.5 mb-5">
-          <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center shadow-sm">
-            <span className="text-white font-bold text-base">TK</span>
-          </div>
-        </div>
-        <h3 className="text-xl font-bold text-charcoal mb-2">Choose your role</h3>
-        <p className="text-[13px] text-text-muted max-w-xs mx-auto">Select how you'd like to use Thrift Kro today</p>
+    <div
+      className="min-h-screen flex flex-col items-center justify-center px-6 sm:px-8"
+      style={{ background: '#FBF9F8' }}
+    >
+      {/* Logo */}
+      <div className="mb-10">
+        <Link to="/" className="flex items-center gap-2.5">
+          <img src="/Thrift kro.png" alt="Thrift Kro" className="h-12 w-12 rounded-xl object-cover" />
+        </Link>
       </div>
+
+      {/* Heading */}
+      <h2
+        className="font-extrabold text-center mb-2"
+        style={{ fontSize: 'clamp(28px, 4vw, 40px)', letterSpacing: '-0.03em', color: '#1A1108' }}
+      >
+        How do you want to start?
+      </h2>
+      <p className="text-sm mb-10" style={{ color: 'rgba(26,17,8,0.55)' }}>
+        You can switch anytime.
+      </p>
 
       {/* Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-[680px] w-full">
-        
-        {/* Buyer Card */}
-        <button 
-          onClick={() => handleRoleSelect('buyer')}
-          onMouseEnter={() => setHoveredRole('buyer')}
-          onMouseLeave={() => setHoveredRole(null)}
-          className="bg-white p-7 rounded-2xl border border-[#EAEAEA] hover:border-accent/40 hover:shadow-lg transition-all duration-300 group flex flex-col items-start text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent/20 relative overflow-hidden"
-        >
-          {/* Subtle background pattern */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-accent/[0.03] rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-accent/[0.02] rounded-full translate-y-1/2 -translate-x-1/2" />
-          
-          <div className="w-12 h-12 rounded-xl bg-accent-ultralight flex items-center justify-center mb-5 text-accent group-hover:scale-105 group-hover:bg-accent group-hover:text-white transition-all duration-300 relative z-10">
-            <ShoppingBag className="w-5 h-5" strokeWidth={1.75} />
-          </div>
-          
-          <h4 className="text-[15px] font-bold text-charcoal mb-2 relative z-10">Buyer Mode</h4>
-          <p className="text-[13px] text-text-muted leading-relaxed mb-6 relative z-10">
-            Browse authenticated pre-loved streetwear and try items on with our virtual fitting room.
-          </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl">
 
-          <span className="w-full py-3 border border-[#EAEAEA] text-charcoal rounded-xl text-[12px] font-semibold flex items-center justify-center gap-2 group-hover:bg-charcoal group-hover:text-white group-hover:border-charcoal transition-all duration-300 relative z-10">
-            {hoveredRole === 'buyer' ? <Check className="w-3.5 h-3.5" /> : null}
-            Enter Marketplace <ArrowRight className="w-3.5 h-3.5" />
+        {/* Buyer Card */}
+        <Link
+          to="/login"
+          className="p-8 rounded-3xl text-left transition-all duration-300 hover:-translate-y-1 group"
+          style={{ background: 'white', boxShadow: '0 20px 50px rgba(0,0,0,0.08)' }}
+        >
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
+            style={{ background: '#FF5C00' }}
+          >
+            <ShoppingBag size={28} color="white" />
+          </div>
+          <p className="font-extrabold text-xl mb-1" style={{ color: '#1A1108' }}>
+            I'm a Buyer
+          </p>
+          <p className="text-sm" style={{ color: 'rgba(26,17,8,0.55)' }}>
+            Browse thousands of pre-loved pieces, try them on in AR & shop safely.
+          </p>
+          <span
+            className="inline-flex items-center gap-1 mt-5 font-bold text-sm group-hover:gap-2 transition-all"
+            style={{ color: '#FF5C00' }}
+          >
+            Continue <ArrowRight size={16} />
           </span>
-        </button>
+        </Link>
 
         {/* Seller Card */}
-        <button 
-          onClick={() => handleRoleSelect('seller')}
-          onMouseEnter={() => setHoveredRole('seller')}
-          onMouseLeave={() => setHoveredRole(null)}
-          className="bg-white p-7 rounded-2xl border border-[#EAEAEA] hover:border-accent/40 hover:shadow-lg transition-all duration-300 group flex flex-col items-start text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent/20 relative overflow-hidden"
+        <Link
+          to="/login"
+          className="p-8 rounded-3xl text-left transition-all duration-300 hover:-translate-y-1 group"
+          style={{ background: '#1A1108', boxShadow: '0 20px 50px rgba(0,0,0,0.15)' }}
         >
-          {/* Subtle background pattern */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-accent/[0.03] rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-accent/[0.02] rounded-full translate-y-1/2 -translate-x-1/2" />
-
-          <div className="w-12 h-12 rounded-xl bg-accent-ultralight flex items-center justify-center mb-5 text-accent group-hover:scale-105 group-hover:bg-accent group-hover:text-white transition-all duration-300 relative z-10">
-            <Store className="w-5 h-5" strokeWidth={1.75} />
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
+            style={{ background: '#FFD60A' }}
+          >
+            <Package size={28} style={{ color: '#1A1108' }} />
           </div>
-          
-          <h4 className="text-[15px] font-bold text-charcoal mb-2 relative z-10">Seller Portal</h4>
-          <p className="text-[13px] text-text-muted leading-relaxed mb-6 relative z-10">
-            Create AI-verified listings, manage orders, and track your escrow payouts seamlessly.
+          <p className="font-extrabold text-xl mb-1 text-white">
+            I'm a Seller
           </p>
-
-          <span className="w-full py-3 bg-accent text-white rounded-xl text-[12px] font-semibold flex items-center justify-center gap-2 hover:bg-accent-dark transition-all duration-300 shadow-sm relative z-10">
-            {hoveredRole === 'seller' ? <Check className="w-3.5 h-3.5" /> : null}
-            Open Dashboard <ArrowRight className="w-3.5 h-3.5" />
+          <p className="text-sm text-white/55">
+            List your closet, reach 50K+ buyers, track orders & grow your shop.
+          </p>
+          <span
+            className="inline-flex items-center gap-1 mt-5 font-bold text-sm group-hover:gap-2 transition-all"
+            style={{ color: '#FFD60A' }}
+          >
+            Continue <ArrowRight size={16} />
           </span>
-        </button>
+        </Link>
       </div>
+
+      {/* Back */}
+      <Link
+        to="/"
+        className="mt-10 text-sm font-semibold transition-opacity hover:opacity-70"
+        style={{ color: 'rgba(26,17,8,0.5)' }}
+      >
+        ← Back to home
+      </Link>
     </div>
   );
 }
