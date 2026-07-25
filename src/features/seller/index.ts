@@ -1,0 +1,10 @@
+export { default as SellerDashboard } from "./pages/SellerDashboard";
+export { default as SellerListings } from "./pages/SellerListings";
+export { default as SellerAdd } from "./pages/SellerAdd";
+export { default as SellerMessages } from "./pages/SellerMessages";
+export { default as SellerProfile } from "./pages/SellerProfile";
+export { default as SellerEditProfile } from "./pages/SellerEditProfile";
+export { default as SellerShopSetting } from "./pages/SellerShopSetting";
+export { default as SellerNotifications } from "./pages/SellerNotifications";
+export { default as SellerPrivacy } from "./pages/SellerPrivacy";
+export { default as SellerVerify } from "./pages/SellerVerify";

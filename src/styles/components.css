@@ -1,0 +1,43 @@
+/* Reusable Utility Component Styles */
+.card-surface {
+  background-color: var(--color-surface-white);
+  box-shadow: 0 0 0 1px var(--color-border-subtle), var(--shadow-sm);
+  border-radius: var(--radius-lg);
+}
+
+.btn-orange-primary {
+  background-color: var(--color-orange);
+  color: #FFFFFF;
+  font-family: var(--font-main);
+  font-weight: 800;
+  transition: all 0.2s ease;
+}
+
+.btn-orange-primary:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.btn-orange-primary:active {
+  transform: scale(0.98);
+}
+
+.badge-kyc-approved {
+  background-color: #E8F5E9;
+  color: #2E7D32;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-full);
+}
+
+.badge-kyc-pending {
+  background-color: #FFF3E0;
+  color: var(--color-orange);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-full);
+}

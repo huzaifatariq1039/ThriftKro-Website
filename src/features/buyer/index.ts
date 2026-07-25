@@ -1,0 +1,13 @@
+export { default as BuyerHome } from "./pages/BuyerHome";
+export { default as BuyerProduct } from "./pages/BuyerProduct";
+export { default as BuyerVto } from "./pages/BuyerVto";
+export { default as BuyerCart } from "./pages/BuyerCart";
+export { default as BuyerProfile } from "./pages/BuyerProfile";
+export { default as BuyerEditProfile } from "./pages/BuyerEditProfile";
+export { default as BuyerOrders } from "./pages/BuyerOrders";
+export { default as BuyerWishlist } from "./pages/BuyerWishlist";
+export { default as BuyerAddresses } from "./pages/BuyerAddresses";
+export { default as BuyerPayments } from "./pages/BuyerPayments";
+export { default as BuyerNotifications } from "./pages/BuyerNotifications";
+export { default as BuyerPrivacy } from "./pages/BuyerPrivacy";
+export { default as BuyerSearch } from "./pages/BuyerSearch";
