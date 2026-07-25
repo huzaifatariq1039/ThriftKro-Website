@@ -190,8 +190,4 @@ export default function AuthPage({ s, forRole }: { s: Store; forRole: "buyer" | 
       </div>
     </div>
   );
-}iv>
-      </div>
-    </div>
-  );
 }
