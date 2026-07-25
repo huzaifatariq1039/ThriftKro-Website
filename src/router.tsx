@@ -42,6 +42,20 @@ const SellerPrivacy = lazy(() => import("@/features/seller/pages/SellerPrivacy")
 const AdminLogin = lazy(() => import("@/features/admin/pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("@/features/admin/pages/AdminDashboard"));
 
+const SellerGuard: React.FC<{ s: ReturnType<typeof useStore>; children: React.ReactNode }> = ({ s, children }) => {
+  const navigate = useNavigate();
+  React.useEffect(() => {
+    if (s.role === "seller" && !s.sellerKycApproved) {
+      navigate("/seller/verify");
+    }
+  }, [s.role, s.sellerKycApproved, navigate]);
+
+  if (s.role === "seller" && !s.sellerKycApproved) {
+    return null;
+  }
+  return <>{children}</>;
+};
+
 export const AppRoutes: React.FC = () => {
   const store = useStore();
   const navigate = useNavigate();
@@ -77,13 +91,13 @@ export const AppRoutes: React.FC = () => {
 
         {/* Seller Routes */}
         <Route path="/seller/verify" element={<WebApp><SellerVerify s={store} /></WebApp>} />
-        <Route path="/seller/dashboard" element={<WebApp><SellerDashboard s={store} /></WebApp>} />
-        <Route path="/seller/listings" element={<WebApp><SellerListings s={store} /></WebApp>} />
-        <Route path="/seller/add" element={<WebApp><SellerAdd s={store} /></WebApp>} />
-        <Route path="/seller/messages" element={<WebApp><SellerMessages s={store} /></WebApp>} />
+        <Route path="/seller/dashboard" element={<WebApp><SellerGuard s={store}><SellerDashboard s={store} /></SellerGuard></WebApp>} />
+        <Route path="/seller/listings" element={<WebApp><SellerGuard s={store}><SellerListings s={store} /></SellerGuard></WebApp>} />
+        <Route path="/seller/add" element={<WebApp><SellerGuard s={store}><SellerAdd s={store} /></SellerGuard></WebApp>} />
+        <Route path="/seller/messages" element={<WebApp><SellerGuard s={store}><SellerMessages s={store} /></SellerGuard></WebApp>} />
         <Route path="/seller/profile" element={<WebApp><SellerProfile s={store} /></WebApp>} />
         <Route path="/seller/profile/edit" element={<WebApp><SellerEditProfile s={store} /></WebApp>} />
-        <Route path="/seller/shop-settings" element={<WebApp><SellerShopSetting s={store} /></WebApp>} />
+        <Route path="/seller/shop-settings" element={<WebApp><SellerGuard s={store}><SellerShopSetting s={store} /></SellerGuard></WebApp>} />
         <Route path="/seller/notifications" element={<WebApp><SellerNotifications s={store} /></WebApp>} />
         <Route path="/seller/privacy" element={<WebApp><SellerPrivacy s={store} /></WebApp>} />
 

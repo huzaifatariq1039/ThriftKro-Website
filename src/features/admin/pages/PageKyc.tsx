@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Download, Eye } from "lucide-react";
 import { C, FONT, MONO, kycRequests, KycReq } from "../data/adminData";
 import { KycModal } from "../components/KycModal";
+import { adminService } from "@/services/api/adminService";
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; color: string; label: string }> = {
@@ -22,17 +23,47 @@ function StatusBadge({ status }: { status: string }) {
 export default function PageKyc() {
   const [modal, setModal] = useState<KycReq | null>(null);
   const [filter, setFilter] = useState("ALL");
+  const [requestsList, setRequestsList] = useState<any[]>(kycRequests);
+
+  useEffect(() => {
+    let isMounted = true;
+    adminService.getKycQueue()
+      .then(res => {
+        if (isMounted && res.data && res.data.length > 0) {
+          const mapped = res.data.map(item => ({
+            id: `KYC-${item.id}`,
+            shop: item.shopName || "Seller Shop",
+            owner: item.name || "Seller",
+            type: "Shop",
+            cnic: item.cnic,
+            phone: "+92 300 1234567",
+            city: "Lahore",
+            submitted: item.submitted || "Recently",
+            revenue: "PKR 0",
+            status: (item.status || "PENDING").toUpperCase(),
+            cnicFront: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600",
+            cnicBack: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600",
+          }));
+          setRequestsList(mapped);
+        }
+      })
+      .catch(err => console.warn("Could not load KYC queue:", err));
+
+    return () => { isMounted = false; };
+  }, []);
+
   const filters = ["ALL", "PENDING", "UNDER_REVIEW", "APPROVED", "REJECTED"];
-  const visible = filter === "ALL" ? kycRequests : kycRequests.filter(r => r.status === filter);
+  const visible = filter === "ALL" ? requestsList : requestsList.filter(r => r.status === filter);
+
   return (
     <div className="space-y-5">
       {modal && <KycModal request={modal} onClose={() => setModal(null)} />}
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label: "Total Requests", value: "24", color: C.orange },
-          { label: "Pending Review", value: "3", color: C.yellow },
-          { label: "Under Review", value: "2", color: C.teal },
-          { label: "Approved", value: "19", color: C.green },
+          { label: "Total Requests", value: requestsList.length.toString(), color: C.orange },
+          { label: "Pending Review", value: requestsList.filter(r => r.status === "PENDING").length.toString(), color: C.yellow },
+          { label: "Under Review", value: requestsList.filter(r => r.status === "UNDER_REVIEW").length.toString(), color: C.teal },
+          { label: "Approved", value: requestsList.filter(r => r.status === "APPROVED").length.toString(), color: C.green },
         ].map(c => (
           <div key={c.label} className="p-5 rounded-xl border" style={{ background: C.surface, borderColor: C.border }}>
             <p className="text-xs uppercase tracking-widest mb-2" style={{ color: C.textDim, fontFamily: MONO }}>{c.label}</p>

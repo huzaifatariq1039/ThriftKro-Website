@@ -57,12 +57,20 @@ export function useStore() {
 
   const login = async (forRole: "buyer" | "seller") => {
     await auth.login("user@thriftkro.pk", "password", forRole);
-    navigate(forRole === "buyer" ? "/buyer/home" : "/seller/dashboard");
+    if (forRole === "seller") {
+      navigate(store.sellerKycApproved ? "/seller/dashboard" : "/seller/verify");
+    } else {
+      navigate("/buyer/home");
+    }
   };
 
   const loginWithCredentials = async (email: string, pass: string, forRole: "buyer" | "seller") => {
     await auth.login(email, pass, forRole);
-    navigate(forRole === "buyer" ? "/buyer/home" : "/seller/dashboard");
+    if (forRole === "seller") {
+      navigate(store.sellerKycApproved ? "/seller/dashboard" : "/seller/verify");
+    } else {
+      navigate("/buyer/home");
+    }
   };
 
   const signupWithCredentials = async (email: string, pass: string, fullName: string, forRole: "buyer" | "seller") => {

@@ -157,30 +157,69 @@ function AiStream() {
 
 export default function PageOverview() {
   const [range, setRange] = useState<"week" | "month">("week");
+  const [metrics, setMetrics] = useState({
+    gmv: "PKR 7,125,000",
+    revenue: "PKR 142,500",
+    totalProducts: 0,
+    activeSellers: "1,240 total",
+    escrowHold: "PKR 450,000",
+  });
+  const [kycQueue, setKycQueue] = useState<any[]>(kycRequests);
+
+  useEffect(() => {
+    let isMounted = true;
+    Promise.all([
+      adminService.getOverviewMetrics(),
+      productService.getProducts(),
+      adminService.getKycQueue(),
+    ]).then(([metricsRes, productsRes, kycRes]) => {
+      if (!isMounted) return;
+      
+      const prodCount = productsRes.data ? productsRes.data.length : 0;
+      const gmvVal = metricsRes.data?.gmv || "PKR 7,125,000";
+      const escrowVal = metricsRes.data?.escrowHold || "PKR 450,000";
+
+      setMetrics({
+        gmv: gmvVal,
+        revenue: metricsRes.data?.gmv ? `PKR ${(Math.round(parseFloat(gmvVal.replace(/[^0-9.]/g, "") || "7125000") * 0.02)).toLocaleString()}` : "PKR 142,500",
+        totalProducts: prodCount,
+        activeSellers: `${metricsRes.data?.activeListings || prodCount || 12} Products Listed`,
+        escrowHold: escrowVal,
+      });
+
+      if (kycRes.data && kycRes.data.length > 0) {
+        setKycQueue(kycRes.data);
+      }
+    }).catch(err => console.warn("Failed to fetch admin metrics:", err));
+
+    return () => { isMounted = false; };
+  }, []);
+
   const chartData = range === "week" ? revenueWeek : revenueMonth;
+
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-4 gap-4">
-        <KpiCard title="Total Platform Revenue" value="PKR 142,500" sub="2% escrow fee · all transactions" trend="up" trendVal="+14.2%" accent={C.green}>
+        <KpiCard title="Total Platform Revenue" value={metrics.revenue} sub="2% escrow fee · all transactions" trend="up" trendVal="+14.2%" accent={C.green}>
           <Sparkline data={revenueWeek.map(d => d.revenue)} color={C.green} />
         </KpiCard>
-        <KpiCard title="Gross Merchandise Value" value="PKR 7,125,000" sub="Total sales volume · 6 months" trend="up" trendVal="+8.7%" accent={C.orange}>
+        <KpiCard title="Gross Merchandise Value" value={metrics.gmv} sub="Total sales volume · live marketplace" trend="up" trendVal="+8.7%" accent={C.orange}>
           <Sparkline data={revenueMonth.map(d => d.gmv)} color={C.orange} />
         </KpiCard>
-        <KpiCard title="Active Sellers" value="1,240 total" sub="890 verified · 350 pending" accent={C.teal}>
+        <KpiCard title="Listed Products" value={`${metrics.totalProducts} Items`} sub={metrics.activeSellers} accent={C.teal}>
           <div>
             <div className="flex items-center justify-between text-xs mb-1.5" style={{ color: C.textDim, fontFamily: MONO }}>
-              <span>Verification ratio</span><span style={{ color: C.teal }}>71.8%</span>
+              <span>Live Items Ratio</span><span style={{ color: C.teal }}>100%</span>
             </div>
             <div className="h-1.5 rounded-full overflow-hidden" style={{ background: C.border }}>
-              <div className="h-full rounded-full" style={{ width: "71.8%", background: `linear-gradient(90deg,${C.teal},${C.orange})` }} />
+              <div className="h-full rounded-full" style={{ width: "100%", background: `linear-gradient(90deg,${C.teal},${C.orange})` }} />
             </div>
           </div>
         </KpiCard>
-        <KpiCard title="Escrow Locked Funds" value="PKR 450,000" sub="85 active orders in escrow" accent={C.yellow}>
+        <KpiCard title="Escrow Locked Funds" value={metrics.escrowHold} sub="Active orders in escrow protection" accent={C.yellow}>
           <div className="flex items-center gap-2 px-2.5 py-2 rounded-lg border" style={{ background: `${C.green}10`, borderColor: `${C.green}30` }}>
             <Lock size={11} style={{ color: C.green }} /><span className="text-xs font-semibold" style={{ color: C.green, fontFamily: MONO }}>Funds Safe</span>
-            <span className="ml-auto text-xs" style={{ color: C.textDim, fontFamily: MONO }}>450K locked</span>
+            <span className="ml-auto text-xs" style={{ color: C.textDim, fontFamily: MONO }}>Protected</span>
           </div>
         </KpiCard>
       </div>
@@ -216,7 +255,7 @@ export default function PageOverview() {
               <div className="flex items-center gap-2">
                 <ShieldCheck size={14} style={{ color: C.yellow }} />
                 <h3 className="text-sm font-bold" style={{ color: C.text, fontFamily: FONT }}>Pending Seller Verification Requests</h3>
-                <span className="px-1.5 py-0.5 rounded-full font-bold" style={{ background: `${C.red}20`, color: C.red, fontFamily: MONO, fontSize: 10 }}>3 PENDING</span>
+                <span className="px-1.5 py-0.5 rounded-full font-bold" style={{ background: `${C.red}20`, color: C.red, fontFamily: MONO, fontSize: 10 }}>{kycQueue.length} PENDING</span>
               </div>
             </div>
             <table className="w-full">
@@ -229,30 +268,30 @@ export default function PageOverview() {
                 </tr>
               </thead>
               <tbody>
-                {kycRequests.slice(0, 4).map((req, i) => (
+                {kycQueue.slice(0, 4).map((req, i) => (
                   <tr key={req.id} className="border-b hover:bg-white/[0.02] transition-colors"
-                    style={{ borderColor: i === 3 ? "transparent" : `${C.border}40` }}>
+                    style={{ borderColor: i === kycQueue.length - 1 ? "transparent" : `${C.border}40` }}>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-2.5">
                         <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
-                          style={{ background: `${C.orange}20`, color: C.orange, fontFamily: FONT }}>{req.shop[0]}</div>
+                          style={{ background: `${C.orange}20`, color: C.orange, fontFamily: FONT }}>{(req.shopName || req.shop || "S")[0]}</div>
                         <div>
-                          <p className="text-xs font-semibold" style={{ color: C.text, fontFamily: FONT }}>{req.shop}</p>
-                          <p className="text-xs" style={{ color: C.textDim, fontFamily: MONO }}>{req.id}</p>
+                          <p className="text-xs font-semibold" style={{ color: C.text, fontFamily: FONT }}>{req.shopName || req.shop || "Seller Store"}</p>
+                          <p className="text-xs" style={{ color: C.textDim, fontFamily: MONO }}>#{req.id}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-5 py-3">
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium"
-                        style={{ background: req.type === "Warehouse" ? `${C.teal}15` : req.type === "Shop" ? `${C.orange}15` : `${C.yellow}15`, color: req.type === "Warehouse" ? C.teal : req.type === "Shop" ? C.orange : C.yellow, fontFamily: MONO, fontSize: 11 }}>
-                        {req.type === "Warehouse" ? <Building2 size={9} /> : req.type === "Shop" ? <Globe size={9} /> : <User size={9} />}{req.type}
+                        style={{ background: `${C.orange}15`, color: C.orange, fontFamily: MONO, fontSize: 11 }}>
+                        <User size={9} />{req.name || req.type || "Seller"}
                       </span>
                     </td>
                     <td className="px-5 py-3"><span className="text-xs" style={{ color: C.textMuted, fontFamily: MONO }}>{req.cnic}</span></td>
                     <td className="px-5 py-3">
-                      <div className="flex items-center gap-1.5"><Clock size={10} style={{ color: C.textDim }} /><span className="text-xs" style={{ color: C.textMuted, fontFamily: MONO }}>{req.submitted}</span></div>
+                      <div className="flex items-center gap-1.5"><Clock size={10} style={{ color: C.textDim }} /><span className="text-xs" style={{ color: C.textMuted, fontFamily: MONO }}>{req.submitted || "Recently"}</span></div>
                     </td>
-                    <td className="px-5 py-3"><StatusBadge status={req.status} /></td>
+                    <td className="px-5 py-3"><StatusBadge status={(req.status || "PENDING").toUpperCase()} /></td>
                   </tr>
                 ))}
               </tbody>
