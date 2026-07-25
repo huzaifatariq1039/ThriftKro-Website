@@ -1,7 +1,7 @@
 /**
  * Centralized API Client Abstraction Layer.
- * Wraps network calls with unified base URL, headers, and async mock delays.
- * Ready for production Axios/Fetch REST or GraphQL integration.
+ * Connects frontend services to the backend REST API with authentication
+ * and automatic mock fallback support for offline local development.
  */
 
 export interface ApiResponse<T> {
@@ -10,32 +10,61 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
-const MOCK_DELAY_MS = 150;
+export async function request<T>(
+  endpoint: string,
+  options: RequestInit = {},
+  mockFallback?: T
+): Promise<ApiResponse<T>> {
+  const baseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
+  const token = localStorage.getItem("thrift_kro_token") || localStorage.getItem("access_token");
 
-export async function request<T>(endpoint: string, options: RequestInit = {}, mockFallback?: T): Promise<ApiResponse<T>> {
-  // Simulate network latency for mock data layer
-  await new Promise(resolve => setTimeout(resolve, MOCK_DELAY_MS));
+  const isFormData = options.body instanceof FormData;
+  const defaultHeaders: Record<string, string> = {
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
 
-  if (mockFallback !== undefined) {
-    return {
-      data: mockFallback,
-      status: 200,
-      message: "Success (Mock Data)",
-    };
-  }
+  const headers = {
+    ...defaultHeaders,
+    ...(options.headers as Record<string, string>),
+  };
 
   try {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || "/api";
     const res = await fetch(`${baseUrl}${endpoint}`, {
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
       ...options,
+      headers,
     });
-    const data = await res.json();
-    return { data, status: res.status };
+
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => "");
+      let parsedError: any;
+      try {
+        parsedError = JSON.parse(errorText);
+      } catch {
+        parsedError = { detail: errorText || res.statusText };
+      }
+      throw new Error(parsedError.detail || parsedError.message || `HTTP ${res.status}: ${res.statusText}`);
+    }
+
+    const contentType = res.headers.get("content-type");
+    let data: any;
+    if (contentType && contentType.includes("application/json")) {
+      data = await res.json();
+    } else {
+      data = await res.text();
+    }
+
+    return { data: data as T, status: res.status };
   } catch (err: any) {
-    throw new Error(`API Request Error: ${err.message || err}`);
+    console.warn(`[API Client] Network call to ${endpoint} failed:`, err.message);
+    if (mockFallback !== undefined) {
+      console.info(`[API Client] Falling back to mock data for ${endpoint}`);
+      return {
+        data: mockFallback,
+        status: 200,
+        message: "Success (Fallback Mock Data)",
+      };
+    }
+    throw err;
   }
 }

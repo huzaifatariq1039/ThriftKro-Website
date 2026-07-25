@@ -4,3 +4,5 @@ export * from "./sellerService";
 export * from "./buyerService";
 export * from "./adminService";
 export * from "./authService";
+export * from "./vtoService";
+

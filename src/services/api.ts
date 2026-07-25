@@ -7,23 +7,25 @@ import { mockProducts, DEFAULT_AVATAR } from "./mockData";
  * All functions return Promises to seamlessly support async API calls.
  ─────────────────────────────────────────────────────────────────────── */
 
-export const API_BASE_URL = "/api/v1";
+export const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
 
 // Helper for HTTP requests with authorization header token
 export async function fetchWithAuth<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const token = localStorage.getItem("thrift_kro_token");
+  const token = localStorage.getItem("thrift_kro_token") || localStorage.getItem("access_token");
   const headers = {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
 
-  // When backend is ready, uncomment real fetch:
-  // const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
-  // if (!res.ok) throw new Error(await res.text());
-  // return res.json();
-
-  throw new Error("Backend not connected yet. Using mock services.");
+  try {
+    const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  } catch (err: any) {
+    console.warn(`[fetchWithAuth] Call to ${endpoint} failed:`, err.message);
+    throw err;
+  }
 }
 
 /* ──────────  Auth API  ────────── */
