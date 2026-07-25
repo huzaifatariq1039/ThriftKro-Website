@@ -26,87 +26,70 @@ export const sellerService = {
   },
 
   async createListing(listing: Omit<SellerListing, "id">): Promise<ApiResponse<SellerListing>> {
-    const newListing: SellerListing = {
-      ...listing,
-      id: Date.now(),
-    };
-    try {
-      const res = await request<any>(
-        "/products/",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            name: listing.name,
-            description: "Seller dashboard created item",
-            price: listing.price,
-            original_price: listing.price * 1.3,
-            category: listing.category || "Jackets",
-            department: "Men",
-            size: "M",
-            brand: "Thrifted",
-            condition: "Good",
-            image_url: listing.img,
-            images: [],
-            tags: [],
-          }),
-        },
-        newListing
-      );
-
-      if (res.data && res.data.name) {
-        return {
-          data: {
-            id: Date.now(),
-            name: res.data.name,
-            price: res.data.price,
-            views: 0,
-            likes: 0,
-            category: res.data.category,
-            status: "Active",
-            img: res.data.image_url || listing.img,
-          },
-          status: 200,
-        };
+    const res = await request<any>(
+      "/products/",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          name: listing.name,
+          description: "Seller dashboard created item",
+          price: listing.price,
+          original_price: listing.price * 1.3,
+          category: listing.category || "Jackets",
+          department: "Men",
+          size: "M",
+          brand: "Thrifted",
+          condition: "Good",
+          image_url: listing.img,
+          images: [],
+          tags: [],
+        }),
       }
-    } catch {
-      // Return fallback
-    }
-    return { data: newListing, status: 200 };
+    );
+
+    return {
+      data: {
+        id: res.data?.id || Date.now(),
+        name: res.data?.name || listing.name,
+        price: res.data?.price || listing.price,
+        views: 0,
+        likes: 0,
+        category: res.data?.category || listing.category,
+        status: "Active",
+        img: res.data?.image_url || listing.img,
+      },
+      status: res.status,
+    };
   },
 
   async deleteListing(id: number): Promise<ApiResponse<{ success: boolean }>> {
-    return request<{ success: boolean }>(`/products/${id}`, { method: "DELETE" }, { success: true });
+    const res = await request<{ success: boolean }>(`/products/${id}`, { method: "DELETE" });
+    return { data: { success: true }, status: res.status };
   },
 
   async submitVerification(payload: { business_name?: string; cnic?: string; cnic_number?: string; cnic_front_url?: string; cnic_back_url?: string } | string): Promise<ApiResponse<{ status: "pending" | "verified" | "approved" }>> {
     const cnicVal = typeof payload === "string" ? payload : payload.cnic_number || payload.cnic || "35202-0000000-1";
     const bizName = typeof payload === "object" ? payload.business_name || "Thrift Shop" : "Thrift Shop";
 
-    const fallbackResponse = { status: "pending" as const };
-
-    try {
-      const res = await request<any>(
-        "/sellers/verify",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            business_name: bizName,
-            cnic_number: cnicVal,
-            cnic_front_url: typeof payload === "object" ? payload.cnic_front_url || "https://example.com/front.jpg" : "https://example.com/front.jpg",
-            cnic_back_url: typeof payload === "object" ? payload.cnic_back_url || "https://example.com/back.jpg" : "https://example.com/back.jpg",
-            business_address: "Lahore, Pakistan",
-          }),
-        },
-        fallbackResponse
-      );
-      const statusVal = res.data?.status?.toLowerCase() === "approved" ? "verified" : "pending";
-      return { data: { status: statusVal }, status: res.status };
-    } catch {
-      return { data: fallbackResponse, status: 200 };
-    }
+    const res = await request<any>(
+      "/sellers/verify",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          business_name: bizName,
+          cnic_number: cnicVal,
+          cnic_front_url: typeof payload === "object" ? payload.cnic_front_url || "https://example.com/front.jpg" : "https://example.com/front.jpg",
+          cnic_back_url: typeof payload === "object" ? payload.cnic_back_url || "https://example.com/back.jpg" : "https://example.com/back.jpg",
+          business_address: "Lahore, Pakistan",
+        }),
+      }
+    );
+    const statusVal = res.data?.status?.toLowerCase() === "approved" ? "verified" : "pending";
+    return { data: { status: statusVal }, status: res.status };
   },
 
   async getVerificationStatus(): Promise<ApiResponse<{ verification_status: string }>> {
-    return request<{ verification_status: string }>("/sellers/verification/me", {}, { verification_status: "pending" });
+    const res = await request<any>("/sellers/verification/me");
+    return { data: { verification_status: res.data?.verification_status || "pending" }, status: res.status };
   },
 };

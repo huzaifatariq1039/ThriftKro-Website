@@ -15,87 +15,63 @@ export interface TokenResponse {
 
 export const authService = {
   async login(email: string, pass: string, role: Role = "buyer"): Promise<ApiResponse<UserSession>> {
-    const mockFallbackSession: UserSession = {
-      email,
-      role,
-      token: `mock-jwt-token-${role}-${Date.now()}`,
-    };
+    // FastAPI OAuth2PasswordRequestForm expects URL-encoded form data with 'username' and 'password'
+    const params = new URLSearchParams();
+    params.append("username", email);
+    params.append("password", pass);
 
-    try {
-      // FastAPI OAuth2PasswordRequestForm expects URL-encoded form data with 'username' and 'password'
-      const params = new URLSearchParams();
-      params.append("username", email);
-      params.append("password", pass);
-
-      const tokenRes = await request<TokenResponse>(
-        "/auth/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: params.toString(),
-        },
-        { access_token: mockFallbackSession.token, token_type: "bearer" }
-      );
-
-      const token = tokenRes.data.access_token;
-      if (token) {
-        localStorage.setItem("thrift_kro_token", token);
-        localStorage.setItem("access_token", token);
+    const tokenRes = await request<TokenResponse>(
+      "/auth/login",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: params.toString(),
       }
+    );
 
-      // Try fetching current user profile from /users/me
-      try {
-        const userRes = await request<any>("/users/me");
-        if (userRes.data) {
-          const user: User = {
-            id: String(userRes.data.id),
-            name: userRes.data.full_name || email,
-            email: userRes.data.email || email,
-            role: (userRes.data.role as Role) || role,
-            avatar: userRes.data.avatar_url || null,
-          };
-          localStorage.setItem("thrift_kro_user", JSON.stringify(user));
-          return { data: { email: user.email, role: user.role, token, user }, status: 200 };
-        }
-      } catch (err) {
-        console.warn("Could not fetch user profile after login:", err);
-      }
-
-      return { data: { email, role, token }, status: 200 };
-    } catch (err) {
-      console.warn("Login API error, using mock fallback session:", err);
-      return { data: mockFallbackSession, status: 200 };
+    const token = tokenRes.data.access_token;
+    if (token) {
+      localStorage.setItem("thrift_kro_token", token);
+      localStorage.setItem("access_token", token);
     }
+
+    // Fetch current user profile from /users/me
+    try {
+      const userRes = await request<any>("/users/me");
+      if (userRes.data) {
+        const user: User = {
+          id: String(userRes.data.id),
+          name: userRes.data.full_name || email,
+          email: userRes.data.email || email,
+          role: (userRes.data.role?.toLowerCase() as Role) || role,
+          avatar: userRes.data.avatar_url || null,
+        };
+        localStorage.setItem("thrift_kro_user", JSON.stringify(user));
+        return { data: { email: user.email, role: user.role, token, user }, status: 200 };
+      }
+    } catch (err) {
+      console.warn("Could not fetch user profile after login:", err);
+    }
+
+    return { data: { email, role, token }, status: 200 };
   },
 
   async signup(email: string, pass: string, fullName: string, role: Role = "buyer"): Promise<ApiResponse<UserSession>> {
-    const mockFallbackSession: UserSession = {
-      email,
-      role,
-      token: `mock-jwt-token-${role}-${Date.now()}`,
-    };
+    await request(
+      "/auth/register",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          email,
+          password: pass,
+          full_name: fullName,
+          role: role.toUpperCase(),
+        }),
+      }
+    );
 
-    try {
-      await request(
-        "/auth/register",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            email,
-            password: pass,
-            full_name: fullName,
-            role: role.toUpperCase(),
-          }),
-        },
-        { id: "mock_user_id", email }
-      );
-
-      // Auto login after registration
-      return await this.login(email, pass, role);
-    } catch (err) {
-      console.warn("Signup API error, returning fallback session:", err);
-      return { data: mockFallbackSession, status: 200 };
-    }
+    // Auto login after registration
+    return await this.login(email, pass, role);
   },
 
   async getCurrentUser(): Promise<User | null> {

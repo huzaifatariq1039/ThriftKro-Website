@@ -57,14 +57,6 @@ export async function request<T>(
     return { data: data as T, status: res.status };
   } catch (err: any) {
     console.warn(`[API Client] Network call to ${endpoint} failed:`, err.message);
-    if (mockFallback !== undefined) {
-      console.info(`[API Client] Falling back to mock data for ${endpoint}`);
-      return {
-        data: mockFallback,
-        status: 200,
-        message: "Success (Fallback Mock Data)",
-      };
-    }
     throw err;
   }
 }
