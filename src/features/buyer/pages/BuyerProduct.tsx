@@ -23,7 +23,7 @@ export default function BuyerProduct({ s }: { s: Store }) {
           <div className="relative rounded-[2rem] overflow-hidden" style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.1)" }}>
             <ImageWithFallback src={p.img} alt={p.name} className="w-full aspect-square object-cover" />
             <button onClick={() => s.toggleLike(p.id)} className="absolute top-5 right-5 w-11 h-11 rounded-full bg-white flex items-center justify-center" style={{ boxShadow: "0 6px 16px rgba(0,0,0,0.12)" }}><Heart size={20} fill={liked ? ORANGE : "none"} style={{ color: liked ? ORANGE : INK }} /></button>
-            {p.category === "Shoes" && <button onClick={() => { s.setActiveVtoItem(0); s.setRoute("buyer-vto"); }} className="absolute bottom-5 left-5 flex items-center gap-2 px-4 py-2.5 rounded-full font-extrabold text-sm" style={{ background: YELLOW, color: INK }}><Camera size={16} /> Try it on</button>}
+            <button onClick={() => { s.setActiveVtoItem(0); s.setRoute("buyer-vto"); }} className="absolute bottom-5 left-5 flex items-center gap-2 px-4 py-2.5 rounded-full font-extrabold text-sm shadow-md transition-all hover:scale-105" style={{ background: YELLOW, color: INK }}><Camera size={16} /> Try it on</button>
           </div>
           <div>
             <Label>{p.brand.toUpperCase()} · {p.category.toUpperCase()}</Label>
@@ -60,8 +60,9 @@ export default function BuyerProduct({ s }: { s: Store }) {
               <Shield size={18} style={{ color: ORANGE }} />
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => s.addToCart(p)} className="flex-1 py-4 rounded-xl font-extrabold" style={{ boxShadow: "0 0 0 1.5px rgba(26,17,8,0.15)", color: INK }}>Add to Cart</button>
-              <button onClick={() => { s.addToCart(p); s.setRoute("buyer-cart"); }} className="flex-1 py-4 rounded-xl font-extrabold text-white" style={{ background: ORANGE }}>Buy Now</button>
+              <button onClick={() => { s.setActiveVtoItem(0); s.setRoute("buyer-vto"); }} className="py-4 px-5 rounded-xl font-extrabold flex items-center gap-2" style={{ background: YELLOW, color: INK }}><Camera size={18} /> Virtual Try-On</button>
+              <button onClick={() => s.addToCart(p)} className="flex-1 py-4 rounded-xl font-extrabold bg-white hover:bg-gray-50" style={{ boxShadow: "0 0 0 1.5px rgba(26,17,8,0.15)", color: INK }}>Add to Cart</button>
+              <button onClick={() => { s.addToCart(p); s.setRoute("buyer-cart"); }} className="flex-1 py-4 rounded-xl font-extrabold text-white hover:opacity-90" style={{ background: ORANGE }}>Buy Now</button>
             </div>
             <div className="flex items-center gap-2 mt-4 text-xs" style={{ color: "rgba(26,17,8,0.5)" }}><Truck size={14} /> Delivery in 2-3 days · <Shield size={14} /> 7-day buyer protection</div>
           </div>
