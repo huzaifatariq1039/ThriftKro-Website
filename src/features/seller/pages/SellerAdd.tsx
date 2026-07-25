@@ -25,15 +25,37 @@ export default function SellerAdd({ s }: { s: Store }) {
     }, 1200);
   };
 
-  const submit = () => {
-    if (!name || !price) return;
-    s.addSellerListing({
-      id: Date.now(),
-      name, price: Number(price), views: 0, status: "Active",
-      img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop&auto=format",
-    });
-    s.showToast("Listing created! ✓");
-    s.setRoute("seller-listings");
+  const submit = async () => {
+    if (!name || !price) {
+      s.showToast("Please enter item title and price.");
+      return;
+    }
+
+    try {
+      const res = await productService.createProduct({
+        name,
+        price: Number(price),
+        originalPrice: Number(price) * 1.3,
+        category,
+        condition,
+        img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop&auto=format",
+      });
+
+      if (res.data) {
+        s.addSellerListing({
+          id: typeof res.data.id === "number" ? res.data.id : Date.now(),
+          name: res.data.name || name,
+          price: res.data.price || Number(price),
+          views: 0,
+          status: "Active",
+          img: res.data.img || "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop&auto=format",
+        });
+      }
+      s.showToast("Listing published to marketplace ✓");
+      s.setRoute("seller-listings");
+    } catch (err: any) {
+      s.showToast(err.message || "Failed to publish listing.");
+    }
   };
 
   return (

@@ -1,12 +1,36 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { ORANGE, YELLOW, INK, PAPER, FONT } from "@/constants/theme";
-import { mockProducts as products, mockCategories as categories } from "@/services/mockData";
+import { mockProducts, mockCategories as categories } from "@/services/mockData";
 import type { Store } from "@/hooks/useStore";
 import { Label } from "@/components/ui";
 import { BuyerNav, ProductCard } from "../components/BuyerNav";
+import { productService } from "@/services/api/productService";
+import { Product } from "@/types/types";
 
 export default function BuyerHome({ s }: { s: Store }) {
-  const filtered = products.filter(p => s.activeCategory === "All" || p.category === s.activeCategory);
+  const [productList, setProductList] = useState<Product[]>(mockProducts);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    productService.getProducts({ category: s.activeCategory === "All" ? undefined : s.activeCategory })
+      .then(res => {
+        if (isMounted && res.data && res.data.length > 0) {
+          setProductList(res.data);
+        }
+      })
+      .catch(err => {
+        console.warn("Failed to fetch dynamic products:", err);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+    return () => { isMounted = false; };
+  }, [s.activeCategory]);
+
+  const filtered = productList.filter(p => s.activeCategory === "All" || p.category === s.activeCategory);
+
   return (
     <div style={{ background: PAPER, minHeight: "100vh", fontFamily: FONT }}>
       <BuyerNav s={s} />
@@ -31,10 +55,14 @@ export default function BuyerHome({ s }: { s: Store }) {
           <h2 className="font-extrabold" style={{ fontSize: 26, letterSpacing: "-0.02em", color: INK }}>{s.activeCategory === "All" ? "Trending now" : s.activeCategory}</h2>
           <Label>{filtered.length} items</Label>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {filtered.map(p => <ProductCard key={p.id} p={p} s={s} />)}
-        </div>
-        {filtered.length === 0 && <p className="text-center py-16 text-sm" style={{ color: "rgba(26,17,8,0.4)" }}>No items in this category yet.</p>}
+        {loading ? (
+          <div className="text-center py-16 text-sm text-gray-500 font-bold">Loading live catalog...</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {filtered.map(p => <ProductCard key={p.id} p={p} s={s} />)}
+          </div>
+        )}
+        {!loading && filtered.length === 0 && <p className="text-center py-16 text-sm" style={{ color: "rgba(26,17,8,0.4)" }}>No items in this category yet.</p>}
       </section>
     </div>
   );

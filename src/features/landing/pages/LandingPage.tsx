@@ -1,15 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ArrowRight, Sparkles, Recycle, ShieldCheck, Mail, Target, Leaf, Store as StoreIcon, Star, Instagram, Twitter, Facebook } from "lucide-react";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import logoImg from "@/assets/logo.png";
 import { ORANGE, YELLOW, INK, PAPER, FONT, MONO } from "@/constants/theme";
-import { mockProducts as products } from "@/services/mockData";
+import { mockProducts } from "@/services/mockData";
 import type { Store } from "@/hooks/useStore";
 import { Logo, Label } from "@/components/ui";
+import { productService } from "@/services/api/productService";
+import { Product } from "@/types/types";
 
 export default function LandingPage({ s, onAdminClick }: { s: Store; onAdminClick?: () => void }) {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [productList, setProductList] = useState<Product[]>(mockProducts);
+
+  useEffect(() => {
+    let isMounted = true;
+    productService.getProducts()
+      .then(res => {
+        if (isMounted && res.data && res.data.length > 0) {
+          setProductList(res.data);
+        }
+      })
+      .catch(err => {
+        console.warn("Could not load landing products:", err);
+      });
+    return () => { isMounted = false; };
+  }, []);
+
   return (
     <div className="min-h-screen" style={{ background: PAPER, fontFamily: FONT }}>
       <header className="max-w-7xl mx-auto px-8 h-20 flex items-center justify-between">
@@ -40,7 +58,7 @@ export default function LandingPage({ s, onAdminClick }: { s: Store; onAdminClic
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
-          {products.slice(0, 4).map((p, i) => (
+          {productList.slice(0, 4).map((p, i) => (
             <div key={p.id} className={`rounded-3xl overflow-hidden ${i % 2 ? "mt-8" : ""}`} style={{ boxShadow: "0 20px 50px rgba(0,0,0,0.08)" }}>
               <ImageWithFallback src={p.img} alt={p.name} className="w-full aspect-square object-cover" />
             </div>

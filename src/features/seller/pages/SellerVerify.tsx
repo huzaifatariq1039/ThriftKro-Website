@@ -30,7 +30,20 @@ export default function SellerVerify({ s }: { s: Store }) {
                 <p className="text-xs font-bold" style={{ color: INK }}>Front & Back photos</p>
               </div>
             </Field>
-            <button onClick={() => { setSubmitted(true); s.showToast("KYC submitted for review ✓"); }} className="w-full py-4 rounded-xl font-extrabold text-white mt-4" style={{ background: ORANGE }}>Submit Verification</button>
+            <button
+              onClick={async () => {
+                if (!cnic.trim()) {
+                  s.showToast("Please enter your CNIC number.");
+                  return;
+                }
+                await s.submitSellerVerificationAsync({ cnic_number: cnic.trim() });
+                setSubmitted(true);
+              }}
+              className="w-full py-4 rounded-xl font-extrabold text-white mt-4 hover:opacity-90 transition-opacity"
+              style={{ background: ORANGE }}
+            >
+              Submit Verification
+            </button>
           </>
         )}
       </div>

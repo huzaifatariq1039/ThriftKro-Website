@@ -45,7 +45,19 @@ export default function BuyerCart({ s }: { s: Store }) {
               ))}
               <div className="border-t my-3" style={{ borderColor: "rgba(26,17,8,0.08)" }} />
               <div className="flex justify-between font-extrabold text-lg mb-5" style={{ color: INK }}><span>Total</span><span style={{ color: ORANGE }}>{pk(total)}</span></div>
-              <button onClick={() => s.handlePurchaseComplete(s.cartItems)} className="w-full py-4 rounded-xl font-extrabold text-white" style={{ background: ORANGE }}>Checkout · {pk(total)}</button>
+              <button
+                onClick={async () => {
+                  try {
+                    await s.checkoutAsync(s.cartItems);
+                  } catch (err: any) {
+                    s.showToast(err.message || "Checkout failed. Check your wallet balance.");
+                  }
+                }}
+                className="w-full py-4 rounded-xl font-extrabold text-white hover:opacity-90 transition-opacity"
+                style={{ background: ORANGE }}
+              >
+                Checkout · {pk(total)}
+              </button>
               <div className="flex items-center justify-center gap-2 mt-4 text-xs" style={{ color: "rgba(26,17,8,0.5)" }}><Shield size={14} /> Secure checkout · Buyer protection</div>
             </div>
           </div>
