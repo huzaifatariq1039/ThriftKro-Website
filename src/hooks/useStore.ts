@@ -60,6 +60,18 @@ export function useStore() {
     navigate(forRole === "buyer" ? "/buyer/home" : "/seller/dashboard");
   };
 
+  const loginWithCredentials = async (email: string, pass: string, forRole: "buyer" | "seller") => {
+    await auth.login(email, pass, forRole);
+    navigate(forRole === "buyer" ? "/buyer/home" : "/seller/dashboard");
+  };
+
+  const signupWithCredentials = async (email: string, pass: string, fullName: string, forRole: "buyer" | "seller") => {
+    const { authAPI } = await import("../services/api");
+    await authAPI.signup(email, pass, fullName, forRole);
+    await auth.login(email, pass, forRole);
+    navigate(forRole === "buyer" ? "/buyer/home" : "/seller/verify");
+  };
+
   const signupSeller = async () => {
     await auth.signupSeller();
     navigate("/seller/verify");
@@ -86,6 +98,8 @@ export function useStore() {
     authMode: auth.authMode,
     setAuthMode: auth.setAuthMode,
     login,
+    loginWithCredentials,
+    signupWithCredentials,
     signupSeller,
     logout,
     requestRoleSwitch,
