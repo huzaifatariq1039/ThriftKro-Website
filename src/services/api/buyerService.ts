@@ -8,7 +8,7 @@ export const buyerService = {
       const res = await request<any[]>("/orders/");
       if (Array.isArray(res.data) && res.data.length > 0) {
         const orders: BuyerOrder[] = res.data.map((o, idx) => ({
-          id: typeof o.id === "number" ? o.id : idx + 1,
+          id: String(o.id ?? idx + 1),
           orderNo: o.order_number || `TK-${10300 + idx}`,
           date: o.created_at ? new Date(o.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Today",
           total: o.total_amount ? `PKR ${o.total_amount.toLocaleString()}` : "PKR 0",

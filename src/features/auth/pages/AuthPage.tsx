@@ -15,6 +15,7 @@ export default function AuthPage({ s, forRole }: { s: Store; forRole: "buyer" | 
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   const isSignup = s.authMode === "signup";
   const accent = forRole === "buyer" ? ORANGE : INK;
@@ -40,6 +41,9 @@ export default function AuthPage({ s, forRole }: { s: Store; forRole: "buyer" | 
         return;
       }
     }
+
+    // Save the remember-me preference before login so authService can read it
+    localStorage.setItem("thrift_kro_remember", rememberMe ? "true" : "false");
 
     setLoading(true);
     try {
@@ -131,6 +135,27 @@ export default function AuthPage({ s, forRole }: { s: Store; forRole: "buyer" | 
                 </button>
               </div>
             </Field>
+          )}
+
+          {/* Remember Me checkbox */}
+          {!isSignup && (
+            <label className="flex items-center gap-2.5 cursor-pointer select-none py-1">
+              <div
+                onClick={() => setRememberMe(v => !v)}
+                className="w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all"
+                style={{
+                  borderColor: rememberMe ? ORANGE : "rgba(26,17,8,0.2)",
+                  background: rememberMe ? ORANGE : "transparent",
+                }}
+              >
+                {rememberMe && (
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </div>
+              <span className="text-sm font-medium" style={{ color: INK }}>Remember me</span>
+            </label>
           )}
 
           {error && (

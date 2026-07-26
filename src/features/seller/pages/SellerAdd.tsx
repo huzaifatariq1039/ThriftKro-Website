@@ -4,6 +4,7 @@ import { ORANGE, INK } from "@/constants/theme";
 import type { Store } from "@/hooks/useStore";
 import { Label, Field, inputCls, inputStyle } from "@/components/ui";
 import { SellerShell } from "../components/SellerShell";
+import { productService } from "@/services/api/productService";
 
 export default function SellerAdd({ s }: { s: Store }) {
   const [name, setName] = useState("");

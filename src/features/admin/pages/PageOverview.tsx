@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import { PieChart, Pie, Cell } from "recharts";
 import { C, FONT, MONO, revenueWeek, revenueMonth, escrowData, kycRequests, aiLogs0 } from "../data/adminData";
+import { adminService } from "@/services/api/adminService";
+import { productService } from "@/services/api/productService";
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; color: string; label: string }> = {

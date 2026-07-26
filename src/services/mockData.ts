@@ -3,12 +3,12 @@ import { Product, VtoShoe, SellerListing, Message, Address, Card, Device, BuyerO
 export const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop&auto=format";
 
 export const mockProducts: Product[] = [
-  { id: 1, name: "Air Jordan 1 Retro High", brand: "Nike", price: 2499, originalPrice: 8500, condition: "Excellent", size: "UK 9", seller: "SneakerHeadKarachi", sellerRating: 4.9, img: "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=600&h=600&fit=crop&auto=format", category: "Shoes" },
-  { id: 2, name: "Vintage Levi's 501 Jacket", brand: "Levi's", price: 1199, originalPrice: 4000, condition: "Good", size: "M", seller: "VintageLahore", sellerRating: 4.7, img: "https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?w=600&h=600&fit=crop&auto=format", category: "Vintage" },
-  { id: 3, name: "New Balance 550 White", brand: "New Balance", price: 3299, originalPrice: 9000, condition: "Excellent", size: "UK 8", seller: "KicksIslamabad", sellerRating: 5.0, img: "https://images.unsplash.com/photo-1621315271772-28b1f3a5df87?w=600&h=600&fit=crop&auto=format", category: "Shoes" },
-  { id: 4, name: "Floral Oversized Shirt", brand: "Vintage", price: 549, originalPrice: 2200, condition: "Good", size: "L", seller: "RetroRawalpindi", sellerRating: 4.6, img: "https://images.unsplash.com/photo-1511039912745-8bfa0bc56aeb?w=600&h=600&fit=crop&auto=format", category: "Shirts" },
-  { id: 5, name: "Adidas Samba OG Black", brand: "Adidas", price: 2799, originalPrice: 7500, condition: "Excellent", size: "UK 10", seller: "SneakerHeadKarachi", sellerRating: 4.9, img: "https://images.unsplash.com/photo-1718220130188-428c7dc27fd2?w=600&h=600&fit=crop&auto=format", category: "Shoes" },
-  { id: 6, name: "Y2K Denim Mini Skirt", brand: "Archive", price: 699, originalPrice: 2800, condition: "Good", size: "S", seller: "VintageLahore", sellerRating: 4.7, img: "https://images.unsplash.com/photo-1780566758461-8a2e9287abb2?w=600&h=600&fit=crop&auto=format", category: "Vintage" },
+  { id: "1", name: "Nike Air Jordan 1", brand: "Nike", price: 25000, originalPrice: 35000, condition: "Like New", size: "US 10", seller: "Zainab Thrift", sellerRating: 4.8, img: "https://images.unsplash.com/photo-1552346154-21d32810aba3?w=800", category: "Shoes" },
+  { id: "2", name: "Vintage Denim Jacket", brand: "Levi's", price: 3500, originalPrice: 8000, condition: "Good", size: "L", seller: "Retro Vibes", sellerRating: 4.5, img: "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=800", category: "Jackets" },
+  { id: "3", name: "Classic Tote Bag", brand: "Unbranded", price: 1200, originalPrice: 3000, condition: "Fair", size: "One Size", seller: "Eco Thrift", sellerRating: 4.2, img: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800", category: "Bags" },
+  { id: "4", name: "Oversized Graphic Tee", brand: "Thrifted", price: 800, originalPrice: 2500, condition: "Like New", size: "XL", seller: "Vintage Finds", sellerRating: 4.9, img: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800", category: "Shirts" },
+  { id: "5", name: "Leather Crossbody", brand: "Gucci", price: 15000, originalPrice: 45000, condition: "Very Good", size: "Small", seller: "Luxe Resale", sellerRating: 4.7, img: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800", category: "Bags" },
+  { id: "6", name: "90s Windbreaker", brand: "Adidas", price: 2200, originalPrice: 6000, condition: "Good", size: "M", seller: "Sporty Spice", sellerRating: 4.6, img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800", category: "Jackets" },
 ];
 
 export const mockCategories = ["All", "Shoes", "Vintage", "Shirts", "Jackets", "Bags", "Accessories"];

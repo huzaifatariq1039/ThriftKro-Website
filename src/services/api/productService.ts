@@ -18,7 +18,7 @@ function mapBackendProduct(bp: any): Product {
     return bp as Product;
   }
   return {
-    id: typeof bp.id === "number" ? bp.id : hashCode(String(bp.id)),
+    id: typeof bp.id === "string" ? bp.id : String(bp.id || hashCode(String(bp.name))),
     name: bp.name || "Vintage Apparel",
     brand: bp.brand || "Thrifted",
     price: typeof bp.price === "number" ? bp.price : parseFloat(bp.price) || 0,
@@ -51,13 +51,13 @@ export const productService = {
     }
   },
 
-  async getProductById(id: number | string): Promise<ApiResponse<Product | undefined>> {
+  async getProductById(id: string): Promise<ApiResponse<Product | undefined>> {
     try {
-      const item = mockProducts.find(p => p.id === Number(id));
+      const item = mockProducts.find(p => p.id === id);
       const res = await request<any>(`/products/${id}`, {}, item);
       return { data: res.data ? mapBackendProduct(res.data) : item, status: res.status };
     } catch {
-      const item = mockProducts.find(p => p.id === Number(id));
+      const item = mockProducts.find(p => p.id === id);
       return { data: item, status: 200 };
     }
   },
@@ -72,7 +72,7 @@ export const productService = {
 
   async createProduct(productData: Partial<Product> & { image_url?: string }): Promise<ApiResponse<Product>> {
     const fallbackNewProduct: Product = {
-      id: Date.now(),
+      id: String(Date.now()),
       name: productData.name || "New Listing",
       brand: productData.brand || "Vintage",
       price: productData.price || 2500,

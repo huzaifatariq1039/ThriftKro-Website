@@ -1,7 +1,7 @@
 /* ─────────────────────────  Types & Schemas  ───────────────────────── */
 
 export type Product = {
-  id: number;
+  id: string;
   name: string;
   brand: string;
   price: number;
@@ -96,9 +96,13 @@ export type Device = {
 
 export type BuyerOrder = {
   id: string;
-  name: string;
-  img: string;
-  price: number;
+  orderNo?: string;
+  name?: string;
+  img?: string;
+  price?: number;
+  total?: string;
+  itemsCount?: number;
+  items?: any[];
   status: "Delivered" | "In Transit" | "Processing";
   date: string;
 };

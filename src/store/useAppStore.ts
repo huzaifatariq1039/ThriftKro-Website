@@ -3,7 +3,7 @@ import {
   Product, VerifyStatus, Role, SecurityFlow, Address, Card, Device, BuyerOrder, SellerListing, Message
 } from "../types/types";
 import {
-  mockProducts, mockSellerListings, mockMessages, mockAddresses, mockCards, mockDevices, mockBuyerOrders, DEFAULT_AVATAR
+  mockProducts, mockMessages, mockAddresses, mockCards, mockDevices, mockBuyerOrders, DEFAULT_AVATAR
 } from "../services/mockData";
 import { productService, sellerService, buyerService } from "../services/api/index";
 
@@ -13,8 +13,8 @@ type AppState = {
   selectedProduct: Product;
   activeCategory: string;
   searchQuery: string;
-  likedProducts: Set<number>;
-  cartItems: Product[];
+  likedProducts: Set<string>;
+  cart: { item: Product; qty: number }[];
   activeVtoItem: number;
 
   // Modals & UI Controls
@@ -24,9 +24,9 @@ type AppState = {
   securityFlow: SecurityFlow;
 
   // Seller State
-  sellerStock: Record<number, number>;
+  sellerStock: Record<string, number>;
   sellerListings: SellerListing[];
-  sellerNotifs: { id: number; msg: string; type: "sold" | "low" | "oos" }[];
+  sellerNotifs: { id: string; msg: string; type: "sold" | "low" | "oos" }[];
   sellerProfile: {
     name: string; email: string; phone: string; bio: string;
     shopName: string; location: string; shipping: string; avatar?: string;
@@ -58,20 +58,20 @@ type AppState = {
   setSelectedProduct: (p: Product) => void;
   setActiveCategory: (cat: string) => void;
   setSearchQuery: (q: string) => void;
-  toggleLike: (id: number) => void;
+  toggleLike: (id: string) => void;
   addToCart: (p: Product) => void;
-  removeFromCart: (id: number) => void;
-  setCartItems: (items: Product[] | ((prev: Product[]) => Product[])) => void;
+  updateCartQty: (id: string, qty: number) => void;
+  removeFromCart: (id: string) => void;
   setActiveVtoItem: (idx: number) => void;
 
   setShowRoleSwitch: (show: boolean) => void;
   setShowSuccess: (show: boolean) => void;
   setSecurityFlow: (flow: SecurityFlow) => void;
 
-  setSellerStock: (stock: Record<number, number> | ((prev: Record<number, number>) => Record<number, number>)) => void;
+  setSellerStock: (stock: Record<string, number> | ((prev: Record<string, number>) => Record<string, number>)) => void;
   setSellerListings: (listings: SellerListing[] | ((prev: SellerListing[]) => SellerListing[])) => void;
   addSellerListing: (item: SellerListing) => void;
-  setSellerNotifs: (notifs: { id: number; msg: string; type: "sold" | "low" | "oos" }[] | ((prev: { id: number; msg: string; type: "sold" | "low" | "oos" }[]) => { id: number; msg: string; type: "sold" | "low" | "oos" }[])) => void;
+  setSellerNotifs: (notifs: { id: string; msg: string; type: "sold" | "low" | "oos" }[] | ((prev: { id: string; msg: string; type: "sold" | "low" | "oos" }[]) => { id: string; msg: string; type: "sold" | "low" | "oos" }[])) => void;
   setSellerProfile: (profile: any | ((prev: any) => any)) => void;
   setActiveShopField: (field: "shopName" | "location" | "shipping") => void;
   setSellerVerified: (v: VerifyStatus) => void;
@@ -102,8 +102,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   selectedProduct: mockProducts[0],
   activeCategory: "All",
   searchQuery: "",
-  likedProducts: new Set([2, 6]),
-  cartItems: [],
+  likedProducts: new Set(["2", "6"]),
+  cart: [],
   activeVtoItem: 0,
 
   showRoleSwitch: false,
@@ -111,26 +111,26 @@ export const useAppStore = create<AppState>((set, get) => ({
   purchasedItems: [],
   securityFlow: null,
 
-  sellerStock: { 1: 3, 2: 1, 3: 2, 4: 5, 5: 2, 6: 3 },
-  sellerListings: mockSellerListings,
+  sellerStock: {},
+  sellerListings: [],
   sellerNotifs: [],
   sellerProfile: {
-    name: "Priya Sharma",
-    email: "priya.sharma@gmail.com",
-    phone: "+92 300 1234567",
-    bio: "Curating the best pre-loved kicks & vintage finds in Lahore ✨",
-    shopName: "Priya's Closet",
-    location: "Lahore, Punjab",
+    name: "",
+    email: "",
+    phone: "",
+    bio: "",
+    shopName: "My Shop",
+    location: "",
     shipping: "Standard · 2-3 days",
-    city: "Lahore",
-    rating: 4.9,
-    salesCount: 142,
-    totalEarnings: 184200,
+    city: "",
+    rating: 0,
+    salesCount: 0,
+    totalEarnings: 0,
     avatar: DEFAULT_AVATAR,
   },
   activeShopField: "shopName",
-  sellerVerified: "verified",
-  sellerKycApproved: true,
+  sellerVerified: "unverified",
+  sellerKycApproved: false,
 
   buyerProfile: {
     name: "Aryan Kapoor",
@@ -167,17 +167,15 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   addToCart: (p) => {
     set(state => {
-      if (state.cartItems.find(i => i.id === p.id)) return state;
-      return { cartItems: [...state.cartItems, p] };
+      if (state.cart.find(i => i.item.id === p.id)) return state;
+      return { cart: [...state.cart, { item: p, qty: 1 }] };
     });
     get().showToast("Added to cart ✓");
   },
 
-  removeFromCart: (id) => set(state => ({ cartItems: state.cartItems.filter(i => i.id !== id) })),
+  updateCartQty: (id, qty) => set((s) => ({ cart: s.cart.map(x => (x.item.id === id ? { ...x, qty } : x)) })),
 
-  setCartItems: (updater) => set(state => ({
-    cartItems: typeof updater === "function" ? updater(state.cartItems) : updater
-  })),
+  removeFromCart: (id) => set(state => ({ cart: state.cart.filter(i => i.item.id !== id) })),
 
   setActiveVtoItem: (idx) => set({ activeVtoItem: idx }),
 
@@ -244,7 +242,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({
       purchasedItems: items,
       showSuccess: true,
-      cartItems: [],
+      cart: [],
     });
 
     // Update stock
@@ -259,9 +257,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     // Generate notifications
     const newNotifs = items.map(it => {
       const remaining = Math.max(0, (currentStock[it.id] ?? 1) - 1);
-      if (remaining === 0) return { id: Date.now() + it.id, msg: `"${it.name}" sold out! Remove or restock it.`, type: "oos" as const };
-      if (remaining === 1) return { id: Date.now() + it.id, msg: `"${it.name}" — only 1 left! Consider restocking.`, type: "low" as const };
-      return { id: Date.now() + it.id, msg: `"${it.name}" sold. ${remaining} remaining in stock.`, type: "sold" as const };
+      if (remaining === 0) return { id: String(Date.now()) + it.id, msg: `"${it.name}" sold out! Remove or restock it.`, type: "oos" as const };
+      if (remaining === 1) return { id: String(Date.now()) + it.id, msg: `"${it.name}" — only 1 left! Consider restocking.`, type: "low" as const };
+      return { id: String(Date.now()) + it.id, msg: `"${it.name}" sold. ${remaining} remaining in stock.`, type: "sold" as const };
     });
 
     get().setSellerNotifs(prev => [...newNotifs, ...prev].slice(0, 10));

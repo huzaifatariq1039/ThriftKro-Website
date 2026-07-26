@@ -183,8 +183,8 @@ export default function BuyerProduct({ s }: { s: Store }) {
                   setReviews([
                     {
                       id: Date.now(),
-                      name: s.user?.name || "You",
-                      avatar: s.user?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&auto=format",
+                      name: s.buyerProfile?.name || "You",
+                      avatar: s.buyerProfile?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&auto=format",
                       rating: newRating,
                       date: "Just now",
                       comment: newComment,

@@ -10,7 +10,7 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE
 
 // Helper for HTTP requests with authorization header token
 export async function fetchWithAuth<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const token = localStorage.getItem("thrift_kro_token") || localStorage.getItem("access_token");
+  const token = localStorage.getItem("thrift_kro_token") || sessionStorage.getItem("thrift_kro_token") || localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
   const headers = {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -55,21 +55,48 @@ export const authAPI = {
 };
 
 /* ──────────  Products API  ────────── */
+// Helper to map backend product to frontend Product type
+const mapProduct = (p: any): Product => ({
+  id: p.id,
+  name: p.name,
+  brand: p.brand || "Unbranded",
+  price: p.price,
+  originalPrice: p.original_price || p.price,
+  condition: p.condition,
+  size: p.size,
+  seller: p.seller_id, // or get seller name from somewhere if possible
+  sellerRating: 4.8, // placeholder
+  img: p.image_url,
+  category: p.category,
+});
+
 export const productsAPI = {
   getAll: async (category?: string): Promise<Product[]> => {
-    await new Promise(r => setTimeout(r, 100));
-    if (!category || category === "All") return mockProducts;
-    return mockProducts.filter(p => p.category === category);
+    try {
+      const qs = category && category !== "All" ? `?category=${encodeURIComponent(category)}` : "";
+      const products = await fetchWithAuth<any[]>(`/products${qs}`);
+      return products.map(mapProduct);
+    } catch (e) {
+      console.warn("Failed to fetch products from backend, returning empty array");
+      return [];
+    }
   },
 
-  getById: async (id: number): Promise<Product | undefined> => {
-    await new Promise(r => setTimeout(r, 50));
-    return mockProducts.find(p => p.id === id);
+  getById: async (id: string): Promise<Product | undefined> => {
+    try {
+      const p = await fetchWithAuth<any>(`/products/${id}`);
+      return mapProduct(p);
+    } catch (e) {
+      return undefined;
+    }
   },
 
   search: async (query: string): Promise<Product[]> => {
-    await new Promise(r => setTimeout(r, 100));
-    const q = query.toLowerCase();
-    return mockProducts.filter(p => (p.name + p.brand + p.category).toLowerCase().includes(q));
+    try {
+      const products = await fetchWithAuth<any[]>(`/products?q=${encodeURIComponent(query)}`);
+      return products.map(mapProduct);
+    } catch (e) {
+      return [];
+    }
   },
 };

@@ -22,7 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem("thrift_kro_token"));
+  const [token, setToken] = useState<string | null>(localStorage.getItem("thrift_kro_token") || sessionStorage.getItem("thrift_kro_token"));
   const [role, setRoleState] = useState<Role>(null);
   const [unlockedRoles, setUnlockedRoles] = useState<Set<Role>>(new Set());
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
@@ -53,8 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(res.token);
     setRoleState(forRole);
     setUnlockedRoles(prev => new Set([...prev, forRole]));
-    localStorage.setItem("thrift_kro_token", res.token);
-    localStorage.setItem("thrift_kro_user", JSON.stringify(res.user));
+    // Token & user are already saved by authService based on Remember Me preference
   };
 
   const signupSeller = async () => {
@@ -63,8 +62,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(res.token);
     setRoleState("seller");
     setUnlockedRoles(prev => new Set([...prev, "seller"]));
-    localStorage.setItem("thrift_kro_token", res.token);
-    localStorage.setItem("thrift_kro_user", JSON.stringify(res.user));
   };
 
   const adminLogin = async (email: string, pass: string) => {
@@ -73,8 +70,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(res.token);
     setRoleState("admin");
     setUnlockedRoles(prev => new Set([...prev, "admin"]));
-    localStorage.setItem("thrift_kro_token", res.token);
-    localStorage.setItem("thrift_kro_user", JSON.stringify(res.user));
   };
 
   const logout = () => {

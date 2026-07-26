@@ -7,15 +7,15 @@ import { Label } from "@/components/ui";
 import { BuyerNav } from "../components/BuyerNav";
 
 export default function BuyerCart({ s }: { s: Store }) {
-  const subtotal = s.cartItems.reduce((a, i) => a + i.price, 0);
-  const shipping = s.cartItems.length ? 199 : 0;
+  const subtotal = s.cart.reduce((a, i) => a + i.item.price * i.qty, 0);
+  const shipping = s.cart.length ? 199 : 0;
   const total = subtotal + shipping;
   return (
     <div style={{ background: PAPER, minHeight: "100vh", fontFamily: FONT }}>
       <BuyerNav s={s} />
       <div className="max-w-7xl mx-auto px-8 py-8">
         <h1 className="font-extrabold mb-8" style={{ fontSize: 34, letterSpacing: "-0.03em", color: INK }}>Your Cart</h1>
-        {s.cartItems.length === 0 ? (
+        {s.cart.length === 0 ? (
           <div className="text-center py-24">
             <ShoppingBag size={48} style={{ color: "rgba(26,17,8,0.2)" }} className="mx-auto mb-4" />
             <p className="font-bold text-lg" style={{ color: INK }}>Your cart is empty</p>
@@ -25,16 +25,16 @@ export default function BuyerCart({ s }: { s: Store }) {
         ) : (
           <div className="grid md:grid-cols-3 gap-8">
             <div className="md:col-span-2 space-y-4">
-              {s.cartItems.map(i => (
-                <div key={i.id} className="flex gap-4 p-4 rounded-2xl bg-white" style={{ boxShadow: "0 0 0 1px rgba(26,17,8,0.06)" }}>
-                  <ImageWithFallback src={i.img} alt={i.name} className="w-24 h-24 rounded-xl object-cover" />
+              {s.cart.map(c => (
+                <div key={c.item.id} className="flex gap-4 p-4 rounded-2xl bg-white" style={{ boxShadow: "0 0 0 1px rgba(26,17,8,0.06)" }}>
+                  <ImageWithFallback src={c.item.img} alt={c.item.name} className="w-24 h-24 rounded-xl object-cover" />
                   <div className="flex-1">
-                    <Label>{i.brand.toUpperCase()} · {i.condition}</Label>
-                    <p className="font-bold" style={{ color: INK }}>{i.name}</p>
-                    <p className="text-xs" style={{ color: "rgba(26,17,8,0.5)" }}>Size {i.size} · {i.seller}</p>
-                    <p className="font-extrabold mt-2" style={{ color: ORANGE }}>{pk(i.price)}</p>
+                    <Label>{c.item.brand.toUpperCase()} · {c.item.condition}</Label>
+                    <p className="font-bold" style={{ color: INK }}>{c.item.name}</p>
+                    <p className="text-xs" style={{ color: "rgba(26,17,8,0.5)" }}>Size {c.item.size} · {c.item.seller}</p>
+                    <p className="font-extrabold mt-2" style={{ color: ORANGE }}>{pk(c.item.price)} <span className="text-sm font-normal">x {c.qty}</span></p>
                   </div>
-                  <button onClick={() => s.removeFromCart(i.id)} className="self-start w-9 h-9 rounded-full flex items-center justify-center" style={{ background: "#FDECEA" }}><Trash2 size={16} style={{ color: "#DC2626" }} /></button>
+                  <button onClick={() => s.removeFromCart(c.item.id)} className="self-start w-9 h-9 rounded-full flex items-center justify-center" style={{ background: "#FDECEA" }}><Trash2 size={16} style={{ color: "#DC2626" }} /></button>
                 </div>
               ))}
             </div>
@@ -48,7 +48,7 @@ export default function BuyerCart({ s }: { s: Store }) {
               <button
                 onClick={async () => {
                   try {
-                    await s.checkoutAsync(s.cartItems);
+                    await s.checkoutAsync(s.cart.map(c => c.item));
                   } catch (err: any) {
                     s.showToast(err.message || "Checkout failed. Check your wallet balance.");
                   }
