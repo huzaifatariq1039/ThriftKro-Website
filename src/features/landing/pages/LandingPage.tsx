@@ -97,11 +97,24 @@ export default function LandingPage({ s, onAdminClick }: { s: Store; onAdminClic
             </div>
           </div>
           <div className="space-y-4">
-            <div className="rounded-3xl p-8" style={{ background: INK }}>
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6" style={{ background: YELLOW }}><StoreIcon size={24} style={{ color: INK }} /></div>
-              <h3 className="font-extrabold text-white text-2xl mb-2">Sell on Thrift Kro</h3>
-              <p className="text-sm text-white/55 mb-6">List your pre-loved clothing in under 2 minutes. Reach 50,000+ verified buyers nationwide with low commissions.</p>
-              <button onClick={() => { s.setAuthMode("signup"); s.setRoute("seller-auth"); }} className="px-6 py-3 rounded-full font-extrabold text-sm" style={{ background: YELLOW, color: INK }}>Open a shop →</button>
+            <div className="rounded-3xl overflow-hidden relative group h-72" style={{ boxShadow: "0 20px 50px rgba(0,0,0,0.08)" }}>
+              <ImageWithFallback
+                src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&q=80&fit=crop&auto=format"
+                alt="Curated Vintage Clothing"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-7 flex flex-col justify-end">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold w-fit mb-2.5" style={{ background: YELLOW, color: INK }}>
+                  <Sparkles size={13} />
+                  <span>Curated Weekly Drops</span>
+                </div>
+                <h3 className="font-extrabold text-white text-2xl leading-tight mb-1">
+                  Fresh Vintage & Streetwear
+                </h3>
+                <p className="text-sm text-white/80 max-w-sm">
+                  Hand-picked pre-loved fits added daily nationwide with 100% buyer protection.
+                </p>
+              </div>
             </div>
             <div className="rounded-3xl p-8 bg-white border" style={{ borderColor: "rgba(26,17,8,0.08)" }}>
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6" style={{ background: "#FFF3E0" }}><Star size={24} style={{ color: ORANGE }} /></div>
