@@ -5,8 +5,7 @@ export const vtoService = {
     const formData = new FormData();
     formData.append("person_image", personImage);
     formData.append("garment_image", garmentImage);
-
-    const baseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
+    const baseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/v1";
     const token = localStorage.getItem("thrift_kro_token") || localStorage.getItem("access_token");
 
     const res = await fetch(`${baseUrl}/vto/generate`, {

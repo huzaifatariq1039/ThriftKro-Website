@@ -6,8 +6,7 @@ import { mockProducts, DEFAULT_AVATAR } from "./mockData";
  * Replace mock implementations below with real fetch() / axios calls.
  * All functions return Promises to seamlessly support async API calls.
  ─────────────────────────────────────────────────────────────────────── */
-
-export const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
+export const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/v1";
 
 // Helper for HTTP requests with authorization header token
 export async function fetchWithAuth<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
