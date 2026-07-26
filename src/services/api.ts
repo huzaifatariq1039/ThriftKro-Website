@@ -28,68 +28,30 @@ export async function fetchWithAuth<T>(endpoint: string, options: RequestInit = 
   }
 }
 
-/* ──────────  Auth API  ────────── */
+import { authService } from "./api/authService";
+
 export const authAPI = {
   login: async (email: string, pass: string, role: Role): Promise<{ user: User; token: string }> => {
-    // Simulated delay
-    await new Promise(r => setTimeout(r, 400));
-
-    const user: User = {
-      id: "usr_" + Math.random().toString(36).substr(2, 9),
-      name: role === "seller" ? "Priya Sharma" : "Aryan Kapoor",
-      email: email || (role === "seller" ? "priya.sharma@gmail.com" : "aryan.kapoor@gmail.com"),
-      role: role,
-      avatar: DEFAULT_AVATAR,
-      phone: role === "seller" ? "+92 300 1234567" : "+92 301 2345678",
-    };
-
-    const token = "mock_jwt_token_" + Date.now();
-    return { user, token };
+    const res = await authService.login(email, pass, role);
+    return { user: res.data.user!, token: res.data.token };
   },
 
   adminLogin: async (email: string, pass: string): Promise<{ user: User; token: string }> => {
-    await new Promise(r => setTimeout(r, 600));
-
-    if (email === "admin@thriftkro.pk" && pass === "Admin@123") {
-      const user: User = {
-        id: "admin_1",
-        name: "Super Admin",
-        email,
-        role: "admin",
-      };
-      return { user, token: "mock_admin_token_" + Date.now() };
-    }
-    throw new Error("Invalid admin credentials.");
+    const res = await authService.login(email, pass, "admin");
+    return { user: res.data.user!, token: res.data.token };
   },
 
-  signup: async (data: { email: string; name?: string; role: Role }): Promise<{ user: User; token: string }> => {
-    await new Promise(r => setTimeout(r, 400));
-    const user: User = {
-      id: "usr_" + Math.random().toString(36).substr(2, 9),
-      name: data.name || "New User",
-      email: data.email,
-      role: data.role,
-      avatar: DEFAULT_AVATAR,
-    };
-    return { user, token: "mock_jwt_token_" + Date.now() };
+  signup: async (data: { email: string; name?: string; role: Role; password?: string }): Promise<{ user: User; token: string }> => {
+    const res = await authService.signup(data.email, data.password || "defaultPass123", data.name || "New User", data.role);
+    return { user: res.data.user!, token: res.data.token };
   },
 
   getCurrentUser: async (): Promise<User | null> => {
-    const token = localStorage.getItem("thrift_kro_token");
-    const storedUser = localStorage.getItem("thrift_kro_user");
-    if (token && storedUser) {
-      try {
-        return JSON.parse(storedUser);
-      } catch {
-        return null;
-      }
-    }
-    return null;
+    return await authService.getCurrentUser();
   },
 
   logout: async (): Promise<void> => {
-    localStorage.removeItem("thrift_kro_token");
-    localStorage.removeItem("thrift_kro_user");
+    await authService.logout();
   },
 };
 

@@ -75,7 +75,7 @@ export function useStore() {
 
   const signupWithCredentials = async (email: string, pass: string, fullName: string, forRole: "buyer" | "seller") => {
     const { authAPI } = await import("../services/api");
-    await authAPI.signup(email, pass, fullName, forRole);
+    await authAPI.signup({ email, name: fullName, role: forRole, password: pass });
     await auth.login(email, pass, forRole);
     navigate(forRole === "buyer" ? "/buyer/home" : "/seller/verify");
   };
