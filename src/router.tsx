@@ -44,13 +44,14 @@ const AdminDashboard = lazy(() => import("@/features/admin/pages/AdminDashboard"
 
 const SellerGuard: React.FC<{ s: ReturnType<typeof useStore>; children: React.ReactNode }> = ({ s, children }) => {
   const navigate = useNavigate();
+  const mustVerify = s.role === "seller" && (s.sellerVerified === "unverified" || s.sellerVerified === "rejected" || s.sellerVerified === "frozen");
   React.useEffect(() => {
-    if (s.role === "seller" && !s.sellerKycApproved) {
+    if (mustVerify) {
       navigate("/seller/verify");
     }
-  }, [s.role, s.sellerKycApproved, navigate]);
+  }, [mustVerify, navigate]);
 
-  if (s.role === "seller" && !s.sellerKycApproved) {
+  if (mustVerify) {
     return null;
   }
   return <>{children}</>;

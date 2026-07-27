@@ -1,5 +1,5 @@
 import { request, ApiResponse } from "./apiClient";
-import { SellerListing } from "@/types/types";
+import { SellerListing, SellerVerificationStatusResponse } from "@/types/types";
 import { mockSellerListings } from "../mockData";
 
 export const sellerService = {
@@ -67,29 +67,62 @@ export const sellerService = {
     return { data: { success: true }, status: res.status };
   },
 
-  async submitVerification(payload: { business_name?: string; cnic?: string; cnic_number?: string; cnic_front_url?: string; cnic_back_url?: string } | string): Promise<ApiResponse<{ status: "pending" | "verified" | "approved" }>> {
-    const cnicVal = typeof payload === "string" ? payload : payload.cnic_number || payload.cnic || "35202-0000000-1";
-    const bizName = typeof payload === "object" ? payload.business_name || "Thrift Shop" : "Thrift Shop";
-
+  /**
+   * Submit a full verification request matching the backend SellerVerificationCreate schema.
+   */
+  async submitVerification(payload: {
+    business_name: string;
+    business_type: string;
+    phone_number: string;
+    address: string;
+    city: string;
+    cnic_number?: string;
+    cnic_front_url: string;
+    cnic_back_url: string;
+    shop_photo_urls?: string[];
+    business_reg_url?: string;
+  }): Promise<ApiResponse<{ status: "pending" | "verified" | "approved" }>> {
     const res = await request<any>(
       "/sellers/verify",
       {
         method: "POST",
-        body: JSON.stringify({
-          business_name: bizName,
-          cnic_number: cnicVal,
-          cnic_front_url: typeof payload === "object" ? payload.cnic_front_url || "https://example.com/front.jpg" : "https://example.com/front.jpg",
-          cnic_back_url: typeof payload === "object" ? payload.cnic_back_url || "https://example.com/back.jpg" : "https://example.com/back.jpg",
-          business_address: "Lahore, Pakistan",
-        }),
+        body: JSON.stringify(payload),
       }
     );
     const statusVal = res.data?.status?.toLowerCase() === "approved" ? "verified" : "pending";
     return { data: { status: statusVal }, status: res.status };
   },
 
-  async getVerificationStatus(): Promise<ApiResponse<{ verification_status: string }>> {
-    const res = await request<any>("/sellers/verification/me");
-    return { data: { verification_status: res.data?.verification_status || "pending" }, status: res.status };
+  /**
+   * Get the seller's current verification status including rate-limit info.
+   */
+  async getVerificationStatus(): Promise<ApiResponse<SellerVerificationStatusResponse>> {
+    const fallback: SellerVerificationStatusResponse = {
+      verification_status: "UNVERIFIED",
+      is_verified: false,
+      submissions_today: 0,
+      max_submissions_per_day: 3,
+      can_submit: true,
+      freeze_until: null,
+      latest_request: null,
+    };
+
+    try {
+      const res = await request<any>("/sellers/verification/me");
+      return {
+        data: {
+          verification_status: res.data?.verification_status || "UNVERIFIED",
+          is_verified: res.data?.is_verified || false,
+          submissions_today: res.data?.submissions_today ?? 0,
+          max_submissions_per_day: res.data?.max_submissions_per_day ?? 3,
+          can_submit: res.data?.can_submit ?? true,
+          freeze_until: res.data?.freeze_until || null,
+          latest_request: res.data?.latest_request || null,
+        },
+        status: res.status,
+      };
+    } catch {
+      return { data: fallback, status: 200 };
+    }
   },
 };

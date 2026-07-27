@@ -51,12 +51,31 @@ export function SellerShell({ s, children }: { s: Store; children: React.ReactNo
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
-        {!isKyc && (
-          <div className="px-8 py-3 flex items-center justify-between" style={{ background: INK }}>
-            <div className="flex items-center gap-2 text-xs text-white"><ShieldCheck size={16} color={YELLOW} /> Verification required to receive payouts and get the verified badge.</div>
-            <button onClick={() => s.setRoute("seller-verify")} className="px-4 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-1" style={{ background: YELLOW, color: INK }}>Verify Shop <ArrowRight size={12} /></button>
-          </div>
-        )}
+        {!isKyc && (() => {
+          const v = s.sellerVerified;
+          if (v === "pending") return (
+            <div className="px-8 py-3 flex items-center justify-between" style={{ background: "#FFF8E1" }}>
+              <div className="flex items-center gap-2 text-xs" style={{ color: INK }}><ShieldCheck size={16} color="#E6AC00" /> Your verification is under review. This usually takes 24 hours.</div>
+            </div>
+          );
+          if (v === "rejected") return (
+            <div className="px-8 py-3 flex items-center justify-between" style={{ background: "#FFEBEE" }}>
+              <div className="flex items-center gap-2 text-xs" style={{ color: INK }}><ShieldCheck size={16} color="#D93025" /> Verification was rejected. Please re-apply.</div>
+              <button onClick={() => s.setRoute("seller-verify")} className="px-4 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-1" style={{ background: "#D93025", color: "white" }}>Re-apply <ArrowRight size={12} /></button>
+            </div>
+          );
+          if (v === "frozen") return (
+            <div className="px-8 py-3 flex items-center justify-between" style={{ background: "rgba(26,17,8,0.04)" }}>
+              <div className="flex items-center gap-2 text-xs" style={{ color: "rgba(26,17,8,0.6)" }}><ShieldCheck size={16} color="rgba(26,17,8,0.3)" /> Account temporarily frozen. Please wait before re-applying.</div>
+            </div>
+          );
+          return (
+            <div className="px-8 py-3 flex items-center justify-between" style={{ background: INK }}>
+              <div className="flex items-center gap-2 text-xs text-white"><ShieldCheck size={16} color={YELLOW} /> Verification required to receive payouts and get the verified badge.</div>
+              <button onClick={() => s.setRoute("seller-verify")} className="px-4 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-1" style={{ background: YELLOW, color: INK }}>Verify Shop <ArrowRight size={12} /></button>
+            </div>
+          );
+        })()}
         <main className="flex-1 p-8 overflow-y-auto">{children}</main>
       </div>
     </div>

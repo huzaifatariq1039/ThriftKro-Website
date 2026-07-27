@@ -58,7 +58,8 @@ export function useStore() {
   const login = async (forRole: "buyer" | "seller") => {
     await auth.login("user@thriftkro.pk", "password", forRole);
     if (forRole === "seller") {
-      navigate(store.sellerKycApproved ? "/seller/dashboard" : "/seller/verify");
+      const v = store.sellerVerified;
+      navigate(v === "verified" || v === "pending" ? "/seller/dashboard" : "/seller/verify");
     } else {
       navigate("/buyer/home");
     }
@@ -67,7 +68,8 @@ export function useStore() {
   const loginWithCredentials = async (email: string, pass: string, forRole: "buyer" | "seller") => {
     await auth.login(email, pass, forRole);
     if (forRole === "seller") {
-      navigate(store.sellerKycApproved ? "/seller/dashboard" : "/seller/verify");
+      const v = store.sellerVerified;
+      navigate(v === "verified" || v === "pending" ? "/seller/dashboard" : "/seller/verify");
     } else {
       navigate("/buyer/home");
     }

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import {
-  Product, VerifyStatus, Role, SecurityFlow, Address, Card, Device, BuyerOrder, SellerListing, Message
+  Product, VerifyStatus, Role, SecurityFlow, Address, Card, Device, BuyerOrder, SellerListing, Message,
+  SellerVerificationStatusResponse,
 } from "../types/types";
 import {
   mockProducts, mockMessages, mockAddresses, mockCards, mockDevices, mockBuyerOrders, DEFAULT_AVATAR
@@ -35,6 +36,7 @@ type AppState = {
   activeShopField: "shopName" | "location" | "shipping";
   sellerVerified: VerifyStatus;
   sellerKycApproved: boolean;
+  sellerVerificationStatus: SellerVerificationStatusResponse | null;
 
   // Buyer Profile State
   buyerProfile: { name: string; email: string; phone: string; gender: string; avatar: string | null };
@@ -93,6 +95,7 @@ type AppState = {
   submitSellerVerification: () => void;
   fetchProducts: (category?: string) => Promise<void>;
   submitSellerVerificationAsync: (payload: any) => Promise<void>;
+  fetchVerificationStatus: () => Promise<void>;
   checkoutAsync: (items: Product[]) => Promise<boolean>;
 };
 
@@ -131,6 +134,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   activeShopField: "shopName",
   sellerVerified: "unverified",
   sellerKycApproved: false,
+  sellerVerificationStatus: null,
 
   buyerProfile: {
     name: "Aryan Kapoor",
@@ -282,12 +286,50 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   submitSellerVerificationAsync: async (payload: any) => {
-    set({ sellerVerified: "pending", sellerKycApproved: true });
     try {
       await sellerService.submitVerification(payload);
-      get().showToast("Verification submitted to backend ✓");
-    } catch {
+      set({ sellerVerified: "pending", sellerKycApproved: false });
       get().showToast("Verification submitted — under review ✓");
+      // Re-fetch the status to get accurate server state
+      get().fetchVerificationStatus();
+    } catch (err: any) {
+      const msg = err?.message || "";
+      if (msg.includes("429") || msg.includes("maximum")) {
+        set({ sellerVerified: "frozen" });
+        get().showToast("Maximum attempts reached. Please wait before retrying.");
+      } else if (msg.includes("pending")) {
+        set({ sellerVerified: "pending" });
+        get().showToast("You already have a pending request.");
+      } else {
+        // Offline / network error — still show pending locally
+        set({ sellerVerified: "pending", sellerKycApproved: false });
+        get().showToast("Verification submitted — under review ✓");
+      }
+    }
+  },
+
+  fetchVerificationStatus: async () => {
+    try {
+      const res = await sellerService.getVerificationStatus();
+      const data = res.data;
+      set({ sellerVerificationStatus: data });
+
+      // Sync local verify state from server
+      if (data.is_verified || data.verification_status === "APPROVED") {
+        set({ sellerVerified: "verified", sellerKycApproved: true });
+      } else if (data.verification_status === "PENDING") {
+        set({ sellerVerified: "pending", sellerKycApproved: false });
+      } else if (data.verification_status === "REJECTED") {
+        if (!data.can_submit && data.freeze_until) {
+          set({ sellerVerified: "frozen", sellerKycApproved: false });
+        } else {
+          set({ sellerVerified: "rejected", sellerKycApproved: false });
+        }
+      } else {
+        set({ sellerVerified: "unverified", sellerKycApproved: false });
+      }
+    } catch {
+      // Can't reach server, keep local state as-is
     }
   },
 
