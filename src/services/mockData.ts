@@ -3,15 +3,19 @@ import { Product, VtoShoe, SellerListing, Message, Address, Card, Device, BuyerO
 export const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop&auto=format";
 
 export const mockProducts: Product[] = [
-  { id: "1", name: "Nike Air Jordan 1", brand: "Nike", price: 25000, originalPrice: 35000, condition: "Like New", size: "US 10", seller: "Zainab Thrift", sellerRating: 4.8, img: "https://images.unsplash.com/photo-1552346154-21d32810aba3?w=800", category: "Shoes" },
-  { id: "2", name: "Vintage Denim Jacket", brand: "Levi's", price: 3500, originalPrice: 8000, condition: "Good", size: "L", seller: "Retro Vibes", sellerRating: 4.5, img: "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=800", category: "Jackets" },
-  { id: "3", name: "Classic Tote Bag", brand: "Unbranded", price: 1200, originalPrice: 3000, condition: "Fair", size: "One Size", seller: "Eco Thrift", sellerRating: 4.2, img: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800", category: "Bags" },
-  { id: "4", name: "Oversized Graphic Tee", brand: "Thrifted", price: 800, originalPrice: 2500, condition: "Like New", size: "XL", seller: "Vintage Finds", sellerRating: 4.9, img: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800", category: "Shirts" },
-  { id: "5", name: "Leather Crossbody", brand: "Gucci", price: 15000, originalPrice: 45000, condition: "Very Good", size: "Small", seller: "Luxe Resale", sellerRating: 4.7, img: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800", category: "Bags" },
-  { id: "6", name: "90s Windbreaker", brand: "Adidas", price: 2200, originalPrice: 6000, condition: "Good", size: "M", seller: "Sporty Spice", sellerRating: 4.6, img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800", category: "Jackets" },
+  { id: "1", name: "Men's Casual Shirt", brand: "Zara", price: 1500, originalPrice: 3000, condition: "Good", size: "L", seller: "Style Hub", sellerRating: 4.5, img: "https://images.unsplash.com/photo-1596755094514-f87e32f85e2c?w=800", category: "Shirts" },
+  { id: "2", name: "Men's Leather Jacket", brand: "AllSaints", price: 12000, originalPrice: 25000, condition: "Like New", size: "M", seller: "Retro Vibes", sellerRating: 4.8, img: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800", category: "Jackets" },
+  { id: "3", name: "Men's Denim Pants", brand: "Levi's", price: 2500, originalPrice: 6000, condition: "Good", size: "32x32", seller: "Denim Co.", sellerRating: 4.2, img: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=800", category: "Pants" },
+  { id: "4", name: "Men's Formal Trousers", brand: "Marks & Spencer", price: 1800, originalPrice: 4000, condition: "Very Good", size: "34", seller: "Classic Wear", sellerRating: 4.6, img: "https://images.unsplash.com/photo-1555689502-c4b22d76c56f?w=800", category: "Trousers" },
+  { id: "5", name: "Men's Sneakers", brand: "New Balance", price: 8000, originalPrice: 15000, condition: "Like New", size: "US 10", seller: "Sneakerhead", sellerRating: 4.9, img: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=800", category: "Shoes" },
+  { id: "6", name: "Women's Silk Shirt", brand: "Mango", price: 2000, originalPrice: 4500, condition: "Very Good", size: "S", seller: "Chic Finds", sellerRating: 4.7, img: "https://images.unsplash.com/photo-1618932260643-eee4a2f652a6?w=800", category: "Shirts" },
+  { id: "7", name: "Women's Denim Jacket", brand: "Gap", price: 3000, originalPrice: 7000, condition: "Good", size: "M", seller: "Vintage Finds", sellerRating: 4.4, img: "https://images.unsplash.com/photo-1559551408-df86a769c0d8?w=800", category: "Jackets" },
+  { id: "8", name: "Women's Wide Leg Pants", brand: "H&M", price: 1500, originalPrice: 3500, condition: "Fair", size: "S", seller: "Eco Thrift", sellerRating: 4.1, img: "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=800", category: "Pants" },
+  { id: "9", name: "Women's Tailored Trousers", brand: "Zara", price: 2200, originalPrice: 5000, condition: "Like New", size: "M", seller: "Style Hub", sellerRating: 4.5, img: "https://images.unsplash.com/photo-1509631179647-0c37cb509ece?w=800", category: "Trousers" },
+  { id: "10", name: "Women's Heels", brand: "Steve Madden", price: 4000, originalPrice: 9000, condition: "Good", size: "US 7", seller: "Luxe Resale", sellerRating: 4.8, img: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800", category: "Shoes" },
 ];
 
-export const mockCategories = ["All", "Shoes", "Vintage", "Shirts", "Jackets", "Bags", "Accessories"];
+export const mockCategories = ["All", "Shoes", "Shirts", "Jackets", "Pants", "Trousers"];
 
 export const mockVtoShoes: VtoShoe[] = [
   { id: 1, name: "Jordan 1", img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop&auto=format" },
