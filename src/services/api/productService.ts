@@ -35,16 +35,15 @@ function mapBackendProduct(bp: any): Product {
 export const productService = {
   async getProducts(params: { category?: string; q?: string; sort_by?: string } = {}): Promise<ApiResponse<Product[]>> {
     try {
-      const queryParams = new URLSearchParams();
-      if (params.category && params.category !== "All") queryParams.append("category", params.category);
-      if (params.q) queryParams.append("q", params.q);
-      if (params.sort_by) queryParams.append("sort_by", params.sort_by);
-
-      const queryString = queryParams.toString() ? `?${queryParams.toString()}` : "";
-      const res = await request<any[]>(`/products${queryString}`, {}, mockProducts);
-
-      const products = (Array.isArray(res.data) && res.data.length > 0) ? res.data.map(mapBackendProduct) : mockProducts;
-      return { data: products, status: res.status };
+      let filtered = mockProducts;
+      if (params.category && params.category !== "All") {
+        filtered = filtered.filter(p => p.category === params.category);
+      }
+      if (params.q) {
+        const q = params.q.toLowerCase();
+        filtered = filtered.filter(p => p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q));
+      }
+      return { data: filtered, status: 200 };
     } catch (err) {
       console.warn("Error in getProducts API, returning fallback:", err);
       return { data: mockProducts, status: 200 };
