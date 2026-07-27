@@ -43,7 +43,7 @@ export const productService = {
       const queryString = queryParams.toString() ? `?${queryParams.toString()}` : "";
       const res = await request<any[]>(`/products${queryString}`, {}, mockProducts);
 
-      const products = Array.isArray(res.data) ? res.data.map(mapBackendProduct) : mockProducts;
+      const products = (Array.isArray(res.data) && res.data.length > 0) ? res.data.map(mapBackendProduct) : mockProducts;
       return { data: products, status: res.status };
     } catch (err) {
       console.warn("Error in getProducts API, returning fallback:", err);
