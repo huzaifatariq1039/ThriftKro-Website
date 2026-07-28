@@ -38,6 +38,7 @@ const SellerEditProfile = lazy(() => import("@/features/seller/pages/SellerEditP
 const SellerShopSetting = lazy(() => import("@/features/seller/pages/SellerShopSetting"));
 const SellerNotifications = lazy(() => import("@/features/seller/pages/SellerNotifications"));
 const SellerPrivacy = lazy(() => import("@/features/seller/pages/SellerPrivacy"));
+import { useAuth } from "@/contexts/AuthContext";
 
 const AdminLogin = lazy(() => import("@/features/admin/pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("@/features/admin/pages/AdminDashboard"));
@@ -57,6 +58,29 @@ const SellerGuard: React.FC<{ s: ReturnType<typeof useStore>; children: React.Re
   return <>{children}</>;
 };
 
+const GuestGuard: React.FC<{ s: ReturnType<typeof useStore>; children: React.ReactNode }> = ({ s, children }) => {
+  const navigate = useNavigate();
+  const { isAuthenticated, role } = useAuth();
+
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      if (role === "seller") {
+        const v = s.sellerVerified;
+        navigate(v === "verified" || v === "pending" ? "/seller/dashboard" : "/seller/verify");
+      } else if (role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/buyer/home");
+      }
+    }
+  }, [isAuthenticated, role, navigate, s.sellerVerified]);
+
+  if (isAuthenticated) {
+    return null;
+  }
+  return <>{children}</>;
+};
+
 export const AppRoutes: React.FC = () => {
   const store = useStore();
   const navigate = useNavigate();
@@ -65,10 +89,10 @@ export const AppRoutes: React.FC = () => {
     <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Public Pages wrapped in WebApp layout for modals & toasts */}
-        <Route path="/" element={<WebApp><LandingPage s={store} onAdminClick={() => navigate("/admin/login")} /></WebApp>} />
-        <Route path="/role-select" element={<WebApp><RoleSelectPage s={store} /></WebApp>} />
-        <Route path="/auth/buyer" element={<WebApp><AuthPage s={store} forRole="buyer" /></WebApp>} />
-        <Route path="/auth/seller" element={<WebApp><AuthPage s={store} forRole="seller" /></WebApp>} />
+        <Route path="/" element={<WebApp><GuestGuard s={store}><LandingPage s={store} onAdminClick={() => navigate("/admin/login")} /></GuestGuard></WebApp>} />
+        <Route path="/role-select" element={<WebApp><GuestGuard s={store}><RoleSelectPage s={store} /></GuestGuard></WebApp>} />
+        <Route path="/auth/buyer" element={<WebApp><GuestGuard s={store}><AuthPage s={store} forRole="buyer" /></GuestGuard></WebApp>} />
+        <Route path="/auth/seller" element={<WebApp><GuestGuard s={store}><AuthPage s={store} forRole="seller" /></GuestGuard></WebApp>} />
 
         <Route path="/careers" element={<WebApp><CareersPage s={store} /></WebApp>} />
         <Route path="/press" element={<WebApp><PressPage s={store} /></WebApp>} />
@@ -103,7 +127,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="/seller/privacy" element={<WebApp><SellerPrivacy s={store} /></WebApp>} />
 
         {/* Admin Routes */}
-        <Route path="/admin/login" element={<AdminLogin onLogin={() => navigate("/admin/dashboard")} />} />
+        <Route path="/admin/login" element={<GuestGuard s={store}><AdminLogin onLogin={() => navigate("/admin/dashboard")} /></GuestGuard>} />
         <Route path="/admin/dashboard" element={<AdminDashboard onBack={() => navigate("/")} />} />
 
         {/* Fallback to Landing */}
