@@ -17,6 +17,7 @@ export default function BuyerVto({ s }: { s: Store }) {
   
   const [garmentFile, setGarmentFile] = useState<File | null>(null);
   const [garmentPreview, setGarmentPreview] = useState<string | null>(p ? p.img : null);
+  const [garmentCategory, setGarmentCategory] = useState<string>("tops");
 
   const [loading, setLoading] = useState(false);
   const [resultImageUrl, setResultImageUrl] = useState<string | null>(null);
@@ -78,7 +79,7 @@ export default function BuyerVto({ s }: { s: Store }) {
         return;
       }
 
-      const response = await vtoService.generateVton(personFile, finalGarmentFile);
+      const response = await vtoService.generateVton(personFile, finalGarmentFile, garmentCategory);
       if (response.data) {
         if (typeof response.data === "string") {
           setResultImageUrl(response.data);
@@ -219,6 +220,26 @@ export default function BuyerVto({ s }: { s: Store }) {
                     <Upload size={14} /> Use Different Garment
                   </button>
                 </div>
+              </div>
+            </div>
+
+            {/* Step 3: Garment Category */}
+            <div className="p-6 rounded-3xl bg-white mb-8" style={{ boxShadow: "0 0 0 1px rgba(26,17,8,0.08)" }}>
+              <Label className="block mb-3">Step 3: Garment Category</Label>
+              <div className="flex gap-2">
+                {["tops", "bottoms", "one-piece"].map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setGarmentCategory(cat)}
+                    className={`flex-1 py-2 px-4 rounded-xl text-sm font-bold capitalize transition-all border ${
+                      garmentCategory === cat
+                        ? "bg-orange-50 border-orange-200 text-orange-600"
+                        : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                    }`}
+                  >
+                    {cat.replace("-", " ")}
+                  </button>
+                ))}
               </div>
             </div>
 
