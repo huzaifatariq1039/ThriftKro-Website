@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MessageSquare } from "lucide-react";
-import { C, FONT, MONO, disputes } from "../data/adminData";
+import { C, FONT, MONO } from "../data/adminData";
+import { adminService } from "@/services/api/adminService";
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; color: string; label: string }> = {
     OPEN: { bg: `${C.red}20`, color: C.red, label: "OPEN" },
     RESOLVED: { bg: `${C.green}20`, color: C.green, label: "RESOLVED" },
+    CLOSED: { bg: `${C.textDim}20`, color: C.textMuted, label: "CLOSED" }
   };
   const s = map[status] ?? { bg: `${C.textDim}20`, color: C.textMuted, label: status };
   return (
@@ -17,7 +19,45 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function PageSupport() {
-  const [activeDispute, setActiveDispute] = useState<typeof disputes[0] | null>(null);
+  const [activeDispute, setActiveDispute] = useState<any | null>(null);
+  const [disputesList, setDisputesList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchTickets = () => {
+    let isMounted = true;
+    adminService.getTickets()
+      .then(res => {
+        if (isMounted && res.data) {
+          setDisputesList(res.data);
+          // Update active dispute if one is selected
+          setActiveDispute((prev: any) => {
+            if (!prev) return null;
+            return res.data.find((d: any) => (d.realId || d.id) === (prev.realId || prev.id)) || prev;
+          });
+        }
+      })
+      .catch(err => console.warn("Could not load support tickets:", err));
+    return () => { isMounted = false; };
+  };
+
+  useEffect(() => {
+    const cleanup = fetchTickets();
+    return cleanup;
+  }, []);
+
+  const handleUpdateStatus = async (status: string, notes: string) => {
+    if (!activeDispute) return;
+    setLoading(true);
+    try {
+      const ticketId = activeDispute.realId || activeDispute.id;
+      await adminService.updateTicketStatus(ticketId, status, notes);
+      fetchTickets();
+    } catch (err) {
+      console.error("Failed to update ticket", err);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-4 gap-4">
@@ -48,16 +88,16 @@ export default function PageSupport() {
               </tr>
             </thead>
             <tbody>
-              {disputes.map((d, i) => (
+              {disputesList.map((d, i) => (
                 <tr key={d.id} className="border-b hover:bg-white/[0.02] transition-colors cursor-pointer"
-                  style={{ borderColor: i === disputes.length - 1 ? "transparent" : `${C.border}40` }}
+                  style={{ borderColor: i === disputesList.length - 1 ? "transparent" : `${C.border}40`, background: activeDispute?.id === d.id ? `${C.orange}08` : "transparent" }}
                   onClick={() => setActiveDispute(d)}>
                   <td className="px-4 py-3"><span className="text-xs font-semibold" style={{ color: C.orange, fontFamily: MONO }}>{d.id}</span></td>
                   <td className="px-4 py-3"><span className="text-xs" style={{ color: C.textMuted, fontFamily: MONO }}>{d.order}</span></td>
                   <td className="px-4 py-3"><span className="text-xs" style={{ color: C.text, fontFamily: FONT }}>{d.buyer}</span></td>
                   <td className="px-4 py-3"><span className="text-xs" style={{ color: C.textMuted, fontFamily: FONT }}>{d.seller}</span></td>
                   <td className="px-4 py-3"><span className="text-xs" style={{ color: C.textMuted, fontFamily: FONT }}>{d.item}</span></td>
-                  <td className="px-4 py-3"><span className="text-xs font-semibold" style={{ color: C.yellow, fontFamily: MONO }}>PKR {d.amount.toLocaleString()}</span></td>
+                  <td className="px-4 py-3"><span className="text-xs font-semibold" style={{ color: C.yellow, fontFamily: MONO }}>PKR {d.amount?.toLocaleString() || "0"}</span></td>
                   <td className="px-4 py-3"><span className="text-xs" style={{ color: C.textMuted, fontFamily: FONT }}>{d.reason}</span></td>
                   <td className="px-4 py-3"><StatusBadge status={d.status} /></td>
                   <td className="px-4 py-3"><span className="text-xs" style={{ color: C.textDim, fontFamily: MONO }}>{d.opened}</span></td>
@@ -94,17 +134,17 @@ export default function PageSupport() {
               {activeDispute.status === "OPEN" && (
                 <div className="mt-5 space-y-2">
                   <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: C.textDim, fontFamily: MONO }}>Admin Actions</p>
-                  <button className="w-full py-2.5 rounded-xl text-xs font-bold hover:opacity-90 transition-all"
+                  <button onClick={() => handleUpdateStatus("RESOLVED", "Refunded buyer")} disabled={loading} className="w-full py-2.5 rounded-xl text-xs font-bold hover:opacity-90 transition-all disabled:opacity-50"
                     style={{ background: C.green, color: "white", fontFamily: FONT }}>
-                    Resolve — Refund Buyer
+                    {loading ? "Processing..." : "Resolve — Refund Buyer"}
                   </button>
-                  <button className="w-full py-2.5 rounded-xl text-xs font-bold hover:opacity-90 transition-all"
+                  <button onClick={() => handleUpdateStatus("RESOLVED", "Released funds to seller")} disabled={loading} className="w-full py-2.5 rounded-xl text-xs font-bold hover:opacity-90 transition-all disabled:opacity-50"
                     style={{ background: C.orange, color: "#1A1108", fontFamily: FONT }}>
-                    Resolve — Release to Seller
+                    {loading ? "Processing..." : "Resolve — Release to Seller"}
                   </button>
-                  <button className="w-full py-2.5 rounded-xl text-xs font-semibold border hover:bg-white/5 transition-all"
+                  <button onClick={() => handleUpdateStatus("CLOSED", "Escalated to legal")} disabled={loading} className="w-full py-2.5 rounded-xl text-xs font-semibold border hover:bg-white/5 transition-all disabled:opacity-50"
                     style={{ borderColor: C.border, color: C.textMuted, fontFamily: FONT }}>
-                    Escalate to Legal
+                    {loading ? "Processing..." : "Escalate to Legal"}
                   </button>
                 </div>
               )}
