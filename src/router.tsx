@@ -89,7 +89,7 @@ export const AppRoutes: React.FC = () => {
     <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Public Pages wrapped in WebApp layout for modals & toasts */}
-        <Route path="/" element={<WebApp><GuestGuard s={store}><LandingPage s={store} onAdminClick={() => navigate("/admin/login")} /></GuestGuard></WebApp>} />
+        <Route path="/" element={<WebApp><LandingPage s={store} onAdminClick={() => navigate("/admin/login")} /></WebApp>} />
         <Route path="/role-select" element={<WebApp><GuestGuard s={store}><RoleSelectPage s={store} /></GuestGuard></WebApp>} />
         <Route path="/auth/buyer" element={<WebApp><GuestGuard s={store}><AuthPage s={store} forRole="buyer" /></GuestGuard></WebApp>} />
         <Route path="/auth/seller" element={<WebApp><GuestGuard s={store}><AuthPage s={store} forRole="seller" /></GuestGuard></WebApp>} />

@@ -18,11 +18,13 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-export function KycModal({ request, onClose }: { request: KycReq; onClose: () => void }) {
+export function KycModal({ request, onClose, onSuccess }: { request: KycReq; onClose: () => void; onSuccess?: () => void }) {
   const [tab, setTab] = useState<"cnic-front" | "cnic-back" | "shop" | "cert">("cnic-front");
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState("");
   const [approved, setApproved] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
   const docs: Record<string, string> = {
     "cnic-front": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=620&h=400&fit=crop",
     "cnic-back": "https://images.unsplash.com/photo-1521791055366-0d553872952f?w=620&h=400&fit=crop",
@@ -37,6 +39,37 @@ export function KycModal({ request, onClose }: { request: KycReq; onClose: () =>
     { label: "Document Clarity", value: "High resolution scan" },
     { label: "Blacklist Check", value: "No records found" },
   ];
+
+  const handleApprove = async () => {
+    setLoading(true);
+    try {
+      const realId = request.id.replace("KYC-", "");
+      await adminService.approveKyc(realId);
+      setApproved(true);
+      if (onSuccess) onSuccess();
+      setTimeout(onClose, 1500);
+    } catch (err) {
+      console.error("Failed to approve", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!reason.trim()) return;
+    setLoading(true);
+    try {
+      const realId = request.id.replace("KYC-", "");
+      await adminService.rejectKyc(realId, reason);
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (err) {
+      console.error("Failed to reject", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6"
       style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)" }}
@@ -106,16 +139,16 @@ export function KycModal({ request, onClose }: { request: KycReq; onClose: () =>
               ) : rejecting ? (
                 <div className="space-y-2">
                   <input className="w-full px-3 py-2 rounded-lg border text-xs outline-none" style={{ background: C.bg, borderColor: C.border, color: C.text, fontFamily: FONT }}
-                    placeholder="Enter rejection reason..." value={reason} onChange={e => setReason(e.target.value)} />
+                    placeholder="Enter rejection reason..." value={reason} onChange={e => setReason(e.target.value)} disabled={loading} />
                   <div className="flex gap-2">
-                    <button onClick={() => setRejecting(false)} className="flex-1 py-2 rounded-lg text-xs font-semibold border" style={{ borderColor: C.border, color: C.textMuted }}>Cancel</button>
-                    <button onClick={onClose} className="flex-1 py-2 rounded-lg text-xs font-bold text-white" style={{ background: C.red }}>Confirm Reject</button>
+                    <button onClick={() => setRejecting(false)} disabled={loading} className="flex-1 py-2 rounded-lg text-xs font-semibold border disabled:opacity-50" style={{ borderColor: C.border, color: C.textMuted }}>Cancel</button>
+                    <button onClick={handleReject} disabled={loading || !reason.trim()} className="flex-1 py-2 rounded-lg text-xs font-bold text-white disabled:opacity-50" style={{ background: C.red }}>{loading ? "Rejecting..." : "Confirm Reject"}</button>
                   </div>
                 </div>
               ) : (
                 <div className="flex gap-2">
-                  <button onClick={() => setRejecting(true)} className="flex-1 py-2.5 rounded-lg text-xs font-bold border hover:bg-white/5 transition-all" style={{ borderColor: C.red, color: C.red, fontFamily: FONT }}>Reject Request</button>
-                  <button onClick={() => setApproved(true)} className="flex-1 py-2.5 rounded-lg text-xs font-bold text-white hover:opacity-90 transition-all" style={{ background: C.green, fontFamily: FONT }}>Approve Seller</button>
+                  <button onClick={() => setRejecting(true)} disabled={loading} className="flex-1 py-2.5 rounded-lg text-xs font-bold border hover:bg-white/5 transition-all disabled:opacity-50" style={{ borderColor: C.red, color: C.red, fontFamily: FONT }}>Reject Request</button>
+                  <button onClick={handleApprove} disabled={loading} className="flex-1 py-2.5 rounded-lg text-xs font-bold text-white hover:opacity-90 transition-all disabled:opacity-50" style={{ background: C.green, fontFamily: FONT }}>{loading ? "Approving..." : "Approve Seller"}</button>
                 </div>
               )}
             </div>

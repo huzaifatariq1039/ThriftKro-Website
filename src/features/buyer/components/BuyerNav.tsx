@@ -45,7 +45,7 @@ export function BuyerNav({ s }: { s: Store }) {
   return (
     <nav className="sticky top-0 z-50 px-8 py-5 flex items-center justify-between" style={{ background: PAPER, borderBottom: "1px solid rgba(26,17,8,0.06)" }}>
       <div className="flex items-center gap-8">
-        <Logo onClick={() => { s.setActiveCategory("All"); s.setRoute("buyer-home"); }} />
+        <Logo onClick={() => s.setRoute("landing")} />
         <div className="flex items-center gap-6">
           {links.map((l, i) => (
             <button key={i} onClick={l.onClick} className="text-sm font-medium transition-opacity hover:opacity-60" style={{ color: INK }}>{l.l}</button>

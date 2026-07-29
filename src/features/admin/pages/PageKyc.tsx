@@ -25,12 +25,12 @@ export default function PageKyc() {
   const [filter, setFilter] = useState("ALL");
   const [requestsList, setRequestsList] = useState<any[]>(kycRequests);
 
-  useEffect(() => {
+  const fetchQueue = () => {
     let isMounted = true;
     adminService.getKycQueue()
       .then(res => {
         if (isMounted && res.data && res.data.length > 0) {
-          const mapped = res.data.map(item => ({
+          const mapped = res.data.map((item: any) => ({
             id: `KYC-${item.id}`,
             shop: item.shopName || "Seller Shop",
             owner: item.name || "Seller",
@@ -48,8 +48,12 @@ export default function PageKyc() {
         }
       })
       .catch(err => console.warn("Could not load KYC queue:", err));
-
     return () => { isMounted = false; };
+  };
+
+  useEffect(() => {
+    const cleanup = fetchQueue();
+    return cleanup;
   }, []);
 
   const filters = ["ALL", "PENDING", "UNDER_REVIEW", "APPROVED", "REJECTED"];
@@ -57,7 +61,7 @@ export default function PageKyc() {
 
   return (
     <div className="space-y-5">
-      {modal && <KycModal request={modal} onClose={() => setModal(null)} />}
+      {modal && <KycModal request={modal} onClose={() => setModal(null)} onSuccess={fetchQueue} />}
       <div className="grid grid-cols-4 gap-4">
         {[
           { label: "Total Requests", value: requestsList.length.toString(), color: C.orange },
