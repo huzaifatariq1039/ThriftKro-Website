@@ -33,7 +33,7 @@ export default function LandingPage({ s, onAdminClick }: { s: Store; onAdminClic
       <header className="max-w-7xl mx-auto px-8 h-20 flex items-center justify-between">
         <Logo />
         <nav className="hidden md:flex items-center gap-8">
-          {["Discover", "Try-On", "Sell", "About"].map(x => <span key={x} className="text-sm font-semibold cursor-pointer hover:opacity-60" style={{ color: INK }}>{x}</span>)}
+          {["Discover", "Try Kro", "Sell", "About"].map(x => <span key={x} className="text-sm font-semibold cursor-pointer hover:opacity-60" style={{ color: INK }}>{x}</span>)}
         </nav>
       </header>
 
@@ -68,7 +68,7 @@ export default function LandingPage({ s, onAdminClick }: { s: Store; onAdminClic
 
       <section className="py-16" style={{ background: INK }}>
         <div className="max-w-7xl mx-auto px-8 grid md:grid-cols-3 gap-8">
-          {[[<Recycle size={24} />, "Circular by design", "Every purchase keeps clothing out of landfills and in rotation."], [<Sparkles size={24} />, "AR Try-On", "See how sneakers & fits look on you before you buy — no guesswork."], [<ShieldCheck size={24} />, "Buyer Protection", "7-day protection on every order. Shop with total peace of mind."]].map(([ic, t, d], i) => (
+          {[[<Recycle size={24} />, "Circular by design", "Every purchase keeps clothing out of landfills and in rotation."], [<Sparkles size={24} />, "Try Kro AR", "See how sneakers & fits look on you before you buy — no guesswork."], [<ShieldCheck size={24} />, "Buyer Protection", "7-day protection on every order. Shop with total peace of mind."]].map(([ic, t, d], i) => (
             <div key={i}>
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4" style={{ background: YELLOW }}><span style={{ color: INK }}>{ic as React.ReactNode}</span></div>
               <p className="font-extrabold text-white text-lg mb-2">{t as string}</p>
@@ -119,7 +119,7 @@ export default function LandingPage({ s, onAdminClick }: { s: Store; onAdminClic
             <div className="rounded-3xl p-8 bg-white border" style={{ borderColor: "rgba(26,17,8,0.08)" }}>
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6" style={{ background: "#FFF3E0" }}><Star size={24} style={{ color: ORANGE }} /></div>
               <h3 className="font-extrabold text-2xl mb-2" style={{ color: INK }}>Loved by 50K+ Buyers</h3>
-              <p className="text-sm mb-4" style={{ color: "rgba(26,17,8,0.55)" }}>"The AR try-on feature is insane. I bought my Jordan 1s here and they fit perfectly!"</p>
+              <p className="text-sm mb-4" style={{ color: "rgba(26,17,8,0.55)" }}>"The Try Kro feature is insane. I bought my Jordan 1s here and they fit perfectly!"</p>
               <p className="text-xs font-bold" style={{ color: ORANGE, fontFamily: MONO }}>— ZAYN A. · LAHORE</p>
             </div>
           </div>
@@ -178,7 +178,7 @@ export default function LandingPage({ s, onAdminClick }: { s: Store; onAdminClic
           <div className="col-span-2">
             <Logo light />
             <p className="mt-4 text-xs max-w-xs" style={{ color: "rgba(255,255,255,0.6)" }}>
-              Pakistan's first circular fashion & AR try-on marketplace. Empowering buyers and sellers to shop pre-loved.
+              Pakistan's first circular fashion & Try Kro marketplace. Empowering buyers and sellers to shop pre-loved.
             </p>
             <div className="flex gap-3 mt-6">
               {[<Instagram size={18} />, <Twitter size={18} />, <Facebook size={18} />].map((ic, i) => (

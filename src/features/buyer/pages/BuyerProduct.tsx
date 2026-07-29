@@ -94,7 +94,7 @@ export default function BuyerProduct({ s }: { s: Store }) {
               <Shield size={18} style={{ color: ORANGE }} />
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => { s.setActiveVtoItem(0); s.setRoute("buyer-vto"); }} className="py-4 px-5 rounded-xl font-extrabold flex items-center gap-2" style={{ background: YELLOW, color: INK }}><Camera size={18} /> Virtual Try-On</button>
+              <button onClick={() => { s.setActiveVtoItem(0); s.setRoute("buyer-vto"); }} className="py-4 px-5 rounded-xl font-extrabold flex items-center gap-2" style={{ background: YELLOW, color: INK }}><Camera size={18} /> Try Kro</button>
               <button onClick={() => s.addToCart(p)} className="flex-1 py-4 rounded-xl font-extrabold bg-white hover:bg-gray-50" style={{ boxShadow: "0 0 0 1.5px rgba(26,17,8,0.15)", color: INK }}>Add to Cart</button>
               <button onClick={() => { s.addToCart(p); s.setRoute("buyer-cart"); }} className="flex-1 py-4 rounded-xl font-extrabold text-white hover:opacity-90" style={{ background: ORANGE }}>Buy Now</button>
             </div>

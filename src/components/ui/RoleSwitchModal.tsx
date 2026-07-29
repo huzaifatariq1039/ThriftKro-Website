@@ -16,7 +16,7 @@ export function RoleSwitchModal({ s }: { s: Store }) {
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: ORANGE }}><ShoppingBag size={22} color="white" /></div>
           <div className="flex-1 text-left">
             <p className="font-extrabold text-sm" style={{ fontFamily: FONT, color: ORANGE }}>Continue as Buyer {s.role === "buyer" && "(current)"}</p>
-            <p className="text-xs" style={{ fontFamily: FONT, color: "rgba(26,17,8,0.5)" }}>Browse, try-on & shop</p>
+            <p className="text-xs" style={{ fontFamily: FONT, color: "rgba(26,17,8,0.5)" }}>Browse, try kro & shop</p>
           </div>
           <ArrowRight size={18} style={{ color: ORANGE }} />
         </button>

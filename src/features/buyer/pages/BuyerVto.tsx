@@ -11,6 +11,7 @@ export default function BuyerVto({ s }: { s: Store }) {
   const p = s.selectedProduct;
   const personInputRef = useRef<HTMLInputElement | null>(null);
   const garmentInputRef = useRef<HTMLInputElement | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
 
   const [personFile, setPersonFile] = useState<File | null>(null);
   const [personPreview, setPersonPreview] = useState<string | null>(null);
@@ -92,9 +93,9 @@ export default function BuyerVto({ s }: { s: Store }) {
     } catch (err: any) {
       console.error("VTON Generation failed:", err);
       if (err.message?.includes("401") || err.message?.toLowerCase().includes("credentials")) {
-        setError("You must be logged in to use Virtual Try-On. Please sign in to continue.");
+        setError("You must be logged in to use Try Kro. Please sign in to continue.");
       } else {
-        setError(err.message || "VTON AI generation failed. Please try again.");
+        setError(err.message || "Try Kro AI generation failed. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -118,11 +119,11 @@ export default function BuyerVto({ s }: { s: Store }) {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4" style={{ background: "#FFF3E0" }}>
               <Sparkles size={14} style={{ color: ORANGE }} />
-              <span className="text-xs font-bold" style={{ color: ORANGE }}>AI VIRTUAL TRY-ON</span>
+              <span className="text-xs font-bold" style={{ color: ORANGE }}>AI TRY KRO</span>
             </div>
             
             <h1 className="font-extrabold" style={{ fontSize: 34, letterSpacing: "-0.03em", color: INK }}>
-              Virtual Fit Studio
+              Try Kro Studio
             </h1>
             <p className="text-sm mt-2 mb-6" style={{ color: "rgba(26,17,8,0.55)" }}>
               Upload your photo and our AI engine will virtually try on the selected product on your image.
@@ -160,31 +161,59 @@ export default function BuyerVto({ s }: { s: Store }) {
                 onChange={handlePersonChange}
                 className="hidden"
               />
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handlePersonChange}
+                className="hidden"
+              />
 
               {personPreview ? (
                 <div className="flex items-center gap-4">
                   <img src={personPreview} alt="Your Photo" className="w-24 h-24 rounded-2xl object-cover border" />
                   <div>
                     <p className="font-bold text-sm" style={{ color: INK }}>{personFile?.name || "Person Photo"}</p>
-                    <button
-                      onClick={() => personInputRef.current?.click()}
-                      className="mt-2 text-xs font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-lg border hover:bg-gray-50"
-                      style={{ color: ORANGE, borderColor: "rgba(255,87,34,0.3)" }}
-                    >
-                      <Upload size={14} /> Change Photo
-                    </button>
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => personInputRef.current?.click()}
+                        className="text-xs font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-lg border hover:bg-gray-50"
+                        style={{ color: ORANGE, borderColor: "rgba(255,87,34,0.3)" }}
+                      >
+                        <Upload size={14} /> Gallery
+                      </button>
+                      <button
+                        onClick={() => cameraInputRef.current?.click()}
+                        className="text-xs font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-lg border hover:bg-gray-50"
+                        style={{ color: ORANGE, borderColor: "rgba(255,87,34,0.3)" }}
+                      >
+                        <Camera size={14} /> Camera
+                      </button>
+                    </div>
                   </div>
                 </div>
               ) : (
-                <button
-                  onClick={() => personInputRef.current?.click()}
-                  className="w-full py-8 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 transition-all hover:bg-orange-50/50"
-                  style={{ borderColor: "rgba(255,87,34,0.3)", color: ORANGE }}
-                >
-                  <Camera size={28} />
-                  <span className="font-extrabold text-sm">Upload Your Full Body / Torso Photo</span>
-                  <span className="text-xs text-gray-400">PNG, JPG, or WEBP up to 10MB</span>
-                </button>
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => personInputRef.current?.click()}
+                    className="flex-1 py-8 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 transition-all hover:bg-orange-50/50"
+                    style={{ borderColor: "rgba(255,87,34,0.3)", color: ORANGE }}
+                  >
+                    <Upload size={28} />
+                    <span className="font-extrabold text-sm">Upload Photo</span>
+                    <span className="text-xs text-gray-400 text-center">Gallery / Local Storage</span>
+                  </button>
+                  <button
+                    onClick={() => cameraInputRef.current?.click()}
+                    className="flex-1 py-8 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 transition-all hover:bg-orange-50/50"
+                    style={{ borderColor: "rgba(255,87,34,0.3)", color: ORANGE }}
+                  >
+                    <Camera size={28} />
+                    <span className="font-extrabold text-sm">Take Picture</span>
+                    <span className="text-xs text-gray-400 text-center">Use Device Camera</span>
+                  </button>
+                </div>
               )}
             </div>
 
@@ -252,11 +281,11 @@ export default function BuyerVto({ s }: { s: Store }) {
             >
               {loading ? (
                 <>
-                  <Loader2 size={20} className="animate-spin" /> Processing AI Try-On...
+                  <Loader2 size={20} className="animate-spin" /> Processing AI Try Kro...
                 </>
               ) : (
                 <>
-                  <Sparkles size={20} /> Generate Virtual Try-On
+                  <Sparkles size={20} /> Generate Try Kro
                 </>
               )}
             </button>

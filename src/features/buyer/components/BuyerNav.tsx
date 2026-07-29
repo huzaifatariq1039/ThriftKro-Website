@@ -29,7 +29,7 @@ export function ProductCard({ p, s, hideLike = false }: { p: Product; s: Store; 
             <span className="font-extrabold" style={{ color: ORANGE }}>{pk(p.price)}</span>
             <span className="text-xs line-through" style={{ color: "rgba(26,17,8,0.35)" }}>{pk(p.originalPrice)}</span>
           </div>
-          {vtoEnabled && <div className="text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider" style={{ background: "rgba(26,17,8,0.05)", color: INK }}>Try On</div>}
+          {vtoEnabled && <div className="text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider" style={{ background: "rgba(26,17,8,0.05)", color: INK }}>Try Kro</div>}
         </div>
       </div>
     </div>
