@@ -225,7 +225,7 @@ export default function BuyerVto({ s }: { s: Store }) {
 
             {/* Step 3: Garment Category */}
             <div className="p-6 rounded-3xl bg-white mb-8" style={{ boxShadow: "0 0 0 1px rgba(26,17,8,0.08)" }}>
-              <Label className="block mb-3">Step 3: Garment Category</Label>
+              <div className="block mb-3"><Label>Step 3: Garment Category</Label></div>
               <div className="flex gap-2">
                 {["tops", "bottoms", "one-piece"].map((cat) => (
                   <button

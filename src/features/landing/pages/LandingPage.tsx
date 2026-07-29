@@ -126,6 +126,52 @@ export default function LandingPage({ s, onAdminClick }: { s: Store; onAdminClic
         </div>
       </section>
 
+      {/* ── Newsletter ── */}
+      <section className="py-24 border-t" style={{ borderColor: "rgba(26,17,8,0.06)", background: "white" }}>
+        <div className="max-w-4xl mx-auto px-8 text-center">
+          <div className="w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6" style={{ background: "rgba(255,87,34,0.1)" }}>
+            <Mail size={28} style={{ color: ORANGE }} />
+          </div>
+          <h2 className="font-extrabold mb-4" style={{ fontSize: 40, color: INK, letterSpacing: "-0.03em", lineHeight: 1.1 }}>
+            Get the drop before anyone else.
+          </h2>
+          <p className="text-base mx-auto max-w-md mb-10" style={{ color: "rgba(26,17,8,0.55)", lineHeight: 1.6 }}>
+            Sign up for our newsletter to receive exclusive weekly curated drops, early access to vintage collections, and styling tips.
+          </p>
+          
+          <form 
+            onSubmit={(e) => { 
+              e.preventDefault(); 
+              if (email) {
+                setSubscribed(true);
+                setEmail("");
+                setTimeout(() => setSubscribed(false), 3000);
+              }
+            }} 
+            className="flex flex-col sm:flex-row max-w-md mx-auto relative rounded-full bg-white p-1.5"
+            style={{ boxShadow: "0 10px 40px rgba(0,0,0,0.06), 0 0 0 1px rgba(26,17,8,0.08)" }}
+          >
+            <input 
+              type="email" 
+              placeholder="Your email address..." 
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="flex-1 bg-transparent border-none outline-none px-6 py-3 sm:py-0 text-sm"
+              style={{ color: INK, fontFamily: FONT }}
+            />
+            <button 
+              type="submit" 
+              className="px-8 py-3.5 rounded-full font-extrabold text-sm transition-all flex items-center justify-center gap-2"
+              style={{ background: subscribed ? "#2E9E4F" : INK, color: "white" }}
+            >
+              {subscribed ? "Subscribed ✓" : "Subscribe →"}
+            </button>
+          </form>
+          <p className="text-xs mt-4" style={{ color: "rgba(26,17,8,0.4)" }}>No spam. Unsubscribe at any time.</p>
+        </div>
+      </section>
+
       {/* ── Footer ── */}
       <footer className="py-16" style={{ background: INK }}>
         <div className="max-w-7xl mx-auto px-8 grid grid-cols-2 md:grid-cols-5 gap-8">
