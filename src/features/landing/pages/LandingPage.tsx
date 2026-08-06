@@ -8,11 +8,26 @@ import type { Store } from "@/hooks/useStore";
 import { Logo, Label } from "@/components/ui";
 import { productService } from "@/services/api/productService";
 import { Product } from "@/types/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LandingPage({ s, onAdminClick }: { s: Store; onAdminClick?: () => void }) {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
   const [productList, setProductList] = useState<Product[]>(mockProducts);
+  const { isAuthenticated, role } = useAuth();
+
+  const handleNav = () => {
+    if (isAuthenticated) {
+      if (role === "buyer") s.setRoute("buyer-home");
+      else if (role === "seller") {
+        const v = s.sellerVerified;
+        s.setRoute(v === "verified" || v === "pending" ? "seller-dashboard" : "seller-verify");
+      }
+      else if (role === "admin" && onAdminClick) onAdminClick();
+    } else {
+      s.setRoute("role-select");
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -33,7 +48,16 @@ export default function LandingPage({ s, onAdminClick }: { s: Store; onAdminClic
       <header className="max-w-7xl mx-auto px-8 h-20 flex items-center justify-between">
         <Logo />
         <nav className="hidden md:flex items-center gap-8">
-          {["Discover", "Try Kro", "Sell", "About"].map(x => <span key={x} className="text-sm font-semibold cursor-pointer hover:opacity-60" style={{ color: INK }}>{x}</span>)}
+          {["Discover", "Try Kro", "Sell", "About"].map(x => (
+            <span 
+              key={x} 
+              onClick={handleNav} 
+              className="text-sm font-semibold cursor-pointer hover:opacity-60" 
+              style={{ color: INK }}
+            >
+              {x}
+            </span>
+          ))}
         </nav>
       </header>
 
@@ -49,7 +73,7 @@ export default function LandingPage({ s, onAdminClick }: { s: Store; onAdminClic
             Buy & sell pre-loved streetwear, sneakers and vintage. Try them on with AR before you commit. Sustainable never looked this good.
           </p>
           <div className="mt-8 flex gap-3">
-            <button onClick={() => s.setRoute("role-select")} className="px-7 py-4 rounded-full font-extrabold flex items-center gap-2" style={{ background: ORANGE, color: "white" }}>Get Started <ArrowRight size={18} /></button>
+            <button onClick={handleNav} className="px-7 py-4 rounded-full font-extrabold flex items-center gap-2" style={{ background: ORANGE, color: "white" }}>Get Started <ArrowRight size={18} /></button>
           </div>
           <div className="mt-10 flex gap-10">
             {[["50K+", "Active users"], ["120K+", "Items listed"], ["4.9★", "Avg. rating"]].map(([n, l]) => (

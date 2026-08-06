@@ -7,7 +7,7 @@ export const vtoService = {
     formData.append("garment_image", garmentImage);
     formData.append("category", garmentCategory);
     const baseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
-    const token = localStorage.getItem("thrift_kro_token") || localStorage.getItem("access_token");
+    const token = localStorage.getItem("thrift_kro_token") || sessionStorage.getItem("thrift_kro_token") || localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000);

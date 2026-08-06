@@ -29,12 +29,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Restore session on page reload
+    const storedToken = localStorage.getItem("thrift_kro_token") || sessionStorage.getItem("thrift_kro_token");
     authAPI.getCurrentUser().then(u => {
       if (u) {
         setUser(u);
         setRoleState(u.role);
         setUnlockedRoles(new Set([u.role]));
+        // Re-sync token state from storage so isAuthenticated is correct
+        if (storedToken) {
+          setToken(storedToken);
+        }
+      } else {
+        // No valid user — clear stale token state
+        setToken(null);
       }
+    }).catch(() => {
+      // API unreachable — clear stale token state
+      setToken(null);
     });
   }, []);
 

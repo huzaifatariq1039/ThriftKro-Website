@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import { WebApp } from "@/layouts/WebApp";
 import { PageLoader } from "@/components/ui";
 import { useStore } from "@/hooks/useStore";
+import { useAppStore } from "@/store/useAppStore";
 
 // Lazy-loaded Feature Screens
 const LandingPage = lazy(() => import("@/features/landing/pages/LandingPage"));
@@ -61,21 +62,27 @@ const SellerGuard: React.FC<{ s: ReturnType<typeof useStore>; children: React.Re
 const GuestGuard: React.FC<{ s: ReturnType<typeof useStore>; children: React.ReactNode }> = ({ s, children }) => {
   const navigate = useNavigate();
   const { isAuthenticated, role } = useAuth();
+  const [checking, setChecking] = React.useState(false);
 
   React.useEffect(() => {
     if (isAuthenticated) {
       if (role === "seller") {
-        const v = s.sellerVerified;
-        navigate(v === "verified" || v === "pending" ? "/seller/dashboard" : "/seller/verify");
+        // Fetch real verification status before deciding where to redirect
+        setChecking(true);
+        s.fetchVerificationStatus().then(() => {
+          // Read fresh state from Zustand store (not the stale closure)
+          const v = useAppStore.getState().sellerVerified;
+          navigate(v === "verified" || v === "pending" ? "/seller/dashboard" : "/seller/verify");
+        }).finally(() => setChecking(false));
       } else if (role === "admin") {
         navigate("/admin/dashboard");
       } else {
         navigate("/buyer/home");
       }
     }
-  }, [isAuthenticated, role, navigate, s.sellerVerified]);
+  }, [isAuthenticated, role, navigate]);
 
-  if (isAuthenticated) {
+  if (isAuthenticated || checking) {
     return null;
   }
   return <>{children}</>;

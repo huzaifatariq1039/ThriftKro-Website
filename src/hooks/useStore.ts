@@ -68,7 +68,9 @@ export function useStore() {
   const loginWithCredentials = async (email: string, pass: string, forRole: "buyer" | "seller") => {
     await auth.login(email, pass, forRole);
     if (forRole === "seller") {
-      const v = store.sellerVerified;
+      // Fetch real verification status from backend before deciding where to navigate
+      await store.fetchVerificationStatus();
+      const v = useAppStore.getState().sellerVerified;
       navigate(v === "verified" || v === "pending" ? "/seller/dashboard" : "/seller/verify");
     } else {
       navigate("/buyer/home");
@@ -79,7 +81,13 @@ export function useStore() {
     const { authAPI } = await import("../services/api");
     await authAPI.signup({ email, name: fullName, role: forRole, password: pass });
     await auth.login(email, pass, forRole);
-    navigate(forRole === "buyer" ? "/buyer/home" : "/seller/verify");
+    if (forRole === "seller") {
+      // New seller — ensure verification state is 'unverified' so the wizard shows
+      store.setSellerVerified("unverified");
+      navigate("/seller/verify");
+    } else {
+      navigate("/buyer/home");
+    }
   };
 
   const signupSeller = async () => {
