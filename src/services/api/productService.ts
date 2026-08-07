@@ -1,6 +1,5 @@
 import { request, ApiResponse } from "./apiClient";
 import { Product } from "@/types/types";
-import { mockProducts } from "../mockData";
 
 function hashCode(str: string): number {
   let hash = 0;
@@ -13,7 +12,7 @@ function hashCode(str: string): number {
 }
 
 function mapBackendProduct(bp: any): Product {
-  if (!bp) return mockProducts[0];
+  if (!bp) throw new Error("Product data is missing");
   if (typeof bp.originalPrice === "number" && bp.img) {
     return bp as Product;
   }
@@ -33,31 +32,33 @@ function mapBackendProduct(bp: any): Product {
 }
 
 export const productService = {
-  async getProducts(params: { category?: string; q?: string; sort_by?: string } = {}): Promise<ApiResponse<Product[]>> {
+  async getProducts(params: { category?: string; q?: string; sort_by?: string; min_price?: number; max_price?: number } = {}): Promise<ApiResponse<Product[]>> {
     try {
-      let filtered = mockProducts;
-      if (params.category && params.category !== "All") {
-        filtered = filtered.filter(p => p.category === params.category);
+      const query = new URLSearchParams();
+      if (params.category && params.category !== "All") query.set("category", params.category);
+      if (params.q) query.set("q", params.q);
+      if (params.sort_by) query.set("sort_by", params.sort_by);
+      if (params.min_price !== undefined) query.set("min_price", String(params.min_price));
+      if (params.max_price !== undefined) query.set("max_price", String(params.max_price));
+
+      const qs = query.toString();
+      const res = await request<any[]>(`/products/${qs ? `?${qs}` : ""}`);
+      if (Array.isArray(res.data)) {
+        return { data: res.data.map(mapBackendProduct), status: res.status };
       }
-      if (params.q) {
-        const q = params.q.toLowerCase();
-        filtered = filtered.filter(p => p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q));
-      }
-      return { data: filtered, status: 200 };
+      return { data: [], status: 200 };
     } catch (err) {
-      console.warn("Error in getProducts API, returning fallback:", err);
-      return { data: mockProducts, status: 200 };
+      console.warn("Error in getProducts API:", err);
+      return { data: [], status: 500 };
     }
   },
 
   async getProductById(id: string): Promise<ApiResponse<Product | undefined>> {
     try {
-      const item = mockProducts.find(p => p.id === id);
-      const res = await request<any>(`/products/${id}`, {}, item);
-      return { data: res.data ? mapBackendProduct(res.data) : item, status: res.status };
+      const res = await request<any>(`/products/${id}`);
+      return { data: res.data ? mapBackendProduct(res.data) : undefined, status: res.status };
     } catch {
-      const item = mockProducts.find(p => p.id === id);
-      return { data: item, status: 200 };
+      return { data: undefined, status: 500 };
     }
   },
 
@@ -70,20 +71,6 @@ export const productService = {
   },
 
   async createProduct(productData: Partial<Product> & { image_url?: string }): Promise<ApiResponse<Product>> {
-    const fallbackNewProduct: Product = {
-      id: String(Date.now()),
-      name: productData.name || "New Listing",
-      brand: productData.brand || "Vintage",
-      price: productData.price || 2500,
-      originalPrice: productData.originalPrice || 4000,
-      condition: productData.condition || "Good",
-      size: productData.size || "L",
-      seller: productData.seller || "My Thrift Shop",
-      sellerRating: 5.0,
-      img: productData.img || productData.image_url || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800",
-      category: productData.category || "Men",
-    };
-
     try {
       const res = await request<any>(
         "/products/",
@@ -102,13 +89,12 @@ export const productService = {
             image_url: productData.img || productData.image_url || "https://example.com/img.jpg",
             images: [],
             tags: [],
-          }),
-        },
-        fallbackNewProduct
+          })
+        }
       );
       return { data: mapBackendProduct(res.data), status: res.status };
-    } catch {
-      return { data: fallbackNewProduct, status: 200 };
+    } catch (err) {
+      throw err;
     }
   },
 

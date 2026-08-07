@@ -1,52 +1,61 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ArrowLeft, Heart, Camera, Star, Shield, Minus, Plus, Truck } from "lucide-react";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import { ORANGE, YELLOW, INK, PAPER, FONT, MONO, pk } from "@/constants/theme";
-import { mockProducts as products } from "@/services/mockData";
 import type { Store } from "@/hooks/useStore";
 import { Label } from "@/components/ui";
 import { BuyerNav, ProductCard } from "../components/BuyerNav";
+import { buyerService } from "@/services/api/buyerService";
+import { productService } from "@/services/api/productService";
+import { Product } from "@/types/types";
 
 export default function BuyerProduct({ s }: { s: Store }) {
   const p = s.selectedProduct;
   const [size, setSize] = useState(p.size);
   const [qty, setQty] = useState(1);
   const liked = s.likedProducts.has(p.id);
-  const related = products.filter(x => x.id !== p.id).slice(0, 4);
+  const [related, setRelated] = useState<Product[]>([]);
   const off = Math.round((1 - p.price / p.originalPrice) * 100);
 
-  const [reviews, setReviews] = useState([
-    {
-      id: 1,
-      name: "Zayn Ahmed",
-      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&auto=format",
-      rating: 5,
-      date: "2 days ago",
-      comment: "The AR try-on feature was spot on. Shoes arrived in mint condition and 100% authentic!",
-      verified: true,
-    },
-    {
-      id: 2,
-      name: "Fatima Khan",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&auto=format",
-      rating: 5,
-      date: "1 week ago",
-      comment: "Super fast shipping to Lahore! Excellent communication from the seller.",
-      verified: true,
-    },
-    {
-      id: 3,
-      name: "Bilal Chaudhry",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&auto=format",
-      rating: 4,
-      date: "2 weeks ago",
-      comment: "Great quality product. Barely any signs of wear.",
-      verified: true,
-    },
-  ]);
+  const [reviews, setReviews] = useState<any[]>([]);
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState("");
   const [showWriteReview, setShowWriteReview] = useState(false);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+
+  // Fetch reviews from backend
+  useEffect(() => {
+    let isMounted = true;
+    setReviewsLoading(true);
+    buyerService.getProductReviews(p.id)
+      .then(res => {
+        if (isMounted && res.data && res.data.length > 0) {
+          setReviews(res.data.map((r: any) => ({
+            id: r.id,
+            name: r.buyer_name || r.hex_code || "Buyer",
+            avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&auto=format",
+            rating: r.rating,
+            date: r.created_at ? new Date(r.created_at).toLocaleDateString() : "Recently",
+            comment: r.comment || "",
+            verified: r.is_verified_purchase ?? true,
+          })));
+        }
+      })
+      .catch(err => console.warn("Failed to fetch reviews:", err))
+      .finally(() => { if (isMounted) setReviewsLoading(false); });
+    return () => { isMounted = false; };
+  }, [p.id]);
+
+  // Fetch related products from backend
+  useEffect(() => {
+    productService.getProducts({ category: p.category })
+      .then(res => {
+        if (res.data && res.data.length > 0) {
+          setRelated(res.data.filter(x => x.id !== p.id).slice(0, 4));
+        }
+      })
+      .catch(() => {});
+  }, [p.id, p.category]);
 
   return (
     <div style={{ background: PAPER, minHeight: "100vh", fontFamily: FONT }}>
@@ -178,10 +187,12 @@ export default function BuyerProduct({ s }: { s: Store }) {
                 className="w-full text-xs p-3 rounded-xl bg-white border border-black/10 outline-none focus:border-orange-500 mb-3"
               />
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (!newComment.trim()) return;
-                  setReviews([
-                    {
+                  try {
+                    await buyerService.submitReview(p.id, newRating, newComment);
+                    // Add to local state optimistically
+                    setReviews(prev => [{
                       id: Date.now(),
                       name: s.buyerProfile?.name || "You",
                       avatar: s.buyerProfile?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&auto=format",
@@ -189,11 +200,13 @@ export default function BuyerProduct({ s }: { s: Store }) {
                       date: "Just now",
                       comment: newComment,
                       verified: true,
-                    },
-                    ...reviews,
-                  ]);
-                  setNewComment("");
-                  setShowWriteReview(false);
+                    }, ...prev]);
+                    setNewComment("");
+                    setShowWriteReview(false);
+                    s.showToast("Review posted ✓");
+                  } catch (err) {
+                    s.showToast("Failed to post review. Please try again.");
+                  }
                 }}
                 className="px-5 py-2.5 rounded-xl text-xs font-extrabold text-white"
                 style={{ background: ORANGE }}

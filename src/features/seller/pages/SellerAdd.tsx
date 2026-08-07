@@ -11,6 +11,7 @@ export default function SellerAdd({ s }: { s: Store }) {
   const [category, setCategory] = useState("Shoes");
   const [price, setPrice] = useState("");
   const [condition, setCondition] = useState("Excellent");
+  const [imgUrl, setImgUrl] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiDone, setAiDone] = useState(false);
 
@@ -33,13 +34,14 @@ export default function SellerAdd({ s }: { s: Store }) {
     }
 
     try {
+      const finalImg = imgUrl.trim() || "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop&auto=format";
       const res = await productService.createProduct({
         name,
         price: Number(price),
         originalPrice: Number(price) * 1.3,
         category,
         condition,
-        img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop&auto=format",
+        img: finalImg,
       });
 
       if (res.data) {
@@ -49,7 +51,7 @@ export default function SellerAdd({ s }: { s: Store }) {
           price: res.data.price || Number(price),
           views: 0,
           status: "Active",
-          img: res.data.img || "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop&auto=format",
+          img: res.data.img || finalImg,
         });
       }
       s.showToast("Listing published to marketplace ✓");
@@ -76,6 +78,7 @@ export default function SellerAdd({ s }: { s: Store }) {
 
         <div className="space-y-4">
           <Field label="Item title"><input className={inputCls} style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Vintage Denim Jacket" /></Field>
+          <Field label="Photo URL (Optional)"><input className={inputCls} style={inputStyle} value={imgUrl} onChange={e => setImgUrl(e.target.value)} placeholder="https://images.unsplash.com/..." /></Field>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Category">
               <select className={inputCls} style={inputStyle} value={category} onChange={e => setCategory(e.target.value)}>

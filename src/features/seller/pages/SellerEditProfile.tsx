@@ -5,9 +5,30 @@ import { ORANGE, INK } from "@/constants/theme";
 import type { Store } from "@/hooks/useStore";
 import { Label, Field, inputCls, inputStyle } from "@/components/ui";
 import { SellerShell } from "../components/SellerShell";
+import { authService } from "@/services/api/authService";
 
 export default function SellerEditProfile({ s }: { s: Store }) {
   const [f, setF] = useState(s.sellerProfile);
+  const [loading, setLoading] = useState(false);
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      await authService.updateProfile({
+        email: f.email,
+        phone_number: f.phone
+      });
+      // We are ignoring bio/city for now if they are not supported by the backend /users/me
+      await s.syncProfile();
+      s.showToast("Shop profile saved ✓");
+      s.setRoute("seller-profile");
+    } catch (err) {
+      s.showToast("Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <SellerShell s={s}>
       <Label>SETTINGS</Label>
@@ -20,9 +41,11 @@ export default function SellerEditProfile({ s }: { s: Store }) {
         <Field label="Shop name"><input className={inputCls} style={inputStyle} value={f.shopName} onChange={e => setF({ ...f, shopName: e.target.value })} /></Field>
         <Field label="Bio / Description"><textarea className={inputCls} style={{ ...inputStyle, height: 80 }} value={f.bio} onChange={e => setF({ ...f, bio: e.target.value })} /></Field>
         <Field label="Email"><input className={inputCls} style={inputStyle} value={f.email} onChange={e => setF({ ...f, email: e.target.value })} /></Field>
-        <Field label="Phone"><input className={inputCls} style={inputStyle} value={f.phone} onChange={e => setF({ ...f, phone: e.target.value })} /></Field>
-        <Field label="City"><input className={inputCls} style={inputStyle} value={f.city} onChange={e => setF({ ...f, city: e.target.value })} /></Field>
-        <button onClick={() => { s.setSellerProfile(f); s.showToast("Shop profile saved ✓"); s.setRoute("seller-profile"); }} className="w-full py-4 rounded-xl font-extrabold text-white mt-4" style={{ background: ORANGE }}>Save Changes</button>
+        <Field label="Phone"><input className={inputCls} style={inputStyle} value={f.phone || ""} onChange={e => setF({ ...f, phone: e.target.value })} /></Field>
+        <Field label="City"><input className={inputCls} style={inputStyle} value={f.city || ""} onChange={e => setF({ ...f, city: e.target.value })} /></Field>
+        <button disabled={loading} onClick={handleSave} className="w-full py-4 rounded-xl font-extrabold text-white mt-4 transition-opacity disabled:opacity-50" style={{ background: ORANGE }}>
+          {loading ? "Saving..." : "Save Changes"}
+        </button>
       </div>
     </SellerShell>
   );

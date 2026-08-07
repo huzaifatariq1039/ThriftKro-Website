@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Search, Loader2 } from "lucide-react";
 import { ORANGE, INK, PAPER, FONT } from "@/constants/theme";
-import { mockProducts } from "@/services/mockData";
 import type { Store } from "@/hooks/useStore";
 import { BuyerNav, ProductCard } from "../components/BuyerNav";
 import { productService } from "@/services/api/productService";
@@ -20,27 +19,12 @@ export default function BuyerSearch({ s }: { s: Store }) {
 
     const timer = setTimeout(() => {
       setSearching(true);
-      productService.searchProducts(q.trim())
+      productService.getProducts({ q: q.trim() })
         .then(res => {
-          if (res.data && res.data.length > 0) {
-            setResults(res.data);
-          } else {
-            // Local fallback filter if backend yields no match
-            const local = mockProducts.filter(p =>
-              p.name.toLowerCase().includes(q.toLowerCase()) ||
-              p.brand.toLowerCase().includes(q.toLowerCase()) ||
-              p.category.toLowerCase().includes(q.toLowerCase())
-            );
-            setResults(local);
-          }
+          setResults(res.data && res.data.length > 0 ? res.data : []);
         })
         .catch(() => {
-          const local = mockProducts.filter(p =>
-            p.name.toLowerCase().includes(q.toLowerCase()) ||
-            p.brand.toLowerCase().includes(q.toLowerCase()) ||
-            p.category.toLowerCase().includes(q.toLowerCase())
-          );
-          setResults(local);
+          setResults([]);
         })
         .finally(() => setSearching(false));
     }, 300);

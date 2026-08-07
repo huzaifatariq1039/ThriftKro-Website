@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PieChart, Pie, Cell } from "recharts";
-import { C, FONT, MONO, allOrders, escrowData } from "../data/adminData";
+import { C, FONT, MONO, escrowData } from "../data/adminData";
+import { adminService } from "@/services/api/adminService";
+import { Loader2 } from "lucide-react";
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; color: string; label: string }> = {
@@ -24,7 +26,22 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function PageEscrow() {
   const [filter, setFilter] = useState("ALL");
-  const filters = ["ALL", "PROCESSING", "IN_TRANSIT", "SHIPPED", "DELIVERED", "COMPLETED", "DISPUTED"];
+  const filters = ["ALL", "PROCESSING", "IN_TRANSIT", "SHIPPED", "DELIVERED", "COMPLETED_PAYOUT", "DISPUTED"];
+  
+  const [allOrders, setAllOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    adminService.getOrders().then(res => {
+      if (isMounted) {
+        setAllOrders(res.data);
+        setLoading(false);
+      }
+    });
+    return () => { isMounted = false; };
+  }, []);
+
   const visible = filter === "ALL" ? allOrders : allOrders.filter(o => o.status === filter);
   return (
     <div className="space-y-5">
@@ -64,19 +81,25 @@ export default function PageEscrow() {
               </tr>
             </thead>
             <tbody>
-              {visible.map((o, i) => (
-                <tr key={o.id} className="border-b hover:bg-white/[0.02] transition-colors"
-                  style={{ borderColor: i === visible.length - 1 ? "transparent" : `${C.border}40` }}>
-                  <td className="px-4 py-3"><span className="text-xs font-semibold" style={{ color: C.orange, fontFamily: MONO }}>{o.id}</span></td>
-                  <td className="px-4 py-3"><span className="text-xs" style={{ color: C.text, fontFamily: FONT }}>{o.buyer}</span></td>
-                  <td className="px-4 py-3"><span className="text-xs" style={{ color: C.textMuted, fontFamily: FONT }}>{o.seller}</span></td>
-                  <td className="px-4 py-3"><span className="text-xs" style={{ color: C.textMuted, fontFamily: FONT }}>{o.item}</span></td>
-                  <td className="px-4 py-3"><span className="text-xs font-semibold" style={{ color: C.yellow, fontFamily: MONO }}>PKR {o.amount.toLocaleString()}</span></td>
-                  <td className="px-4 py-3"><StatusBadge status={o.escrow} /></td>
-                  <td className="px-4 py-3"><StatusBadge status={o.status} /></td>
-                  <td className="px-4 py-3"><span className="text-xs" style={{ color: C.textDim, fontFamily: MONO }}>{o.date}</span></td>
-                </tr>
-              ))}
+              {loading ? (
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-xs text-gray-500"><Loader2 className="animate-spin inline mr-2" size={14}/> Loading orders...</td></tr>
+              ) : visible.length === 0 ? (
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-xs text-gray-500">No orders found.</td></tr>
+              ) : (
+                visible.map((o, i) => (
+                  <tr key={o.id} className="border-b hover:bg-white/[0.02] transition-colors"
+                    style={{ borderColor: i === visible.length - 1 ? "transparent" : `${C.border}40` }}>
+                    <td className="px-4 py-3"><span className="text-xs font-semibold" style={{ color: C.orange, fontFamily: MONO }}>{o.id}</span></td>
+                    <td className="px-4 py-3"><span className="text-xs" style={{ color: C.text, fontFamily: FONT }}>{String(o.buyer).substring(0, 8)}...</span></td>
+                    <td className="px-4 py-3"><span className="text-xs" style={{ color: C.textMuted, fontFamily: FONT }}>{String(o.seller).substring(0, 8)}...</span></td>
+                    <td className="px-4 py-3"><span className="text-xs" style={{ color: C.textMuted, fontFamily: FONT }}>{String(o.item).substring(0, 8)}...</span></td>
+                    <td className="px-4 py-3"><span className="text-xs font-semibold" style={{ color: C.yellow, fontFamily: MONO }}>PKR {o.amount.toLocaleString()}</span></td>
+                    <td className="px-4 py-3"><StatusBadge status={o.escrow} /></td>
+                    <td className="px-4 py-3"><StatusBadge status={o.status} /></td>
+                    <td className="px-4 py-3"><span className="text-xs" style={{ color: C.textDim, fontFamily: MONO }}>{o.date}</span></td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

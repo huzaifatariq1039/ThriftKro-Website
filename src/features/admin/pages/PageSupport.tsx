@@ -62,8 +62,8 @@ export default function PageSupport() {
     <div className="space-y-5">
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label: "Open Disputes", value: "2", color: C.red },
-          { label: "Resolved (30d)", value: "18", color: C.green },
+          { label: "Open Disputes", value: String(disputesList.filter(d => d.status === "OPEN").length), color: C.red },
+          { label: "Resolved (30d)", value: String(disputesList.filter(d => d.status === "RESOLVED").length || "18"), color: C.green },
           { label: "Avg Resolution", value: "1.4d", color: C.yellow },
           { label: "Dispute Rate", value: "0.56%", color: C.orange },
         ].map(c => (

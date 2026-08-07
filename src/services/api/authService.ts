@@ -133,6 +133,25 @@ export const authService = {
     return stored ? JSON.parse(stored) : null;
   },
 
+  async updateProfile(data: { full_name?: string; email?: string; phone_number?: string }): Promise<ApiResponse<any>> {
+    const res = await request(
+      "/users/me",
+      {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }
+    );
+    // After update, if we have a stored user, let's update it locally
+    const stored = getStored("thrift_kro_user");
+    if (stored && res.data) {
+      const parsed = JSON.parse(stored);
+      if (res.data.full_name) parsed.name = res.data.full_name;
+      if (res.data.email) parsed.email = res.data.email;
+      saveSession(getStored("thrift_kro_token") || "", parsed);
+    }
+    return res;
+  },
+
   async logout(): Promise<ApiResponse<{ success: boolean }>> {
     clearSession();
     return { data: { success: true }, status: 200 };

@@ -10,14 +10,20 @@ export const adminService = {
     };
 
     try {
-      const res = await request<any>("/admin/stats", {}, fallbackMetrics);
-      if (res.data && res.data.total_revenue !== undefined) {
+      const res = await request<any>("/admin/stats");
+      if (res.data && res.data.revenue) {
         return {
           data: {
-            gmv: `PKR ${res.data.total_revenue.toLocaleString()}`,
-            activeListings: res.data.total_products || 1420,
-            kycPending: res.data.pending_kyc || 12,
-            escrowHold: `PKR ${(res.data.escrow_hold || 380000).toLocaleString()}`,
+            gmv: res.data.revenue.gross_merchandise_value_pkr || 0,
+            revenue: res.data.revenue.total_platform_revenue_pkr || 0,
+            activeListings: res.data.products.live_available || 0,
+            kycPending: 0, // Not provided directly in stats, we can fetch via kyc queue length
+            escrowHold: res.data.revenue.total_platform_revenue_pkr * (1 / 0.02) || 0, // Roughly inferring total escrow hold
+            
+            // Additional metrics for pulse
+            usersTotal: res.data.users.total_users || 0,
+            ordersTotal: res.data.orders.total_orders || 0,
+            ordersInProgress: res.data.orders.in_progress || 0,
           },
           status: res.status,
         };
@@ -142,5 +148,33 @@ export const adminService = {
       },
       { success: true }
     );
+  },
+
+  async getOrders() {
+    const fallbackOrders = [
+      { id: "ORD-9999", buyer: "System", seller: "System", item: "Fallback Item", amount: 0, escrow: "LOCKED", status: "PROCESSING", date: "Today" }
+    ];
+
+    try {
+      const res = await request<any[]>("/admin/orders");
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        const orders = res.data.map(o => ({
+          id: `ORD-${String(o.id).substring(0, 4).toUpperCase()}`,
+          realId: o.id,
+          buyer: o.buyer_id || "Buyer",
+          seller: o.seller_id || "Seller",
+          item: o.product_id || "Item", // We could fetch product details, but for now ID
+          amount: o.total_amount || 0,
+          escrow: o.status === "FUNDS_IN_ESCROW" || o.status === "SHIPPED" || o.status === "DELIVERED" ? "LOCKED" : o.status === "COMPLETED_PAYOUT" ? "RELEASED" : "PENDING",
+          status: o.status || "PROCESSING",
+          date: new Date(o.created_at).toLocaleDateString(),
+        }));
+        return { data: orders, status: res.status };
+      }
+    } catch {
+      // Fallback
+    }
+
+    return { data: fallbackOrders, status: 200 };
   }
 };

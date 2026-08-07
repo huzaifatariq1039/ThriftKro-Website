@@ -160,13 +160,18 @@ function AiStream() {
 export default function PageOverview() {
   const [range, setRange] = useState<"week" | "month">("week");
   const [metrics, setMetrics] = useState({
-    gmv: "PKR 7,125,000",
-    revenue: "PKR 142,500",
+    gmv: "PKR 0",
+    revenue: "PKR 0",
     totalProducts: 0,
-    activeSellers: "1,240 total",
-    escrowHold: "PKR 450,000",
+    activeSellers: "0 total",
+    escrowHold: "PKR 0",
+    pulse: {
+      users: "0",
+      orders: "0",
+      inProgress: "0",
+    }
   });
-  const [kycQueue, setKycQueue] = useState<any[]>(kycRequests);
+  const [kycQueue, setKycQueue] = useState<any[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -178,15 +183,27 @@ export default function PageOverview() {
       if (!isMounted) return;
       
       const prodCount = productsRes.data ? productsRes.data.length : 0;
-      const gmvVal = metricsRes.data?.gmv || "PKR 7,125,000";
-      const escrowVal = metricsRes.data?.escrowHold || "PKR 450,000";
+      
+      let gmvVal = metricsRes.data?.gmv;
+      if (typeof gmvVal === 'number') gmvVal = `PKR ${gmvVal.toLocaleString()}`;
+      
+      let revVal = metricsRes.data?.revenue;
+      if (typeof revVal === 'number') revVal = `PKR ${revVal.toLocaleString()}`;
+      
+      let escrowVal = metricsRes.data?.escrowHold;
+      if (typeof escrowVal === 'number') escrowVal = `PKR ${escrowVal.toLocaleString()}`;
 
       setMetrics({
-        gmv: gmvVal,
-        revenue: metricsRes.data?.gmv ? `PKR ${(Math.round(parseFloat(gmvVal.replace(/[^0-9.]/g, "") || "7125000") * 0.02)).toLocaleString()}` : "PKR 142,500",
+        gmv: gmvVal || "PKR 0",
+        revenue: revVal || "PKR 0",
         totalProducts: prodCount,
-        activeSellers: `${metricsRes.data?.activeListings || prodCount || 12} Products Listed`,
-        escrowHold: escrowVal,
+        activeSellers: `${metricsRes.data?.activeListings || prodCount || 0} Products Listed`,
+        escrowHold: escrowVal || "PKR 0",
+        pulse: {
+          users: String(metricsRes.data?.usersTotal || 0),
+          orders: String(metricsRes.data?.ordersTotal || 0),
+          inProgress: String(metricsRes.data?.ordersInProgress || 0),
+        }
       });
 
       if (kycRes.data && kycRes.data.length > 0) {
@@ -333,10 +350,10 @@ export default function PageOverview() {
             <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: C.textDim, fontFamily: MONO }}>Platform Pulse</p>
             <div className="space-y-2.5">
               {[
-                { label: "Products Published Today", value: "128", icon: Package, color: C.orange },
-                { label: "AI Verifications Run", value: "847", icon: Cpu, color: C.yellow },
-                { label: "New Orders (24h)", value: "63", icon: Truck, color: C.green },
-                { label: "Active Disputes", value: "7", icon: AlertTriangle, color: C.red },
+                { label: "Total Platform Users", value: metrics.pulse.users, icon: User, color: C.orange },
+                { label: "Total Orders Processed", value: metrics.pulse.orders, icon: Package, color: C.yellow },
+                { label: "Orders In Progress", value: metrics.pulse.inProgress, icon: Truck, color: C.green },
+                { label: "Pending KYC Requests", value: String(kycQueue.length), icon: ShieldCheck, color: C.red },
               ].map(item => {
                 const Icon = item.icon; return (
                   <div key={item.label} className="flex items-center justify-between py-0.5">

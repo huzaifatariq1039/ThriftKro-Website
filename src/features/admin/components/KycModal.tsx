@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { ShieldCheck, X, CheckCircle2, AlertCircle } from "lucide-react";
 import { C, FONT, MONO, KycReq } from "../data/adminData";
+import { adminService } from "@/services/api/adminService";
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; color: string; label: string }> = {

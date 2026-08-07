@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ORANGE, YELLOW, INK, PAPER, FONT } from "@/constants/theme";
-import { mockProducts, mockCategories as categories } from "@/services/mockData";
+import { mockCategories as categories } from "@/services/mockData";
 import type { Store } from "@/hooks/useStore";
 import { Label } from "@/components/ui";
 import { BuyerNav, ProductCard } from "../components/BuyerNav";
@@ -8,7 +8,7 @@ import { productService } from "@/services/api/productService";
 import { Product } from "@/types/types";
 
 export default function BuyerHome({ s }: { s: Store }) {
-  const [productList, setProductList] = useState<Product[]>(mockProducts);
+  const [productList, setProductList] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export default function BuyerHome({ s }: { s: Store }) {
     setLoading(true);
     productService.getProducts({ category: s.activeCategory === "All" ? undefined : s.activeCategory })
       .then(res => {
-        if (isMounted && res.data && res.data.length > 0) {
+        if (isMounted && res.data) {
           setProductList(res.data);
         }
       })
@@ -29,7 +29,7 @@ export default function BuyerHome({ s }: { s: Store }) {
     return () => { isMounted = false; };
   }, [s.activeCategory]);
 
-  const filtered = productList.filter(p => s.activeCategory === "All" || p.category === s.activeCategory);
+  const filtered = productList;
 
   return (
     <div style={{ background: PAPER, minHeight: "100vh", fontFamily: FONT }}>

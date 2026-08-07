@@ -162,12 +162,19 @@ export const useAppStore = create<AppState>((set, get) => ({
   setActiveCategory: (cat) => set({ activeCategory: cat }),
   setSearchQuery: (q) => set({ searchQuery: q }),
 
-  toggleLike: (id) => set(state => {
-    const next = new Set(state.likedProducts);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    return { likedProducts: next };
-  }),
+  toggleLike: (id) => {
+    // Optimistic local update
+    set(state => {
+      const next = new Set(state.likedProducts);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return { likedProducts: next };
+    });
+    // Sync with backend
+    buyerService.toggleWishlist(id).catch(err => {
+      console.warn("Wishlist toggle API failed:", err);
+    });
+  },
 
   addToCart: (p) => {
     set(state => {
@@ -175,11 +182,21 @@ export const useAppStore = create<AppState>((set, get) => ({
       return { cart: [...state.cart, { item: p, qty: 1 }] };
     });
     get().showToast("Added to cart ✓");
+    // Sync with backend
+    buyerService.addToCart(p.id).catch(err => {
+      console.warn("Cart add API failed:", err);
+    });
   },
 
   updateCartQty: (id, qty) => set((s) => ({ cart: s.cart.map(x => (x.item.id === id ? { ...x, qty } : x)) })),
 
-  removeFromCart: (id) => set(state => ({ cart: state.cart.filter(i => i.item.id !== id) })),
+  removeFromCart: (id) => {
+    set(state => ({ cart: state.cart.filter(i => i.item.id !== id) }));
+    // Sync with backend
+    buyerService.removeFromCart(id).catch(err => {
+      console.warn("Cart remove API failed:", err);
+    });
+  },
 
   setActiveVtoItem: (idx) => set({ activeVtoItem: idx }),
 
@@ -335,16 +352,47 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   checkoutAsync: async (items: Product[]) => {
     try {
-      const res = await buyerService.checkout(items);
-      if (res.data?.success) {
+      // Use cart checkout endpoint if items are in the server cart
+      const res = await buyerService.checkoutCart();
+      if (res.data?.order_ids) {
         get().handlePurchaseComplete(items);
         return true;
       }
     } catch (err) {
-      console.warn("Checkout API call failed, completing locally:", err);
+      // Fallback to legacy single-product checkout
+      try {
+        const res = await buyerService.checkout(items);
+        if (res.data?.success) {
+          get().handlePurchaseComplete(items);
+          return true;
+        }
+      } catch (err2) {
+        console.warn("Checkout API call failed, completing locally:", err2);
+      }
     }
     get().handlePurchaseComplete(items);
     return true;
+  },
+
+  syncProfile: async () => {
+    const user = await authService.getCurrentUser();
+    if (user) {
+      set((state) => ({
+        buyerProfile: {
+          ...state.buyerProfile,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar || state.buyerProfile.avatar,
+        },
+        sellerProfile: {
+          ...state.sellerProfile,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar || state.sellerProfile.avatar,
+          shopName: user.name + "'s Shop",
+        }
+      }));
+    }
   },
 }));
 

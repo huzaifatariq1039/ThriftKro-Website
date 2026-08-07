@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, Role } from "../types/types";
 import { authAPI } from "../services/api";
+import { useAppStore } from "@/store/useAppStore";
 
 type AuthContextType = {
   user: User | null;
@@ -35,6 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(u);
         setRoleState(u.role);
         setUnlockedRoles(new Set([u.role]));
+        useAppStore.getState().syncProfile();
         // Re-sync token state from storage so isAuthenticated is correct
         if (storedToken) {
           setToken(storedToken);
@@ -64,6 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(res.token);
     setRoleState(forRole);
     setUnlockedRoles(prev => new Set([...prev, forRole]));
+    useAppStore.getState().syncProfile();
     // Token & user are already saved by authService based on Remember Me preference
   };
 

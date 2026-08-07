@@ -1,6 +1,5 @@
 import { request, ApiResponse } from "./apiClient";
 import { BuyerOrder, Address, Card, Product } from "@/types/types";
-import { mockBuyerOrders, mockAddresses, mockCards } from "../mockData";
 
 export const buyerService = {
   async getOrders(): Promise<ApiResponse<BuyerOrder[]>> {
@@ -28,10 +27,40 @@ export const buyerService = {
       return { data: [], status: 200 };
     } catch (err) {
       console.warn("Could not fetch orders from API:", err);
-      return { data: mockBuyerOrders, status: 200 };
+      return { data: [], status: 500 };
     }
   },
 
+  // ── Cart ──
+
+  async getCart(): Promise<ApiResponse<{ items: any[]; total_price: number; total_items: number }>> {
+    try {
+      const res = await request<any>("/shopping/cart");
+      return { data: res.data, status: res.status };
+    } catch {
+      return { data: { items: [], total_price: 0, total_items: 0 }, status: 200 };
+    }
+  },
+
+  async addToCart(productId: string): Promise<ApiResponse<{ detail: string }>> {
+    return request<{ detail: string }>(`/shopping/cart/add/${productId}`, { method: "POST" });
+  },
+
+  async removeFromCart(productId: string): Promise<ApiResponse<{ detail: string }>> {
+    return request<{ detail: string }>(`/shopping/cart/remove/${productId}`, { method: "DELETE" });
+  },
+
+  async checkoutCart(shippingAddress?: string): Promise<ApiResponse<{ detail: string; order_ids: string[] }>> {
+    return request<{ detail: string; order_ids: string[] }>(
+      "/shopping/cart/checkout",
+      {
+        method: "POST",
+        body: JSON.stringify({ shipping_address: shippingAddress || "Default User Address" }),
+      }
+    );
+  },
+
+  // Legacy single-product checkout (kept for backward compatibility)
   async checkout(items: Product[]): Promise<ApiResponse<{ success: boolean; orderIds: string[] }>> {
     const firstProduct = items[0];
     const res = await request<any>(
@@ -48,11 +77,49 @@ export const buyerService = {
     return { data: { success: true, orderIds: [res.data.id ? String(res.data.id) : "TK-10001"] }, status: 200 };
   },
 
+  // ── Wishlist ──
+
+  async getWishlist(): Promise<ApiResponse<{ items: any[]; total_items: number }>> {
+    try {
+      const res = await request<any>("/shopping/wishlist");
+      return { data: res.data, status: res.status };
+    } catch {
+      return { data: { items: [], total_items: 0 }, status: 200 };
+    }
+  },
+
+  async toggleWishlist(productId: string): Promise<ApiResponse<{ detail: string; is_in_wishlist: boolean }>> {
+    return request<{ detail: string; is_in_wishlist: boolean }>(`/shopping/wishlist/toggle/${productId}`, { method: "POST" });
+  },
+
+  // ── Reviews ──
+
+  async getProductReviews(productId: string): Promise<ApiResponse<any[]>> {
+    try {
+      const res = await request<any[]>(`/reviews/product/${productId}`);
+      return { data: Array.isArray(res.data) ? res.data : [], status: res.status };
+    } catch {
+      return { data: [], status: 200 };
+    }
+  },
+
+  async submitReview(productId: string, rating: number, comment: string): Promise<ApiResponse<any>> {
+    return request<any>(
+      "/reviews/",
+      {
+        method: "POST",
+        body: JSON.stringify({ product_id: productId, rating, comment }),
+      }
+    );
+  },
+
+  // ── Addresses & Cards (backend endpoints may not exist yet) ──
+
   async getAddresses(): Promise<ApiResponse<Address[]>> {
     try {
       return await request<Address[]>("/users/me/addresses");
     } catch {
-      return { data: mockAddresses, status: 200 };
+      return { data: [], status: 500 };
     }
   },
 
@@ -60,9 +127,11 @@ export const buyerService = {
     try {
       return await request<Card[]>("/users/me/cards");
     } catch {
-      return { data: mockCards, status: 200 };
+      return { data: [], status: 500 };
     }
   },
+
+  // ── Wallet ──
 
   async getWalletBalance(): Promise<ApiResponse<{ balance: number }>> {
     const res = await request<any>("/wallet/balance");

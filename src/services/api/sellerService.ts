@@ -1,6 +1,5 @@
 import { request, ApiResponse } from "./apiClient";
 import { SellerListing, SellerVerificationStatusResponse } from "@/types/types";
-import { mockSellerListings } from "../mockData";
 
 export const sellerService = {
   async getSellerListings(): Promise<ApiResponse<SellerListing[]>> {
@@ -17,12 +16,13 @@ export const sellerService = {
           status: p.status === "Active" || p.status === "APPROVED" ? "Active" : "Pending",
           img: p.image_url || p.img || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800",
         }));
-        return { data: listings, status: 200 };
+        return { data: listings, status: res.status };
       }
-    } catch {
-      // Fallback to mock
+      return { data: [], status: 200 };
+    } catch (err) {
+      console.warn("Failed to get seller listings", err);
+      return { data: [], status: 500 };
     }
-    return { data: mockSellerListings, status: 200 };
   },
 
   async createListing(listing: Omit<SellerListing, "id">): Promise<ApiResponse<SellerListing>> {
