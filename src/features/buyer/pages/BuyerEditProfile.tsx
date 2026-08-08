@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { ArrowLeft, Camera } from "lucide-react";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import { ORANGE, INK, PAPER, FONT } from "@/constants/theme";
@@ -23,6 +23,7 @@ function SubPage({ s, title, back, children }: { s: Store; title: string; back: 
 export default function BuyerEditProfile({ s }: { s: Store }) {
   const [f, setF] = useState(s.buyerProfile);
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSave = async () => {
     setLoading(true);
@@ -48,10 +49,24 @@ export default function BuyerEditProfile({ s }: { s: Store }) {
     <SubPage s={s} title="Edit Profile" back="buyer-profile">
       <div className="flex items-center gap-4 mb-8">
         <ImageWithFallback src={f.avatar || ""} alt="me" className="w-20 h-20 rounded-full object-cover" />
-        <button onClick={() => {
-          const url = window.prompt("Enter new avatar image URL:", f.avatar || "");
-          if (url !== null) setF({ ...f, avatar: url });
-        }} className="px-4 py-2 rounded-full text-sm font-bold flex items-center gap-1.5" style={{ boxShadow: "0 0 0 1px rgba(26,17,8,0.12)", color: INK }}><Camera size={14} /> Change photo</button>
+        <input 
+          type="file" 
+          accept="image/*" 
+          ref={fileInputRef} 
+          style={{ display: "none" }} 
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (ev) => {
+                const b64 = ev.target?.result as string;
+                setF({ ...f, avatar: b64 });
+              };
+              reader.readAsDataURL(file);
+            }
+          }} 
+        />
+        <button onClick={() => fileInputRef.current?.click()} className="px-4 py-2 rounded-full text-sm font-bold flex items-center gap-1.5" style={{ boxShadow: "0 0 0 1px rgba(26,17,8,0.12)", color: INK }}><Camera size={14} /> Change photo</button>
       </div>
       <div className="space-y-4 max-w-md">
         <Field label="Full name"><input className={inputCls} style={inputStyle} value={f.name} onChange={e => setF({ ...f, name: e.target.value })} /></Field>

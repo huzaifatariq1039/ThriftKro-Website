@@ -61,16 +61,19 @@ const SellerGuard: React.FC<{ s: ReturnType<typeof useStore>; children: React.Re
 
 const GuestGuard: React.FC<{ s: ReturnType<typeof useStore>; children: React.ReactNode }> = ({ s, children }) => {
   const navigate = useNavigate();
-  const { isAuthenticated, role } = useAuth();
+  const location = useLocation();
+  const { isAuthenticated, role, unlockedRoles } = useAuth();
   const [checking, setChecking] = React.useState(false);
 
   React.useEffect(() => {
     if (isAuthenticated) {
+      // Allow authenticated users to view the login page for roles they HAVEN'T unlocked yet
+      if (location.pathname === "/auth/seller" && !unlockedRoles.has("seller")) return;
+      if (location.pathname === "/auth/buyer" && !unlockedRoles.has("buyer")) return;
+
       if (role === "seller") {
-        // Fetch real verification status before deciding where to redirect
         setChecking(true);
         s.fetchVerificationStatus().then(() => {
-          // Read fresh state from Zustand store (not the stale closure)
           const v = useAppStore.getState().sellerVerified;
           navigate(v === "verified" || v === "pending" ? "/seller/dashboard" : "/seller/verify");
         }).finally(() => setChecking(false));
@@ -80,11 +83,18 @@ const GuestGuard: React.FC<{ s: ReturnType<typeof useStore>; children: React.Rea
         navigate("/buyer/home");
       }
     }
-  }, [isAuthenticated, role, navigate]);
+  }, [isAuthenticated, role, location.pathname, unlockedRoles, navigate, s]);
 
-  if (isAuthenticated || checking) {
-    return null;
+  // If checking verification status, render nothing to avoid flash of content
+  if (checking) return null;
+  
+  // If authenticated and trying to access an auth page they ALREADY have the role for, render nothing because useEffect will redirect them
+  if (isAuthenticated) {
+    if (location.pathname === "/auth/seller" && unlockedRoles.has("seller")) return null;
+    if (location.pathname === "/auth/buyer" && unlockedRoles.has("buyer")) return null;
+    if (location.pathname !== "/auth/seller" && location.pathname !== "/auth/buyer" && location.pathname !== "/role-select") return null;
   }
+
   return <>{children}</>;
 };
 

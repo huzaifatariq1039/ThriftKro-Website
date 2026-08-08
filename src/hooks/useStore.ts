@@ -97,8 +97,13 @@ export function useStore() {
 
   const requestRoleSwitch = (target: "buyer" | "seller") => {
     store.setShowRoleSwitch(false);
-    auth.setAuthMode("login");
-    navigate(target === "buyer" ? "/auth/buyer" : "/auth/seller");
+    if (auth.unlockedRoles.has(target)) {
+      auth.setRole(target);
+      navigate(target === "buyer" ? "/buyer/home" : "/seller/dashboard");
+    } else {
+      auth.setAuthMode("login");
+      navigate(target === "buyer" ? "/auth/buyer" : "/auth/seller");
+    }
   };
 
   const logout = () => {

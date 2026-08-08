@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Camera } from "lucide-react";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import { ORANGE, INK } from "@/constants/theme";
@@ -10,6 +10,7 @@ import { authService } from "@/services/api/authService";
 export default function SellerEditProfile({ s }: { s: Store }) {
   const [f, setF] = useState(s.sellerProfile);
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSave = async () => {
     setLoading(true);
@@ -37,10 +38,24 @@ export default function SellerEditProfile({ s }: { s: Store }) {
       <div className="max-w-md bg-white p-8 rounded-3xl space-y-4" style={{ boxShadow: "0 0 0 1px rgba(26,17,8,0.06)" }}>
         <div className="flex items-center gap-4 mb-4">
           <ImageWithFallback src={f.avatar || ""} alt="me" className="w-20 h-20 rounded-2xl object-cover" />
-          <button onClick={() => {
-            const url = window.prompt("Enter new avatar image URL:", f.avatar || "");
-            if (url !== null) setF({ ...f, avatar: url });
-          }} className="px-4 py-2 rounded-full text-xs font-bold flex items-center gap-1.5" style={{ boxShadow: "0 0 0 1px rgba(26,17,8,0.12)", color: INK }}><Camera size={14} /> Change avatar</button>
+          <input 
+            type="file" 
+            accept="image/*" 
+            ref={fileInputRef} 
+            style={{ display: "none" }} 
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                  const b64 = ev.target?.result as string;
+                  setF({ ...f, avatar: b64 });
+                };
+                reader.readAsDataURL(file);
+              }
+            }} 
+          />
+          <button onClick={() => fileInputRef.current?.click()} className="px-4 py-2 rounded-full text-xs font-bold flex items-center gap-1.5" style={{ boxShadow: "0 0 0 1px rgba(26,17,8,0.12)", color: INK }}><Camera size={14} /> Change avatar</button>
         </div>
         <Field label="Shop name"><input className={inputCls} style={inputStyle} value={f.shopName} onChange={e => setF({ ...f, shopName: e.target.value })} /></Field>
         <Field label="Bio / Description"><textarea className={inputCls} style={{ ...inputStyle, height: 80 }} value={f.bio} onChange={e => setF({ ...f, bio: e.target.value })} /></Field>
