@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import { WebApp } from "@/layouts/WebApp";
 import { PageLoader } from "@/components/ui";
 import { useStore } from "@/hooks/useStore";
@@ -88,6 +88,29 @@ const GuestGuard: React.FC<{ s: ReturnType<typeof useStore>; children: React.Rea
   return <>{children}</>;
 };
 
+const AdminGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, role } = useAuth();
+  if (!isAuthenticated || role !== "admin") {
+    return <Navigate to="/admin/login" replace />;
+  }
+  return <>{children}</>;
+};
+
+const AdminGuestGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, role } = useAuth();
+  const navigate = useNavigate();
+  React.useEffect(() => {
+    if (isAuthenticated && role === "admin") {
+      navigate("/admin/dashboard");
+    }
+  }, [isAuthenticated, role, navigate]);
+
+  if (isAuthenticated && role === "admin") {
+    return null;
+  }
+  return <>{children}</>;
+};
+
 export const AppRoutes: React.FC = () => {
   const store = useStore();
   const navigate = useNavigate();
@@ -134,8 +157,8 @@ export const AppRoutes: React.FC = () => {
         <Route path="/seller/privacy" element={<WebApp><SellerPrivacy s={store} /></WebApp>} />
 
         {/* Admin Routes */}
-        <Route path="/admin/login" element={<GuestGuard s={store}><AdminLogin onLogin={() => navigate("/admin/dashboard")} /></GuestGuard>} />
-        <Route path="/admin/dashboard" element={<AdminDashboard onBack={() => navigate("/")} />} />
+        <Route path="/admin/login" element={<AdminGuestGuard><AdminLogin onLogin={() => navigate("/admin/dashboard")} /></AdminGuestGuard>} />
+        <Route path="/admin/dashboard" element={<AdminGuard><AdminDashboard onBack={() => navigate("/")} /></AdminGuard>} />
 
         {/* Fallback to Landing */}
         <Route path="*" element={<WebApp><LandingPage s={store} onAdminClick={() => navigate("/admin/login")} /></WebApp>} />

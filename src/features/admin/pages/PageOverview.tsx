@@ -175,43 +175,52 @@ export default function PageOverview() {
 
   useEffect(() => {
     let isMounted = true;
-    Promise.all([
-      adminService.getOverviewMetrics(),
-      productService.getProducts(),
-      adminService.getKycQueue(),
-    ]).then(([metricsRes, productsRes, kycRes]) => {
-      if (!isMounted) return;
-      
-      const prodCount = productsRes.data ? productsRes.data.length : 0;
-      
-      let gmvVal = metricsRes.data?.gmv;
-      if (typeof gmvVal === 'number') gmvVal = `PKR ${gmvVal.toLocaleString()}`;
-      
-      let revVal = metricsRes.data?.revenue;
-      if (typeof revVal === 'number') revVal = `PKR ${revVal.toLocaleString()}`;
-      
-      let escrowVal = metricsRes.data?.escrowHold;
-      if (typeof escrowVal === 'number') escrowVal = `PKR ${escrowVal.toLocaleString()}`;
+    
+    const fetchDashboardData = () => {
+      Promise.all([
+        adminService.getOverviewMetrics(),
+        productService.getProducts(),
+        adminService.getKycQueue(),
+      ]).then(([metricsRes, productsRes, kycRes]) => {
+        if (!isMounted) return;
+        
+        const prodCount = productsRes.data ? productsRes.data.length : 0;
+        
+        let gmvVal = metricsRes.data?.gmv;
+        if (typeof gmvVal === 'number') gmvVal = `PKR ${gmvVal.toLocaleString()}`;
+        
+        let revVal = metricsRes.data?.revenue;
+        if (typeof revVal === 'number') revVal = `PKR ${revVal.toLocaleString()}`;
+        
+        let escrowVal = metricsRes.data?.escrowHold;
+        if (typeof escrowVal === 'number') escrowVal = `PKR ${escrowVal.toLocaleString()}`;
 
-      setMetrics({
-        gmv: gmvVal || "PKR 0",
-        revenue: revVal || "PKR 0",
-        totalProducts: prodCount,
-        activeSellers: `${metricsRes.data?.activeListings || prodCount || 0} Products Listed`,
-        escrowHold: escrowVal || "PKR 0",
-        pulse: {
-          users: String(metricsRes.data?.usersTotal || 0),
-          orders: String(metricsRes.data?.ordersTotal || 0),
-          inProgress: String(metricsRes.data?.ordersInProgress || 0),
+        setMetrics({
+          gmv: gmvVal || "PKR 0",
+          revenue: revVal || "PKR 0",
+          totalProducts: prodCount,
+          activeSellers: `${metricsRes.data?.activeListings || prodCount || 0} Products Listed`,
+          escrowHold: escrowVal || "PKR 0",
+          pulse: {
+            users: String(metricsRes.data?.usersTotal || 0),
+            orders: String(metricsRes.data?.ordersTotal || 0),
+            inProgress: String(metricsRes.data?.ordersInProgress || 0),
+          }
+        });
+
+        if (kycRes.data && kycRes.data.length > 0) {
+          setKycQueue(kycRes.data);
         }
-      });
+      }).catch(err => console.warn("Failed to fetch admin metrics:", err));
+    };
 
-      if (kycRes.data && kycRes.data.length > 0) {
-        setKycQueue(kycRes.data);
-      }
-    }).catch(err => console.warn("Failed to fetch admin metrics:", err));
+    fetchDashboardData();
+    const intervalId = setInterval(fetchDashboardData, 5000);
 
-    return () => { isMounted = false; };
+    return () => { 
+      isMounted = false;
+      clearInterval(intervalId);
+    };
   }, []);
 
   const chartData = range === "week" ? revenueWeek : revenueMonth;

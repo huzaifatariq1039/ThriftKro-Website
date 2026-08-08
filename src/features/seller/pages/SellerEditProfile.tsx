@@ -16,7 +16,8 @@ export default function SellerEditProfile({ s }: { s: Store }) {
     try {
       await authService.updateProfile({
         email: f.email,
-        phone_number: f.phone
+        phone_number: f.phone,
+        avatar_url: f.avatar
       });
       // We are ignoring bio/city for now if they are not supported by the backend /users/me
       await s.syncProfile();
@@ -36,7 +37,10 @@ export default function SellerEditProfile({ s }: { s: Store }) {
       <div className="max-w-md bg-white p-8 rounded-3xl space-y-4" style={{ boxShadow: "0 0 0 1px rgba(26,17,8,0.06)" }}>
         <div className="flex items-center gap-4 mb-4">
           <ImageWithFallback src={f.avatar || ""} alt="me" className="w-20 h-20 rounded-2xl object-cover" />
-          <button className="px-4 py-2 rounded-full text-xs font-bold flex items-center gap-1.5" style={{ boxShadow: "0 0 0 1px rgba(26,17,8,0.12)", color: INK }}><Camera size={14} /> Change avatar</button>
+          <button onClick={() => {
+            const url = window.prompt("Enter new avatar image URL:", f.avatar || "");
+            if (url !== null) setF({ ...f, avatar: url });
+          }} className="px-4 py-2 rounded-full text-xs font-bold flex items-center gap-1.5" style={{ boxShadow: "0 0 0 1px rgba(26,17,8,0.12)", color: INK }}><Camera size={14} /> Change avatar</button>
         </div>
         <Field label="Shop name"><input className={inputCls} style={inputStyle} value={f.shopName} onChange={e => setF({ ...f, shopName: e.target.value })} /></Field>
         <Field label="Bio / Description"><textarea className={inputCls} style={{ ...inputStyle, height: 80 }} value={f.bio} onChange={e => setF({ ...f, bio: e.target.value })} /></Field>

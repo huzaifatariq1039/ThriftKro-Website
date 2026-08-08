@@ -53,7 +53,12 @@ export default function PageKyc() {
 
   useEffect(() => {
     const cleanup = fetchQueue();
-    return cleanup;
+    // Poll every 5 seconds for real-time updates
+    const intervalId = setInterval(fetchQueue, 5000);
+    return () => {
+      cleanup();
+      clearInterval(intervalId);
+    };
   }, []);
 
   const filters = ["ALL", "PENDING", "UNDER_REVIEW", "APPROVED", "REJECTED"];

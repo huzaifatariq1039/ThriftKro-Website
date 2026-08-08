@@ -28,7 +28,21 @@ export default function BuyerPayments({ s }: { s: Store }) {
             {c.isDefault ? <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: "#E8F5E9", color: "#2E7D32" }}>Default</span> : <button onClick={() => { s.setCards(prev => prev.map(x => ({ ...x, isDefault: x.id === c.id }))); s.showToast("Default card set ✓"); }} className="text-xs font-bold" style={{ color: ORANGE }}>Set default</button>}
           </div>
         ))}
-        <button onClick={() => s.showToast("Add-card form coming soon")} className="w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2" style={{ boxShadow: "0 0 0 1.5px rgba(26,17,8,0.15)", color: INK }}><Plus size={16} /> Add new card</button>
+        <button onClick={() => {
+          const last4 = window.prompt("Enter last 4 digits of card:");
+          if (last4 && last4.length === 4) {
+            s.setCards(prev => [...prev, {
+              id: Date.now().toString(),
+              brand: "Visa",
+              last4,
+              exp: "12/25",
+              isDefault: prev.length === 0
+            }]);
+            s.showToast("Card added ✓");
+          } else if (last4) {
+            s.showToast("Please enter exactly 4 digits.");
+          }
+        }} className="w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2" style={{ boxShadow: "0 0 0 1.5px rgba(26,17,8,0.15)", color: INK }}><Plus size={16} /> Add new card</button>
       </div>
     </SubPage>
   );

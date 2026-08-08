@@ -6,7 +6,6 @@ import { BuyerNav, ProductCard } from "../components/BuyerNav";
 import { buyerService } from "@/services/api/buyerService";
 import { productService } from "@/services/api/productService";
 import { Product } from "@/types/types";
-import { mockProducts } from "@/services/mockData";
 
 function SubPage({ s, title, back, children }: { s: Store; title: string; back: any; children: React.ReactNode }) {
   return (
@@ -49,22 +48,18 @@ export default function BuyerWishlist({ s }: { s: Store }) {
           });
           setWishlistProducts(products);
         } else if (isMounted) {
-          // Fall back to local liked products
-          const liked = mockProducts.filter(p => s.likedProducts.has(p.id));
-          setWishlistProducts(liked);
+          setWishlistProducts([]);
         }
       })
       .catch(() => {
-        // Fall back to local liked products
-        const liked = mockProducts.filter(p => s.likedProducts.has(p.id));
-        setWishlistProducts(liked);
+        if (isMounted) setWishlistProducts([]);
       })
       .finally(() => { if (isMounted) setLoading(false); });
     return () => { isMounted = false; };
   }, [s.likedProducts]);
 
   return (
-    <SubPage s={s} title="Wishlist" back="buyer-profile">
+    <SubPage s={s} title="Wishlist" back="buyer-home">
       {loading ? (
         <div className="text-center py-16 text-sm text-gray-500 font-bold flex items-center justify-center gap-2">
           <Loader2 size={18} className="animate-spin text-orange-500" /> Loading wishlist...

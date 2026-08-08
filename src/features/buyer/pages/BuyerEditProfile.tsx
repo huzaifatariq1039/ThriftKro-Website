@@ -30,7 +30,8 @@ export default function BuyerEditProfile({ s }: { s: Store }) {
       await authService.updateProfile({
         full_name: f.name,
         email: f.email,
-        phone_number: f.phone
+        phone_number: f.phone,
+        avatar_url: f.avatar
       });
       // Update global state via syncProfile or directly setting buyerProfile
       await s.syncProfile();
@@ -47,7 +48,10 @@ export default function BuyerEditProfile({ s }: { s: Store }) {
     <SubPage s={s} title="Edit Profile" back="buyer-profile">
       <div className="flex items-center gap-4 mb-8">
         <ImageWithFallback src={f.avatar || ""} alt="me" className="w-20 h-20 rounded-full object-cover" />
-        <button className="px-4 py-2 rounded-full text-sm font-bold flex items-center gap-1.5" style={{ boxShadow: "0 0 0 1px rgba(26,17,8,0.12)", color: INK }}><Camera size={14} /> Change photo</button>
+        <button onClick={() => {
+          const url = window.prompt("Enter new avatar image URL:", f.avatar || "");
+          if (url !== null) setF({ ...f, avatar: url });
+        }} className="px-4 py-2 rounded-full text-sm font-bold flex items-center gap-1.5" style={{ boxShadow: "0 0 0 1px rgba(26,17,8,0.12)", color: INK }}><Camera size={14} /> Change photo</button>
       </div>
       <div className="space-y-4 max-w-md">
         <Field label="Full name"><input className={inputCls} style={inputStyle} value={f.name} onChange={e => setF({ ...f, name: e.target.value })} /></Field>

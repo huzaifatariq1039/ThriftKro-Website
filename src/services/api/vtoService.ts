@@ -10,7 +10,7 @@ export const vtoService = {
     const token = localStorage.getItem("thrift_kro_token") || sessionStorage.getItem("thrift_kro_token") || localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    const timeoutId = setTimeout(() => controller.abort(), 120000);
 
     try {
       const res = await fetch(`${baseUrl}/vto/generate`, {

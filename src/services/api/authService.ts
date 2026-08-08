@@ -133,7 +133,7 @@ export const authService = {
     return stored ? JSON.parse(stored) : null;
   },
 
-  async updateProfile(data: { full_name?: string; email?: string; phone_number?: string }): Promise<ApiResponse<any>> {
+  async updateProfile(data: { full_name?: string; email?: string; phone_number?: string; avatar_url?: string }): Promise<ApiResponse<any>> {
     const res = await request(
       "/users/me",
       {
@@ -147,6 +147,7 @@ export const authService = {
       const parsed = JSON.parse(stored);
       if (res.data.full_name) parsed.name = res.data.full_name;
       if (res.data.email) parsed.email = res.data.email;
+      if (res.data.avatar_url) parsed.avatar = res.data.avatar_url;
       saveSession(getStored("thrift_kro_token") || "", parsed);
     }
     return res;

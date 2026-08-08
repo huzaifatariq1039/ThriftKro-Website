@@ -31,7 +31,19 @@ export default function BuyerAddresses({ s }: { s: Store }) {
             <button onClick={() => { s.setAddresses(prev => prev.map(x => ({ ...x, isDefault: x.id === a.id }))); s.showToast("Default address set ✓"); }} className="text-xs font-bold" style={{ color: ORANGE }}>Set default</button>
           </div>
         ))}
-        <button onClick={() => s.showToast("Add-address form coming soon")} className="w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2" style={{ boxShadow: "0 0 0 1.5px rgba(26,17,8,0.15)", color: INK }}><Plus size={16} /> Add new address</button>
+        <button onClick={() => {
+          const newAddress = window.prompt("Enter new address:");
+          if (newAddress && newAddress.trim().length > 0) {
+            s.setAddresses(prev => [...prev, {
+              id: Date.now().toString(),
+              label: "New Address",
+              line: newAddress,
+              kind: "Home",
+              isDefault: prev.length === 0
+            }]);
+            s.showToast("Address added ✓");
+          }
+        }} className="w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2" style={{ boxShadow: "0 0 0 1.5px rgba(26,17,8,0.15)", color: INK }}><Plus size={16} /> Add new address</button>
       </div>
     </SubPage>
   );
