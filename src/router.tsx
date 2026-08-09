@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from "react";
-import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
 import { WebApp } from "@/layouts/WebApp";
 import { PageLoader } from "@/components/ui";
 import { useStore } from "@/hooks/useStore";
@@ -124,6 +124,7 @@ const AdminGuestGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
 export const AppRoutes: React.FC = () => {
   const store = useStore();
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   return (
     <Suspense fallback={<PageLoader />}>
@@ -168,7 +169,7 @@ export const AppRoutes: React.FC = () => {
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminGuestGuard><AdminLogin onLogin={() => navigate("/admin/dashboard")} /></AdminGuestGuard>} />
-        <Route path="/admin/dashboard" element={<AdminGuard><AdminDashboard onBack={() => navigate("/")} /></AdminGuard>} />
+        <Route path="/admin/dashboard" element={<AdminGuard><AdminDashboard onLogout={() => { logout(); navigate("/"); }} /></AdminGuard>} />
 
         {/* Fallback to Landing */}
         <Route path="*" element={<WebApp><LandingPage s={store} onAdminClick={() => navigate("/admin/login")} /></WebApp>} />

@@ -32,7 +32,7 @@ export default function BuyerPayments({ s }: { s: Store }) {
           const last4 = window.prompt("Enter last 4 digits of card:");
           if (last4 && last4.length === 4) {
             s.setCards(prev => [...prev, {
-              id: Date.now().toString(),
+              id: Date.now(),
               brand: "Visa",
               last4,
               exp: "12/25",

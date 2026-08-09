@@ -134,7 +134,7 @@ export const authService = {
   },
 
   async updateProfile(data: { full_name?: string; email?: string; phone_number?: string; avatar_url?: string }): Promise<ApiResponse<any>> {
-    const res = await request(
+    const res = await request<any>(
       "/users/me",
       {
         method: "PUT",

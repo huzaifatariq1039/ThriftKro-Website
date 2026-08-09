@@ -32,7 +32,7 @@ export default function BuyerEditProfile({ s }: { s: Store }) {
         full_name: f.name,
         email: f.email,
         phone_number: f.phone,
-        avatar_url: f.avatar
+        avatar_url: f.avatar || undefined
       });
       // Update global state via syncProfile or directly setting buyerProfile
       await s.syncProfile();

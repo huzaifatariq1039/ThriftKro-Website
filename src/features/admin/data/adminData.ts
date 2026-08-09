@@ -51,7 +51,27 @@ export const kycRequests = [
   { id: "KYC-2838", shop: "RetroRawalpindi", type: "Shop", cnic: "37405-7778889-5", phone: "+92 345 7778899", submitted: "2 days ago", status: "UNDER_REVIEW", city: "RWP", revenue: "PKR 0" },
   { id: "KYC-2835", shop: "VintageLahore", type: "Warehouse", cnic: "35202-4445556-2", phone: "+92 312 4445566", submitted: "3 days ago", status: "APPROVED", city: "Lahore", revenue: "PKR 142,800" },
 ];
-export type KycReq = typeof kycRequests[0];
+export type KycReq = {
+  id: string;
+  shop: string;
+  type: string;
+  cnic: string;
+  phone: string;
+  submitted: string;
+  status: string;
+  city: string;
+  revenue: string;
+  cnicFront?: string;
+  cnicBack?: string;
+  aiVerified?: boolean;
+  productsProof?: Array<{
+    name: string;
+    sizes: string;
+    price: string;
+    description: string;
+    images: string[];
+  }>;
+};
 
 export const allProducts = [
   { id: "P-1001", name: "Air Jordan 1 Retro High", seller: "KarachiKicks", price: 2499, category: "Shoes", condition: "Excellent", status: "LIVE", aiScore: 97, img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=80&h=80&fit=crop" },

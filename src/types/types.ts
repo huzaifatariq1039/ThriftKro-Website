@@ -61,8 +61,10 @@ export type StoreType = "INDIVIDUAL" | "SHOP" | "WAREHOUSE";
 
 export type VerificationProductProof = {
   name: string;
-  proofFile: File | null;
-  proofPreview: string | null;
+  sizes: string;
+  price: string;
+  description: string;
+  images: { file: File | null; preview: string | null }[];
 };
 
 export type SellerVerificationFormData = {
@@ -76,14 +78,22 @@ export type SellerVerificationFormData = {
   city: string;
   postalCode: string;
 
-  // Step 2 — Products & proof
+  // Step 2 — CNIC Photos
+  cnicFrontFile: File | null;
+  cnicFrontPreview: string | null;
+  cnicBackFile: File | null;
+  cnicBackPreview: string | null;
+
+  // Step 3 — Products & proof
   products: VerificationProductProof[];
 
-  // Step 3 — Import (optional)
+  // Step 4 — AI Verification
+  aiVerified: boolean;
+  aiVerificationMethod: "camera" | "upload" | null;
+
+  // Step 5 — Import (optional)
   csvFile: File | null;
   csvFileName: string | null;
-
-  // Step 4 generated at render time from above
 };
 
 export type SellerVerificationStatusResponse = {

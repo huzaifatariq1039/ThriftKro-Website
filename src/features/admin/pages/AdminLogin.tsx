@@ -3,8 +3,10 @@ import { AlertCircle, Eye } from "lucide-react";
 import thriftKroLogo from "@/assets/logo.png";
 import { C, FONT, MONO } from "../data/adminData";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -76,6 +78,13 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
 
         <p className="text-center text-xs mt-6" style={{ color: "#9E8A74", fontFamily: MONO }}>© 2026 THRIFT KRO · MADE IN PAKISTAN 🇵🇰</p>
       </div>
+
+      <button 
+        onClick={() => navigate("/")} 
+        className="fixed bottom-5 left-5 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold transition-all z-50 hover:bg-black/5" 
+        style={{ color: "#5C4A35", fontFamily: MONO, border: "1px solid rgba(0,0,0,0.1)" }}>
+        ← Back to Thrift Kro
+      </button>
     </div>
   );
 }

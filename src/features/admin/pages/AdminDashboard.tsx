@@ -12,7 +12,7 @@ import PageCareers from "./PageCareers";
 import PageSettings from "./PageSettings";
 import { C, FONT, MONO } from "../data/adminData";
 
-export default function AdminDashboard({ onBack }: { onBack: () => void }) {
+export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [active, setActive] = useState("overview");
   const [kycModal, setKycModal] = useState<null | Parameters<typeof KycModal>[0]["request"]>(null);
 
@@ -37,8 +37,8 @@ export default function AdminDashboard({ onBack }: { onBack: () => void }) {
         </main>
       </div>
       {kycModal && <KycModal request={kycModal} onClose={() => setKycModal(null)} />}
-      <button onClick={onBack} className="fixed bottom-5 right-5 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold shadow-lg hover:opacity-90 active:scale-95 transition-all z-50" style={{ background: C.orange, color: "#fff", fontFamily: MONO, boxShadow: `0 4px 20px ${C.orange}50` }}>
-        ← Back to Site
+      <button onClick={onLogout} className="fixed bottom-5 right-5 flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold shadow-lg hover:opacity-90 active:scale-95 transition-all z-50" style={{ background: C.orange, color: "#fff", fontFamily: MONO, boxShadow: `0 4px 20px ${C.orange}50` }}>
+        Log out & Exit Admin
       </button>
     </div>
   );

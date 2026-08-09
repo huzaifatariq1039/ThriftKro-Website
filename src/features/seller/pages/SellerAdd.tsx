@@ -11,6 +11,7 @@ export default function SellerAdd({ s }: { s: Store }) {
   const [category, setCategory] = useState("Shoes");
   const [price, setPrice] = useState("");
   const [condition, setCondition] = useState("Excellent");
+  const [sizes, setSizes] = useState<string[]>([]);
   const [imgUrl, setImgUrl] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiDone, setAiDone] = useState(false);
@@ -41,7 +42,10 @@ export default function SellerAdd({ s }: { s: Store }) {
         originalPrice: Number(price) * 1.3,
         category,
         condition,
+        size: sizes.length > 0 ? sizes.join(", ") : "One Size",
         img: finalImg,
+        images: [finalImg],
+        description: `High quality ${category.toLowerCase()} - ${condition} condition.`,
       });
 
       if (res.data) {
@@ -87,6 +91,24 @@ export default function SellerAdd({ s }: { s: Store }) {
             </Field>
             <Field label="Price (PKR)"><input type="number" className={inputCls} style={inputStyle} value={price} onChange={e => setPrice(e.target.value)} placeholder="1500" /></Field>
           </div>
+          <Field label="Sizes Available">
+            <div className="flex gap-2 flex-wrap">
+              {["XS", "S", "M", "L", "XL", "XXL", "One Size"].map(s => {
+                const isSelected = sizes.includes(s);
+                return (
+                  <button 
+                    key={s} 
+                    type="button" 
+                    onClick={() => setSizes(prev => isSelected ? prev.filter(x => x !== s) : [...prev, s])} 
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold transition-colors" 
+                    style={{ background: isSelected ? INK : "#F5F2EE", color: isSelected ? "white" : INK }}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
           <Field label="Condition">
             <div className="flex gap-2">
               {["New", "Like New", "Excellent", "Good", "Fair"].map(c => (

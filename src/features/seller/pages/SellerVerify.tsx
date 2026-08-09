@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   Check, ArrowRight, Upload, Plus, MapPin, ShieldCheck, Clock,
-  AlertCircle, Download, Package,
+  AlertCircle, Download, Package, Camera, Smartphone, ScanFace
 } from "lucide-react";
 import { ORANGE, INK, FONT, MONO, PAPER } from "@/constants/theme";
 import type { Store } from "@/hooks/useStore";
@@ -17,7 +17,7 @@ const STORE_TYPES: { value: StoreType; label: string }[] = [
   { value: "WAREHOUSE", label: "Warehouse" },
 ];
 
-const STEP_LABELS = ["Store details", "Products & proof", "Import (optional)", "Review"] as const;
+const STEP_LABELS = ["Store details", "CNIC", "Products & proof", "AI Verify", "Review"] as const;
 
 const emptyForm: SellerVerificationFormData = {
   shopName: "",
@@ -28,7 +28,13 @@ const emptyForm: SellerVerificationFormData = {
   streetAddress: "",
   city: "Lahore",
   postalCode: "54000",
-  products: [{ name: "", proofFile: null, proofPreview: null }],
+  cnicFrontFile: null,
+  cnicFrontPreview: null,
+  cnicBackFile: null,
+  cnicBackPreview: null,
+  products: [{ name: "", sizes: "", price: "", description: "", images: [] }],
+  aiVerified: false,
+  aiVerificationMethod: null,
   csvFile: null,
   csvFileName: null,
 };
@@ -123,7 +129,7 @@ function StepStoreDetails({
   setForm: React.Dispatch<React.SetStateAction<SellerVerificationFormData>>;
   onNext: () => void;
 }) {
-  const valid = form.shopName.trim() && form.ownerFullName.trim() && form.phone.trim() && form.streetAddress.trim();
+  const valid = form.shopName.trim() && form.ownerFullName.trim() && form.phone.length === 11 && form.cnicNumber.length === 13 && form.streetAddress.trim();
   return (
     <div className="space-y-5 max-w-[720px]">
       <Field label="Shop Name">
@@ -136,9 +142,12 @@ function StepStoreDetails({
           <input className={inputCls} style={inputBase} placeholder="As on CNIC"
             value={form.ownerFullName} onChange={e => setForm(f => ({ ...f, ownerFullName: e.target.value }))} />
         </Field>
-        <Field label="CNIC Number" half>
-          <input className={inputCls} style={inputBase} placeholder="35202-XXXXXXX-X"
-            value={form.cnicNumber} onChange={e => setForm(f => ({ ...f, cnicNumber: e.target.value }))} />
+        <Field label="CNIC Number (13 digits)" half>
+          <input className={inputCls} style={inputBase} placeholder="3520212345671" maxLength={13}
+            value={form.cnicNumber} onChange={e => {
+              const val = e.target.value.replace(/\D/g, "");
+              setForm(f => ({ ...f, cnicNumber: val }));
+            }} />
         </Field>
       </div>
 
@@ -149,9 +158,12 @@ function StepStoreDetails({
         </select>
       </Field>
 
-      <Field label="Phone">
-        <input className={inputCls} style={inputBase} placeholder="+92 3XX XXXXXXX"
-          value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+      <Field label="Phone (11 digits)">
+        <input className={inputCls} style={inputBase} placeholder="03XXXXXXXXX" maxLength={11}
+          value={form.phone} onChange={e => {
+            const val = e.target.value.replace(/\D/g, "");
+            setForm(f => ({ ...f, phone: val }));
+          }} />
       </Field>
 
       {/* Store Address Section */}
@@ -194,7 +206,89 @@ function StepStoreDetails({
   );
 }
 
-/* ── Step 2: Products & Proof ──────────────────────────────────────── */
+/* ── Step 2: CNIC Upload ────────────────────────────────────────────── */
+
+function StepCnicUpload({
+  form, setForm, onNext, onBack,
+}: {
+  form: SellerVerificationFormData;
+  setForm: React.Dispatch<React.SetStateAction<SellerVerificationFormData>>;
+  onNext: () => void;
+  onBack: () => void;
+}) {
+  const valid = form.cnicFrontFile && form.cnicBackFile;
+
+  const handleFileSelect = (side: "front" | "back") => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (e: any) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        const preview = URL.createObjectURL(file);
+        if (side === "front") {
+          setForm(f => ({ ...f, cnicFrontFile: file, cnicFrontPreview: preview }));
+        } else {
+          setForm(f => ({ ...f, cnicBackFile: file, cnicBackPreview: preview }));
+        }
+      }
+    };
+    input.click();
+  };
+
+  return (
+    <div className="space-y-6 max-w-[720px]">
+      <p className="text-[rgba(26,17,8,0.6)] font-medium" style={{ fontFamily: FONT }}>
+        Upload clear photos of the front and back of your CNIC. This is required for identity verification.
+      </p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div 
+          onClick={() => handleFileSelect("front")}
+          className="border-2 border-dashed border-[rgba(26,17,8,0.15)] rounded-2xl flex flex-col items-center justify-center p-8 cursor-pointer hover:bg-black/5 transition-colors"
+          style={{ aspectRatio: "1.6/1", background: form.cnicFrontPreview ? `url(${form.cnicFrontPreview}) center/cover no-repeat` : undefined }}
+        >
+          {!form.cnicFrontPreview && (
+            <>
+              <Upload className="text-[rgba(26,17,8,0.4)] mb-3" size={32} />
+              <span className="font-semibold text-sm" style={{ color: INK, fontFamily: FONT }}>Upload Front Side</span>
+            </>
+          )}
+        </div>
+
+        <div 
+          onClick={() => handleFileSelect("back")}
+          className="border-2 border-dashed border-[rgba(26,17,8,0.15)] rounded-2xl flex flex-col items-center justify-center p-8 cursor-pointer hover:bg-black/5 transition-colors"
+          style={{ aspectRatio: "1.6/1", background: form.cnicBackPreview ? `url(${form.cnicBackPreview}) center/cover no-repeat` : undefined }}
+        >
+          {!form.cnicBackPreview && (
+            <>
+              <Upload className="text-[rgba(26,17,8,0.4)] mb-3" size={32} />
+              <span className="font-semibold text-sm" style={{ color: INK, fontFamily: FONT }}>Upload Back Side</span>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="flex gap-4 mt-8">
+        <button onClick={onBack}
+          className="px-6 py-4 rounded-xl font-extrabold flex items-center justify-center transition-colors hover:bg-black/5"
+          style={{ color: INK, fontFamily: FONT, boxShadow: "0 0 0 1px rgba(26,17,8,0.1) inset" }}
+        >
+          Back
+        </button>
+        <button onClick={onNext} disabled={!valid}
+          className="flex-1 py-4 rounded-xl font-extrabold text-white flex items-center justify-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-40"
+          style={{ background: ORANGE, fontFamily: FONT }}
+        >
+          Continue <ArrowRight size={16} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ── Step 3: Products & Proof ──────────────────────────────────────── */
 
 function StepProductsProof({
   form, setForm, onNext, onBack,
@@ -214,22 +308,32 @@ function StepProductsProof({
   const addProduct = () => {
     setForm(f => ({
       ...f,
-      products: [...f.products, { name: "", proofFile: null, proofPreview: null }],
+      products: [...f.products, { name: "", sizes: "", price: "", description: "", images: [] }],
     }));
   };
 
-  const handleFileSelect = (idx: number) => {
+  const handleImageUpload = (idx: number) => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
+    input.multiple = true;
     input.onchange = (e: any) => {
-      const file = e.target.files?.[0];
-      if (file) {
-        const preview = URL.createObjectURL(file);
-        updateProduct(idx, { proofFile: file, proofPreview: preview });
+      const files = Array.from(e.target.files) as File[];
+      if (files.length > 0) {
+        const newImages = files.map(file => ({
+          file,
+          preview: URL.createObjectURL(file)
+        }));
+        const existing = form.products[idx].images || [];
+        updateProduct(idx, { images: [...existing, ...newImages] });
       }
     };
     input.click();
+  };
+
+  const removeImage = (prodIdx: number, imgIdx: number) => {
+    const existing = form.products[prodIdx].images;
+    updateProduct(prodIdx, { images: existing.filter((_, i) => i !== imgIdx) });
   };
 
   const hasAtLeastOneProduct = form.products.some(p => p.name.trim());
@@ -240,32 +344,53 @@ function StepProductsProof({
         Tell us what you'll sell and upload a real photo of each item as proof of ownership. Our team checks these to keep fakes off the platform.
       </p>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {form.products.map((prod, idx) => (
-          <div key={idx} className="p-5 rounded-2xl border space-y-3" style={{ borderColor: "rgba(26,17,8,0.1)", background: "white" }}>
-            <Field label={`Product ${idx + 1}`}>
-              <input className={inputCls} style={inputBase} placeholder="e.g. Nike Air Jordan 1 (pre-owned)"
+          <div key={idx} className="p-6 rounded-2xl border space-y-4" style={{ borderColor: "rgba(26,17,8,0.1)", background: "white" }}>
+            <Field label={`Product ${idx + 1} Name`}>
+              <input className={inputCls} style={inputBase} placeholder="e.g. Nike Air Jordan 1"
                 value={prod.name} onChange={e => updateProduct(idx, { name: e.target.value })} />
             </Field>
 
-            {prod.proofPreview ? (
-              <div className="relative rounded-xl overflow-hidden" style={{ height: 100 }}>
-                <img src={prod.proofPreview} alt="proof" className="w-full h-full object-cover" />
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Sizes Available">
+                <input className={inputCls} style={inputBase} placeholder="e.g. M, L, XL"
+                  value={prod.sizes} onChange={e => updateProduct(idx, { sizes: e.target.value })} />
+              </Field>
+              <Field label="Price (PKR)">
+                <input className={inputCls} style={inputBase} placeholder="e.g. 2500" type="number"
+                  value={prod.price} onChange={e => updateProduct(idx, { price: e.target.value })} />
+              </Field>
+            </div>
+
+            <Field label="Description">
+              <textarea className={inputCls} style={{ ...inputBase, resize: "none" }} rows={3} placeholder="Describe your product..."
+                value={prod.description} onChange={e => updateProduct(idx, { description: e.target.value })} />
+            </Field>
+
+            <div>
+              <p className="text-sm font-bold mb-2" style={{ color: INK, fontFamily: FONT }}>Images</p>
+              <div className="flex flex-wrap gap-3">
+                {prod.images.map((img, imgIdx) => (
+                  <div key={imgIdx} className="relative rounded-xl overflow-hidden" style={{ width: 80, height: 80 }}>
+                    <img src={img.preview || ""} alt="proof" className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => removeImage(idx, imgIdx)}
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
+                      style={{ background: "rgba(0,0,0,0.6)", color: "white" }}
+                    >✕</button>
+                  </div>
+                ))}
+                
                 <button
-                  onClick={() => updateProduct(idx, { proofFile: null, proofPreview: null })}
-                  className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                  style={{ background: "rgba(0,0,0,0.6)", color: "white" }}
-                >✕</button>
+                  onClick={() => handleImageUpload(idx)}
+                  className="rounded-xl flex flex-col items-center justify-center transition-opacity hover:opacity-80"
+                  style={{ width: 80, height: 80, background: "rgba(255,87,34,0.08)", color: ORANGE, fontFamily: FONT }}
+                >
+                  <Plus size={20} />
+                </button>
               </div>
-            ) : (
-              <button
-                onClick={() => handleFileSelect(idx)}
-                className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-opacity hover:opacity-80"
-                style={{ background: "rgba(255,87,34,0.08)", color: ORANGE, fontFamily: FONT }}
-              >
-                <Upload size={16} /> Upload proof photo
-              </button>
-            )}
+            </div>
           </div>
         ))}
       </div>
@@ -299,9 +424,9 @@ function StepProductsProof({
   );
 }
 
-/* ── Step 3: Import (Optional) ─────────────────────────────────────── */
+/* ── Step 4: AI Verification ────────────────────────────────────────── */
 
-function StepImport({
+function StepAiVerification({
   form, setForm, onNext, onBack,
 }: {
   form: SellerVerificationFormData;
@@ -309,88 +434,77 @@ function StepImport({
   onNext: () => void;
   onBack: () => void;
 }) {
-  const dropRef = useRef<HTMLDivElement>(null);
-  const [dragOver, setDragOver] = useState(false);
+  const [scanning, setScanning] = useState(false);
 
-  const handleFile = (file: File) => {
-    if (file.name.endsWith(".csv")) {
-      setForm(f => ({ ...f, csvFile: file, csvFileName: file.name }));
-    }
-  };
-
-  const onDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) handleFile(file);
-  };
-
-  const selectFile = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".csv";
-    input.onchange = (e: any) => {
-      const file = e.target.files?.[0];
-      if (file) handleFile(file);
-    };
-    input.click();
+  const handleSimulateScan = (method: "camera" | "upload") => {
+    setForm(f => ({ ...f, aiVerificationMethod: method }));
+    setScanning(true);
+    setTimeout(() => {
+      setScanning(false);
+      setForm(f => ({ ...f, aiVerified: true }));
+    }, 2500);
   };
 
   return (
-    <div className="max-w-[720px]">
-      {/* Dark banner */}
+    <div className="max-w-[720px] space-y-6">
       <div className="p-6 rounded-2xl mb-6" style={{ background: INK }}>
         <div className="flex items-start gap-3 mb-2">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "rgba(255,255,255,0.1)" }}>
-            <Package size={18} style={{ color: "#FFD600" }} />
+            <ScanFace size={18} style={{ color: "#FFD600" }} />
           </div>
           <div>
-            <p className="font-bold text-white text-sm" style={{ fontFamily: FONT }}>Import from another platform</p>
+            <p className="font-bold text-white text-sm" style={{ fontFamily: FONT }}>Live AI Verification</p>
             <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.6)", fontFamily: FONT, lineHeight: 1.5 }}>
-              Already selling on Daraz, Instagram or Shopify? Upload a <strong className="text-white">.CSV</strong> export of your store and we'll migrate your listings & design automatically.
+              To ensure authenticity, our AI model requires you to show the physical product. You can either turn on your camera or upload a live photo.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Dropzone */}
-      <div
-        ref={dropRef}
-        onClick={selectFile}
-        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={onDrop}
-        className="border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-colors"
-        style={{
-          borderColor: dragOver ? ORANGE : "rgba(26,17,8,0.15)",
-          background: dragOver ? "rgba(255,87,34,0.04)" : "white",
-        }}
-      >
-        {form.csvFileName ? (
-          <div>
-            <div className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style={{ background: "rgba(46,158,79,0.1)" }}>
-              <Check size={24} style={{ color: "#2E9E4F" }} />
+      {form.aiVerified ? (
+        <div className="border-2 rounded-2xl p-10 text-center" style={{ borderColor: "rgba(46,158,79,0.3)", background: "rgba(46,158,79,0.05)" }}>
+          <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: "rgba(46,158,79,0.15)" }}>
+            <Check size={32} style={{ color: "#2E9E4F" }} />
+          </div>
+          <p className="font-bold text-lg" style={{ color: INK, fontFamily: FONT }}>Verification Successful</p>
+          <p className="text-sm mt-2" style={{ color: "rgba(26,17,8,0.5)", fontFamily: FONT }}>
+            Our AI has verified your products.
+          </p>
+        </div>
+      ) : scanning ? (
+        <div className="border-2 border-dashed rounded-2xl p-10 text-center flex flex-col items-center justify-center" style={{ borderColor: ORANGE, background: "rgba(255,87,34,0.05)" }}>
+          <div className="animate-spin mb-4 text-[#FF5722]">
+            <ScanFace size={48} />
+          </div>
+          <p className="font-bold text-lg" style={{ color: INK, fontFamily: FONT }}>Scanning Product...</p>
+          <p className="text-sm mt-2" style={{ color: "rgba(26,17,8,0.5)", fontFamily: FONT }}>
+            Please wait while our AI analyzes the item.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <button
+            onClick={() => handleSimulateScan("camera")}
+            className="border-2 border-[rgba(26,17,8,0.1)] rounded-2xl p-8 text-center hover:bg-black/5 transition-colors flex flex-col items-center justify-center gap-4"
+          >
+            <Camera size={40} className="text-[rgba(26,17,8,0.6)]" />
+            <div>
+              <p className="font-bold" style={{ color: INK, fontFamily: FONT }}>Turn on Camera</p>
+              <p className="text-xs mt-1" style={{ color: "rgba(26,17,8,0.5)", fontFamily: FONT }}>Scan live via webcam</p>
             </div>
-            <p className="font-bold text-sm" style={{ color: INK, fontFamily: FONT }}>{form.csvFileName}</p>
-            <p className="text-xs mt-1" style={{ color: "rgba(26,17,8,0.45)", fontFamily: FONT }}>Click to change file</p>
-          </div>
-        ) : (
-          <div>
-            <Upload size={24} style={{ color: ORANGE }} className="mx-auto mb-2" />
-            <p className="font-bold text-sm" style={{ color: INK, fontFamily: FONT }}>Click to upload .CSV file</p>
-            <p className="text-xs mt-1" style={{ color: "rgba(26,17,8,0.4)", fontFamily: FONT }}>
-              Supports Daraz, Shopify, Instagram Shop exports
-            </p>
-          </div>
-        )}
-      </div>
-
-      <button
-        className="text-sm font-bold mt-4 flex items-center gap-1.5 mx-auto transition-opacity hover:opacity-70"
-        style={{ color: ORANGE, fontFamily: FONT }}
-      >
-        <Download size={14} /> Download CSV template
-      </button>
+          </button>
+          <button
+            onClick={() => handleSimulateScan("upload")}
+            className="border-2 border-[rgba(26,17,8,0.1)] rounded-2xl p-8 text-center hover:bg-black/5 transition-colors flex flex-col items-center justify-center gap-4"
+          >
+            <Smartphone size={40} className="text-[rgba(26,17,8,0.6)]" />
+            <div>
+              <p className="font-bold" style={{ color: INK, fontFamily: FONT }}>Upload from Device</p>
+              <p className="text-xs mt-1" style={{ color: "rgba(26,17,8,0.5)", fontFamily: FONT }}>Choose a live photo</p>
+            </div>
+          </button>
+        </div>
+      )}
 
       <div className="flex gap-4 mt-8">
         <button
@@ -402,10 +516,11 @@ function StepImport({
         </button>
         <button
           onClick={onNext}
-          className="flex-1 py-4 rounded-xl font-extrabold text-white flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
+          disabled={!form.aiVerified}
+          className="flex-1 py-4 rounded-xl font-extrabold text-white flex items-center justify-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-40"
           style={{ background: ORANGE, fontFamily: FONT }}
         >
-          Skip <ArrowRight size={16} />
+          Continue <ArrowRight size={16} />
         </button>
       </div>
     </div>
@@ -453,6 +568,20 @@ function StepReview({
           <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(26,17,8,0.6)", fontFamily: FONT }}>
             <ShieldCheck size={14} style={{ color: "rgba(26,17,8,0.3)" }} />
             <span>{productCount} product{productCount !== 1 ? "s" : ""} with proof</span>
+          </div>
+
+          <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(26,17,8,0.6)", fontFamily: FONT }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "rgba(26,17,8,0.3)" }}>
+              <rect x="3" y="4" width="18" height="16" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <span>{form.cnicFrontFile && form.cnicBackFile ? "CNIC Photos Uploaded" : "CNIC Missing"}</span>
+          </div>
+
+          <div className="flex items-center gap-2 text-sm" style={{ color: form.aiVerified ? "#2E9E4F" : "rgba(26,17,8,0.6)", fontFamily: FONT }}>
+            <ScanFace size={14} style={{ color: form.aiVerified ? "#2E9E4F" : "rgba(26,17,8,0.3)" }} />
+            <span className={form.aiVerified ? "font-bold" : ""}>
+              {form.aiVerified ? "AI Authenticity Verified" : "AI Verification Pending"}
+            </span>
           </div>
         </div>
       </div>
@@ -580,7 +709,7 @@ export default function SellerVerify({ s }: { s: Store }) {
 
   const goNext = () => {
     setCompletedSteps(prev => new Set(prev).add(step));
-    setStep(s => Math.min(s + 1, 4));
+    setStep(s => Math.min(s + 1, 5));
   };
   const goBack = () => setStep(s => Math.max(s - 1, 1));
 
@@ -594,11 +723,19 @@ export default function SellerVerify({ s }: { s: Store }) {
         address: form.streetAddress,
         city: form.city,
         cnic_number: form.cnicNumber || undefined,
-        cnic_front_url: "https://placeholder.thriftkro.pk/cnic_front.jpg",
-        cnic_back_url: "https://placeholder.thriftkro.pk/cnic_back.jpg",
-        shop_photo_urls: form.products
-          .filter(p => p.proofPreview)
-          .map((_, i) => `https://placeholder.thriftkro.pk/proof_${i + 1}.jpg`),
+        cnic_front_url: form.cnicFrontFile ? "https://placeholder.thriftkro.pk/cnic_front.jpg" : "",
+        cnic_back_url: form.cnicBackFile ? "https://placeholder.thriftkro.pk/cnic_back.jpg" : "",
+        shop_photo_urls: [],
+        products_proof: form.products
+          .filter(p => p.name.trim())
+          .map((p, i) => ({
+            name: p.name,
+            sizes: p.sizes,
+            price: p.price,
+            description: p.description,
+            images: p.images.map((_, j) => `https://placeholder.thriftkro.pk/proof_${i + 1}_${j + 1}.jpg`)
+          })),
+        ai_verified: form.aiVerified,
       });
     } finally {
       setSubmitting(false);
@@ -674,7 +811,7 @@ export default function SellerVerify({ s }: { s: Store }) {
 
         {isPending && (
           <>
-            <StepIndicator step={4} completedSteps={new Set([1, 2, 3, 4])} />
+            <StepIndicator step={5} completedSteps={new Set([1, 2, 3, 4, 5])} />
             <PendingScreen />
           </>
         )}
@@ -695,9 +832,10 @@ export default function SellerVerify({ s }: { s: Store }) {
           <>
             <StepIndicator step={step} completedSteps={completedSteps} />
             {step === 1 && <StepStoreDetails form={form} setForm={setForm} onNext={goNext} />}
-            {step === 2 && <StepProductsProof form={form} setForm={setForm} onNext={goNext} onBack={goBack} />}
-            {step === 3 && <StepImport form={form} setForm={setForm} onNext={goNext} onBack={goBack} />}
-            {step === 4 && <StepReview form={form} onBack={goBack} onSubmit={handleSubmit} submitting={submitting} />}
+            {step === 2 && <StepCnicUpload form={form} setForm={setForm} onNext={goNext} onBack={goBack} />}
+            {step === 3 && <StepProductsProof form={form} setForm={setForm} onNext={goNext} onBack={goBack} />}
+            {step === 4 && <StepAiVerification form={form} setForm={setForm} onNext={goNext} onBack={goBack} />}
+            {step === 5 && <StepReview form={form} onBack={goBack} onSubmit={handleSubmit} submitting={submitting} />}
           </>
         )}
       </div>

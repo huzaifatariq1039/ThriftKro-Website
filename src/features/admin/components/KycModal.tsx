@@ -27,18 +27,17 @@ export function KycModal({ request, onClose, onSuccess }: { request: KycReq; onC
   const [loading, setLoading] = useState(false);
   
   const docs: Record<string, string> = {
-    "cnic-front": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=620&h=400&fit=crop",
-    "cnic-back": "https://images.unsplash.com/photo-1521791055366-0d553872952f?w=620&h=400&fit=crop",
-    "shop": "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=620&h=400&fit=crop",
-    "cert": "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=620&h=400&fit=crop",
+    "cnic-front": request.cnicFront || "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=620&h=400&fit=crop",
+    "cnic-back": request.cnicBack || "https://images.unsplash.com/photo-1521791055366-0d553872952f?w=620&h=400&fit=crop",
+    "products": (request.productsProof && request.productsProof.length > 0 && request.productsProof[0].images.length > 0) ? request.productsProof[0].images[0] : "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=620&h=400&fit=crop",
   };
   const checks = [
     { label: "CNIC Number", value: request.cnic },
     { label: "Phone Number", value: request.phone },
     { label: "Business Address", value: `${request.city}, Pakistan` },
     { label: "Shop Category", value: request.type },
-    { label: "Document Clarity", value: "High resolution scan" },
-    { label: "Blacklist Check", value: "No records found" },
+    { label: "AI Authenticity", value: request.aiVerified ? "Verified" : "Pending" },
+    { label: "Products Uploaded", value: `${request.productsProof?.length || 0} items` },
   ];
 
   const handleApprove = async () => {
@@ -97,11 +96,11 @@ export function KycModal({ request, onClose, onSuccess }: { request: KycReq; onC
         <div className="flex flex-1 min-h-0" style={{ maxHeight: "calc(90vh - 70px)" }}>
           <div className="flex flex-col border-r" style={{ width: "57%", borderColor: C.border }}>
             <div className="flex border-b px-4 pt-2 gap-0.5 flex-shrink-0" style={{ borderColor: C.border }}>
-              {(["cnic-front", "cnic-back", "shop", "cert"] as const).map(t => (
-                <button key={t} onClick={() => setTab(t)}
+              {(["cnic-front", "cnic-back", "products"] as const).map(t => (
+                <button key={t} onClick={() => setTab(t as any)}
                   className="px-3 py-2 text-xs font-semibold transition-all"
                   style={{ borderBottom: `2px solid ${tab === t ? C.orange : "transparent"}`, color: tab === t ? C.orange : C.textDim, fontFamily: FONT, marginBottom: -1 }}>
-                  {t === "cnic-front" ? "CNIC Front" : t === "cnic-back" ? "CNIC Back" : t === "shop" ? "Shop Photos" : "Business Cert"}
+                  {t === "cnic-front" ? "CNIC Front" : t === "cnic-back" ? "CNIC Back" : "Products"}
                 </button>
               ))}
             </div>

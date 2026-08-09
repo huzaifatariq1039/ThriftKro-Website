@@ -32,17 +32,19 @@ export default function PageKyc() {
         if (isMounted && res.data && res.data.length > 0) {
           const mapped = res.data.map((item: any) => ({
             id: `KYC-${item.id}`,
-            shop: item.shopName || "Seller Shop",
+            shop: item.shop || "Seller Shop",
             owner: item.name || "Seller",
-            type: "Shop",
+            type: item.type || "Shop",
             cnic: item.cnic,
-            phone: "+92 300 1234567",
-            city: "Lahore",
+            phone: item.phone,
+            city: item.city,
             submitted: item.submitted || "Recently",
-            revenue: "PKR 0",
-            status: (item.status || "PENDING").toUpperCase(),
-            cnicFront: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600",
-            cnicBack: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600",
+            revenue: item.revenue || "PKR 0",
+            status: item.status,
+            cnicFront: item.cnicFront || "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600",
+            cnicBack: item.cnicBack || "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600",
+            aiVerified: item.aiVerified,
+            productsProof: item.productsProof || []
           }));
           setRequestsList(mapped);
         }

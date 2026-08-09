@@ -4,9 +4,13 @@ export const adminService = {
   async getOverviewMetrics() {
     const fallbackMetrics = {
       gmv: "PKR 4,820,000",
+      revenue: "PKR 96,400",
       activeListings: 1420,
       kycPending: 12,
       escrowHold: "PKR 380,000",
+      usersTotal: 250,
+      ordersTotal: 120,
+      ordersInProgress: 15,
     };
 
     try {
@@ -36,21 +40,33 @@ export const adminService = {
   },
 
   async getKycQueue() {
-    const fallbackKyc = [
+    let fallbackKyc: any[] = [
       { id: 1, shopName: "KicksCentral", name: "Hamza Malik", cnic: "35202-1234567-1", submitted: "10 mins ago", status: "pending" },
       { id: 2, shopName: "VintageVault", name: "Ayesha Khan", cnic: "42101-9876543-2", submitted: "45 mins ago", status: "pending" },
     ];
+    try {
+      const mockQueue = JSON.parse(localStorage.getItem("mock_kyc_queue") || "[]");
+      fallbackKyc = [...mockQueue, ...fallbackKyc];
+    } catch {}
 
     try {
       const res = await request<any[]>("/sellers/verification/pending", {}, fallbackKyc);
       if (Array.isArray(res.data) && res.data.length > 0) {
         const queue = res.data.map((item, idx) => ({
           id: item.id || idx + 1,
-          shopName: item.business_name || "Thrift Shop",
+          shop: item.business_name || "Thrift Shop",
+          type: item.business_type || "Shop",
           name: item.seller_name || "Seller",
           cnic: item.cnic_number || "35202-0000000-1",
+          phone: item.phone_number || "+92 000 0000000",
+          city: item.city || "Unknown",
+          revenue: "PKR 0", // Can be calculated based on existing orders, assuming 0 for new applicants
           submitted: item.created_at ? new Date(item.created_at).toLocaleTimeString() : "Recently",
-          status: (item.status || "PENDING").toLowerCase(),
+          status: (item.status || "PENDING").toUpperCase(),
+          cnicFront: item.cnic_front_url,
+          cnicBack: item.cnic_back_url,
+          aiVerified: item.ai_verified,
+          productsProof: item.products_proof || []
         }));
         return { data: queue, status: res.status };
       }

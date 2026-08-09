@@ -36,6 +36,17 @@ export async function request<T>(
     });
 
     if (!res.ok) {
+      if (res.status === 401) {
+        // Clear stale session
+        localStorage.removeItem("thrift_kro_token");
+        sessionStorage.removeItem("thrift_kro_token");
+        localStorage.removeItem("access_token");
+        sessionStorage.removeItem("access_token");
+        localStorage.removeItem("thrift_kro_user");
+        if (window.location.pathname !== "/" && !window.location.pathname.startsWith("/auth")) {
+           window.location.href = "/role-select";
+        }
+      }
       const errorText = await res.text().catch(() => "");
       let parsedError: any;
       try {

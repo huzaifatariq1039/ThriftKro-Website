@@ -35,10 +35,10 @@ export default function BuyerAddresses({ s }: { s: Store }) {
           const newAddress = window.prompt("Enter new address:");
           if (newAddress && newAddress.trim().length > 0) {
             s.setAddresses(prev => [...prev, {
-              id: Date.now().toString(),
+              id: Date.now(),
               label: "New Address",
               line: newAddress,
-              kind: "Home",
+              kind: "permanent",
               isDefault: prev.length === 0
             }]);
             s.showToast("Address added ✓");

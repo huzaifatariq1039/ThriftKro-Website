@@ -1,5 +1,6 @@
 import { request, ApiResponse } from "./apiClient";
 import { SellerListing, SellerVerificationStatusResponse } from "@/types/types";
+import { mockSellerListings } from "../mockData";
 
 export const sellerService = {
   async getSellerListings(): Promise<ApiResponse<SellerListing[]>> {
@@ -90,6 +91,30 @@ export const sellerService = {
       }
     );
     const statusVal = res.data?.status?.toLowerCase() === "approved" ? "verified" : "pending";
+    
+    // Save to local storage for offline mock Admin UI
+    try {
+      const mockQueue = JSON.parse(localStorage.getItem("mock_kyc_queue") || "[]");
+      mockQueue.push({
+        id: `KYC-${Math.floor(1000 + Math.random() * 9000)}`,
+        shop: payload.business_name,
+        type: payload.business_type,
+        cnic: payload.cnic_number || "35202-0000000-1",
+        phone: payload.phone_number,
+        city: payload.city,
+        submitted: "Just now",
+        revenue: "PKR 0",
+        status: "PENDING",
+        cnicFront: payload.cnic_front_url,
+        cnicBack: payload.cnic_back_url,
+        aiVerified: (payload as any).ai_verified || false,
+        productsProof: (payload as any).products_proof || []
+      });
+      localStorage.setItem("mock_kyc_queue", JSON.stringify(mockQueue));
+    } catch (err) {
+      console.warn("Failed to update mock KYC queue", err);
+    }
+    
     return { data: { status: statusVal }, status: res.status };
   },
 

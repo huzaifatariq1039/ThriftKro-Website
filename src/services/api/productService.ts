@@ -70,7 +70,7 @@ export const productService = {
     return this.getProducts({ q: query });
   },
 
-  async createProduct(productData: Partial<Product> & { image_url?: string }): Promise<ApiResponse<Product>> {
+  async createProduct(productData: Partial<Product> & { image_url?: string; images?: string[]; description?: string }): Promise<ApiResponse<Product>> {
     try {
       const res = await request<any>(
         "/products/",
@@ -78,7 +78,7 @@ export const productService = {
           method: "POST",
           body: JSON.stringify({
             name: productData.name,
-            description: "Uploaded from Website Seller Dashboard",
+            description: productData.description || "Uploaded from Website Seller Dashboard",
             price: productData.price,
             original_price: productData.originalPrice,
             category: productData.category || "Jackets",
@@ -86,8 +86,8 @@ export const productService = {
             size: productData.size || "M",
             brand: productData.brand || "Generic",
             condition: productData.condition || "Good",
-            image_url: productData.img || productData.image_url || "https://example.com/img.jpg",
-            images: [],
+            image_url: productData.img || productData.image_url || (productData.images && productData.images.length > 0 ? productData.images[0] : "https://example.com/img.jpg"),
+            images: productData.images || [],
             tags: [],
           })
         }

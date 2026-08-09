@@ -6,7 +6,7 @@ import {
 import {
   mockProducts, mockMessages, mockAddresses, mockCards, mockDevices, mockBuyerOrders, DEFAULT_AVATAR
 } from "../services/mockData";
-import { productService, sellerService, buyerService } from "../services/api/index";
+import { productService, sellerService, buyerService, authService } from "../services/api/index";
 
 
 type AppState = {
@@ -97,6 +97,7 @@ type AppState = {
   submitSellerVerificationAsync: (payload: any) => Promise<void>;
   fetchVerificationStatus: () => Promise<void>;
   checkoutAsync: (items: Product[]) => Promise<boolean>;
+  syncProfile: () => Promise<void>;
 };
 
 let toastTimeout: any = null;
