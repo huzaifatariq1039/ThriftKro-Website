@@ -61,6 +61,7 @@ export type StoreType = "INDIVIDUAL" | "SHOP" | "WAREHOUSE";
 
 export type VerificationProductProof = {
   name: string;
+  category: string;
   sizes: string;
   price: string;
   description: string;

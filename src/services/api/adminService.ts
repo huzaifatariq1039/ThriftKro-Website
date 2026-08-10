@@ -121,6 +121,27 @@ export const adminService = {
         if (idx !== -1) {
           mockQueue[idx].status = "APPROVED";
           localStorage.setItem("mock_kyc_queue", JSON.stringify(mockQueue));
+
+          if (mockQueue[idx].productsProof && Array.isArray(mockQueue[idx].productsProof)) {
+            const mockProducts = JSON.parse(localStorage.getItem("mock_products") || "[]");
+            mockQueue[idx].productsProof.forEach((p: any) => {
+              mockProducts.push({
+                id: `PROD-${Math.floor(10000 + Math.random() * 90000)}`,
+                name: p.name,
+                category: p.category || "All",
+                size: p.sizes ? p.sizes.split(",")[0] : "M",
+                price: parseFloat(p.price) || 0,
+                description: p.description,
+                image_url: p.images && p.images.length > 0 ? p.images[0] : "https://placeholder.thriftkro.pk/prod.jpg",
+                brand: "Thrift",
+                condition: "Excellent",
+                is_ai_verified: true,
+                status: "ACTIVE",
+                seller: mockQueue[idx].shop,
+              });
+            });
+            localStorage.setItem("mock_products", JSON.stringify(mockProducts));
+          }
         }
       } catch {}
       return { data: { success: true }, status: 200 };

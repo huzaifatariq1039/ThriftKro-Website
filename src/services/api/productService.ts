@@ -48,8 +48,17 @@ export const productService = {
       }
       return { data: [], status: 200 };
     } catch (err) {
-      console.warn("Error in getProducts API:", err);
-      return { data: [], status: 500 };
+      console.warn("Error in getProducts API, falling back to local mock_products:", err);
+      try {
+        const local = JSON.parse(localStorage.getItem("mock_products") || "[]");
+        let filtered = local.map(mapBackendProduct);
+        if (params.category && params.category !== "All") {
+          filtered = filtered.filter((p: Product) => p.category === params.category);
+        }
+        return { data: filtered, status: 200 };
+      } catch {
+        return { data: [], status: 500 };
+      }
     }
   },
 

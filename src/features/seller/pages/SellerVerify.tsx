@@ -19,6 +19,8 @@ const STORE_TYPES: { value: StoreType; label: string }[] = [
 
 const STEP_LABELS = ["Store details", "CNIC", "Products & proof", "AI Verify", "Review"] as const;
 
+import { mockCategories } from "@/services/mockData";
+
 const emptyForm: SellerVerificationFormData = {
   shopName: "",
   ownerFullName: "",
@@ -32,7 +34,7 @@ const emptyForm: SellerVerificationFormData = {
   cnicFrontPreview: null,
   cnicBackFile: null,
   cnicBackPreview: null,
-  products: [{ name: "", sizes: "", price: "", description: "", images: [] }],
+  products: [{ name: "", category: "Shoes", sizes: "", price: "", description: "", images: [] }],
   aiVerified: false,
   aiVerificationMethod: null,
   csvFile: null,
@@ -308,7 +310,7 @@ function StepProductsProof({
   const addProduct = () => {
     setForm(f => ({
       ...f,
-      products: [...f.products, { name: "", sizes: "", price: "", description: "", images: [] }],
+      products: [...f.products, { name: "", category: "Shoes", sizes: "", price: "", description: "", images: [] }],
     }));
   };
 
@@ -347,21 +349,61 @@ function StepProductsProof({
       <div className="space-y-6">
         {form.products.map((prod, idx) => (
           <div key={idx} className="p-6 rounded-2xl border space-y-4" style={{ borderColor: "rgba(26,17,8,0.1)", background: "white" }}>
-            <Field label={`Product ${idx + 1} Name`}>
-              <input className={inputCls} style={inputBase} placeholder="e.g. Nike Air Jordan 1"
-                value={prod.name} onChange={e => updateProduct(idx, { name: e.target.value })} />
-            </Field>
-
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Sizes Available">
-                <input className={inputCls} style={inputBase} placeholder="e.g. M, L, XL"
-                  value={prod.sizes} onChange={e => updateProduct(idx, { sizes: e.target.value })} />
+              <Field label={`Product ${idx + 1} Name`}>
+                <input className={inputCls} style={inputBase} placeholder="e.g. Nike Air Jordan 1"
+                  value={prod.name} onChange={e => updateProduct(idx, { name: e.target.value })} />
               </Field>
-              <Field label="Price (PKR)">
-                <input className={inputCls} style={inputBase} placeholder="e.g. 2500" type="number"
-                  value={prod.price} onChange={e => updateProduct(idx, { price: e.target.value })} />
+              <Field label="Category">
+                <select className={inputCls} style={{ ...inputBase, appearance: "auto" as any }}
+                  value={prod.category} onChange={e => updateProduct(idx, { category: e.target.value })}>
+                  {mockCategories.filter(c => c !== "All").map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
               </Field>
             </div>
+
+            <Field label="Price (PKR)">
+              <input className={inputCls} style={inputBase} placeholder="e.g. 2500" type="number"
+                value={prod.price} onChange={e => updateProduct(idx, { price: e.target.value })} />
+            </Field>
+            
+            <Field label="Sizes Available">
+              <div className="flex flex-wrap gap-2">
+                {["XS", "S", "M", "L", "XL", "XXL", "One Size"].map(s => {
+                  const selectedSizes = prod.sizes ? prod.sizes.split(",").map(x => x.trim()).filter(Boolean) : [];
+                  const isSelected = selectedSizes.includes(s);
+                  return (
+                    <button
+                      key={s}
+                      onClick={() => {
+                        let next = [...selectedSizes];
+                        if (isSelected) {
+                          next = next.filter(x => x !== s);
+                        } else {
+                          if (s === "One Size") next = ["One Size"];
+                          else {
+                            next = next.filter(x => x !== "One Size");
+                            next.push(s);
+                          }
+                        }
+                        updateProduct(idx, { sizes: next.join(", ") });
+                      }}
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all border"
+                      style={{
+                        background: isSelected ? ORANGE : "transparent",
+                        color: isSelected ? "white" : "rgba(26,17,8,0.5)",
+                        borderColor: isSelected ? ORANGE : "rgba(26,17,8,0.1)",
+                        fontFamily: FONT
+                      }}
+                    >
+                      {s}
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
 
             <Field label="Description">
               <textarea className={inputCls} style={{ ...inputBase, resize: "none" }} rows={3} placeholder="Describe your product..."
@@ -730,6 +772,7 @@ export default function SellerVerify({ s }: { s: Store }) {
           .filter(p => p.name.trim())
           .map((p, i) => ({
             name: p.name,
+            category: p.category,
             sizes: p.sizes,
             price: p.price,
             description: p.description,
