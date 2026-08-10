@@ -153,6 +153,31 @@ export const sellerService = {
         status: res.status,
       };
     } catch {
+      // ── Offline Fallback: Check local storage for mock status ──
+      try {
+        const mockQueue = JSON.parse(localStorage.getItem("mock_kyc_queue") || "[]");
+        if (mockQueue.length > 0) {
+          const latest = mockQueue[mockQueue.length - 1]; // Assume last submitted is the active one
+          const st = latest.status.toUpperCase();
+          let vStatus = "UNVERIFIED";
+          let isVer = false;
+          
+          if (st === "APPROVED") {
+            vStatus = "VERIFIED";
+            isVer = true;
+          } else if (st === "PENDING" || st === "UNDER_REVIEW") {
+            vStatus = "PENDING";
+          } else if (st === "REJECTED") {
+            vStatus = "REJECTED";
+          }
+
+          fallback.verification_status = vStatus as any;
+          fallback.is_verified = isVer;
+          fallback.submissions_today = mockQueue.length;
+          fallback.latest_request = latest;
+        }
+      } catch {}
+      
       return { data: fallback, status: 200 };
     }
   },

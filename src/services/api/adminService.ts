@@ -104,25 +104,51 @@ export const adminService = {
   },
 
   async approveKyc(id: number | string, notes: string = "Approved by admin") {
-    return request(
-      `/sellers/verification/${id}`,
-      {
-        method: "PUT",
-        body: JSON.stringify({ status: "APPROVED", admin_notes: notes }),
-      },
-      { success: true }
-    );
+    try {
+      return await request(
+        `/sellers/verification/${id}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ status: "APPROVED", admin_notes: notes }),
+        },
+        { success: true }
+      );
+    } catch {
+      // Offline fallback: Update local storage
+      try {
+        const mockQueue = JSON.parse(localStorage.getItem("mock_kyc_queue") || "[]");
+        const idx = mockQueue.findIndex((q: any) => q.id === id || q.id === `LOCAL-${id}` || q.id === `KYC-${id}`);
+        if (idx !== -1) {
+          mockQueue[idx].status = "APPROVED";
+          localStorage.setItem("mock_kyc_queue", JSON.stringify(mockQueue));
+        }
+      } catch {}
+      return { data: { success: true }, status: 200 };
+    }
   },
 
   async rejectKyc(id: number | string, notes: string = "Rejected by admin") {
-    return request(
-      `/sellers/verification/${id}`,
-      {
-        method: "PUT",
-        body: JSON.stringify({ status: "REJECTED", admin_notes: notes }),
-      },
-      { success: true }
-    );
+    try {
+      return await request(
+        `/sellers/verification/${id}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ status: "REJECTED", admin_notes: notes }),
+        },
+        { success: true }
+      );
+    } catch {
+      // Offline fallback: Update local storage
+      try {
+        const mockQueue = JSON.parse(localStorage.getItem("mock_kyc_queue") || "[]");
+        const idx = mockQueue.findIndex((q: any) => q.id === id || q.id === `LOCAL-${id}` || q.id === `KYC-${id}`);
+        if (idx !== -1) {
+          mockQueue[idx].status = "REJECTED";
+          localStorage.setItem("mock_kyc_queue", JSON.stringify(mockQueue));
+        }
+      } catch {}
+      return { data: { success: true }, status: 200 };
+    }
   },
 
   async getCatalog() {
