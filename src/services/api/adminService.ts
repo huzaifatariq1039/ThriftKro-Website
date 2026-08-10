@@ -40,19 +40,42 @@ export const adminService = {
   },
 
   async getKycQueue() {
-    let fallbackKyc: any[] = [
-      { id: 1, shopName: "KicksCentral", name: "Hamza Malik", cnic: "35202-1234567-1", submitted: "10 mins ago", status: "pending" },
-      { id: 2, shopName: "VintageVault", name: "Ayesha Khan", cnic: "42101-9876543-2", submitted: "45 mins ago", status: "pending" },
-    ];
+    // ── Read any locally-submitted KYC requests from localStorage ──
+    let localQueue: any[] = [];
     try {
-      const mockQueue = JSON.parse(localStorage.getItem("mock_kyc_queue") || "[]");
-      fallbackKyc = [...mockQueue, ...fallbackKyc];
+      localQueue = JSON.parse(localStorage.getItem("mock_kyc_queue") || "[]");
     } catch {}
 
+    // Map localStorage items into the standard KycReq shape
+    const localMapped = localQueue.map((item: any, idx: number) => ({
+      id: item.id || `LOCAL-${idx + 1}`,
+      shop: item.shop || item.business_name || "Thrift Shop",
+      type: item.type || item.business_type || "Shop",
+      name: item.name || item.shop || "Seller",
+      cnic: item.cnic || item.cnic_number || "35202-0000000-1",
+      phone: item.phone || item.phone_number || "+92 000 0000000",
+      city: item.city || "Unknown",
+      address: item.address || "",
+      revenue: item.revenue || "PKR 0",
+      submitted: item.submitted || "Recently",
+      status: (item.status || "PENDING").toUpperCase(),
+      cnicFront: item.cnicFront || item.cnic_front_url || "",
+      cnicBack: item.cnicBack || item.cnic_back_url || "",
+      aiVerified: item.aiVerified ?? item.ai_verified ?? false,
+      productsProof: item.productsProof || item.products_proof || [],
+    }));
+
+    // Static fallback entries (demo data)
+    const fallbackKyc = [
+      { id: 1, shop: "KicksCentral", name: "Hamza Malik", cnic: "35202-1234567-1", submitted: "10 mins ago", status: "PENDING", type: "Shop", phone: "+92 300 1234567", city: "Lahore", address: "", revenue: "PKR 0", cnicFront: "", cnicBack: "", aiVerified: false, productsProof: [] },
+      { id: 2, shop: "VintageVault", name: "Ayesha Khan", cnic: "42101-9876543-2", submitted: "45 mins ago", status: "PENDING", type: "Individual", phone: "+92 321 9876543", city: "Karachi", address: "", revenue: "PKR 0", cnicFront: "", cnicBack: "", aiVerified: false, productsProof: [] },
+    ];
+
+    // Try the real backend first
     try {
-      const res = await request<any[]>("/sellers/verification/pending", {}, fallbackKyc);
+      const res = await request<any[]>("/sellers/verification/pending");
       if (Array.isArray(res.data) && res.data.length > 0) {
-        const queue = res.data.map((item, idx) => ({
+        const backendQueue = res.data.map((item, idx) => ({
           id: item.id || idx + 1,
           shop: item.business_name || "Thrift Shop",
           type: item.business_type || "Shop",
@@ -60,21 +83,24 @@ export const adminService = {
           cnic: item.cnic_number || "35202-0000000-1",
           phone: item.phone_number || "+92 000 0000000",
           city: item.city || "Unknown",
-          revenue: "PKR 0", // Can be calculated based on existing orders, assuming 0 for new applicants
+          address: item.address || "",
+          revenue: "PKR 0",
           submitted: item.created_at ? new Date(item.created_at).toLocaleTimeString() : "Recently",
           status: (item.status || "PENDING").toUpperCase(),
-          cnicFront: item.cnic_front_url,
-          cnicBack: item.cnic_back_url,
-          aiVerified: item.ai_verified,
-          productsProof: item.products_proof || []
+          cnicFront: item.cnic_front_url || "",
+          cnicBack: item.cnic_back_url || "",
+          aiVerified: item.ai_verified ?? false,
+          productsProof: item.products_proof || [],
         }));
-        return { data: queue, status: res.status };
+        // Merge: local submissions on top, then backend, then fallback demo
+        return { data: [...localMapped, ...backendQueue], status: res.status };
       }
     } catch {
-      // Fallback
+      // Backend offline — fall through to local + fallback
     }
 
-    return { data: fallbackKyc, status: 200 };
+    // Backend offline: show local submissions + static demo data
+    return { data: [...localMapped, ...fallbackKyc], status: 200 };
   },
 
   async approveKyc(id: number | string, notes: string = "Approved by admin") {

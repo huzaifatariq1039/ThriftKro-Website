@@ -83,16 +83,7 @@ export const sellerService = {
     shop_photo_urls?: string[];
     business_reg_url?: string;
   }): Promise<ApiResponse<{ status: "pending" | "verified" | "approved" }>> {
-    const res = await request<any>(
-      "/sellers/verify",
-      {
-        method: "POST",
-        body: JSON.stringify(payload),
-      }
-    );
-    const statusVal = res.data?.status?.toLowerCase() === "approved" ? "verified" : "pending";
-    
-    // Save to local storage for offline mock Admin UI
+    // ── Always save to localStorage FIRST so Admin portal works offline ──
     try {
       const mockQueue = JSON.parse(localStorage.getItem("mock_kyc_queue") || "[]");
       mockQueue.push({
@@ -102,20 +93,35 @@ export const sellerService = {
         cnic: payload.cnic_number || "35202-0000000-1",
         phone: payload.phone_number,
         city: payload.city,
-        submitted: "Just now",
+        address: payload.address,
+        submitted: new Date().toLocaleString("en-PK"),
         revenue: "PKR 0",
         status: "PENDING",
         cnicFront: payload.cnic_front_url,
         cnicBack: payload.cnic_back_url,
         aiVerified: (payload as any).ai_verified || false,
-        productsProof: (payload as any).products_proof || []
+        productsProof: (payload as any).products_proof || [],
       });
       localStorage.setItem("mock_kyc_queue", JSON.stringify(mockQueue));
     } catch (err) {
       console.warn("Failed to update mock KYC queue", err);
     }
-    
-    return { data: { status: statusVal }, status: res.status };
+
+    // ── Then attempt the real API call ──
+    try {
+      const res = await request<any>(
+        "/sellers/verify",
+        {
+          method: "POST",
+          body: JSON.stringify(payload),
+        }
+      );
+      const statusVal = res.data?.status?.toLowerCase() === "approved" ? "verified" : "pending";
+      return { data: { status: statusVal }, status: res.status };
+    } catch {
+      // Backend offline — return a mock "pending" response so the UI still works
+      return { data: { status: "pending" }, status: 201 };
+    }
   },
 
   /**
