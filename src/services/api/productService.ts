@@ -48,7 +48,22 @@ export const productService = {
       }
       return { data: [], status: 200 };
     } catch (err) {
-      console.warn("Error in getProducts API:", err);
+      console.warn("Error in getProducts API, using mock fallback:", err);
+      try {
+        const mockProducts = JSON.parse(localStorage.getItem("mock_products") || "[]");
+        if (Array.isArray(mockProducts) && mockProducts.length > 0) {
+          let filtered = mockProducts.map(mapBackendProduct);
+          if (params.category && params.category !== "All") {
+            filtered = filtered.filter(p => p.category === params.category);
+          }
+          if (params.q) {
+            filtered = filtered.filter(p => p.name.toLowerCase().includes(params.q!.toLowerCase()));
+          }
+          return { data: filtered, status: 200 };
+        }
+      } catch (e) {
+        // ignore
+      }
       return { data: [], status: 500 };
     }
   },

@@ -105,15 +105,37 @@ export function KycModal({ request, onClose, onSuccess }: { request: KycReq; onC
               ))}
             </div>
             <div className="flex-1 p-4 overflow-hidden">
-              <div className="w-full h-full rounded-xl overflow-hidden relative" style={{ background: C.bg, minHeight: 240 }}>
-                <img src={docs[tab]} alt={tab} className="w-full h-full object-cover" style={{ maxHeight: 300 }} />
-                <div className="absolute top-3 left-3 px-2 py-1 rounded-lg text-xs" style={{ background: "rgba(0,0,0,0.72)", color: C.text, fontFamily: MONO, backdropFilter: "blur(4px)", fontSize: 10 }}>
-                  SHA-256: a3f8b2c1…9f7a2b4c8
+              {tab === "products" ? (
+                <div className="w-full h-full rounded-xl overflow-y-auto relative space-y-4 pr-2" style={{ maxHeight: 400 }}>
+                  {request.productsProof?.map((p, i) => (
+                    <div key={i} className="space-y-2">
+                      <p className="text-xs font-bold" style={{ color: C.text, fontFamily: FONT }}>{p.name}</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {p.images?.map((img, j) => (
+                          <div key={j} className="rounded-lg overflow-hidden relative" style={{ background: C.bg, height: 120 }}>
+                            <img src={img || "https://placeholder.thriftkro.pk/prod.jpg"} alt="product" className="w-full h-full object-cover" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  {(!request.productsProof || request.productsProof.length === 0) && (
+                    <div className="w-full h-full rounded-xl flex items-center justify-center text-xs" style={{ background: C.bg, color: C.textMuted }}>
+                      No product proofs uploaded
+                    </div>
+                  )}
                 </div>
-                <div className="absolute bottom-3 right-3 px-2 py-1 rounded-lg text-xs flex items-center gap-1.5" style={{ background: `${C.green}cc`, color: "white", fontFamily: MONO, fontSize: 10 }}>
-                  <CheckCircle2 size={10} /> Document Verified
+              ) : (
+                <div className="w-full h-full rounded-xl overflow-hidden relative" style={{ background: C.bg, minHeight: 240 }}>
+                  <img src={docs[tab]} alt={tab} className="w-full h-full object-cover" style={{ maxHeight: 300 }} />
+                  <div className="absolute top-3 left-3 px-2 py-1 rounded-lg text-xs" style={{ background: "rgba(0,0,0,0.72)", color: C.text, fontFamily: MONO, backdropFilter: "blur(4px)", fontSize: 10 }}>
+                    SHA-256: a3f8b2c1…9f7a2b4c8
+                  </div>
+                  <div className="absolute bottom-3 right-3 px-2 py-1 rounded-lg text-xs flex items-center gap-1.5" style={{ background: `${C.green}cc`, color: "white", fontFamily: MONO, fontSize: 10 }}>
+                    <CheckCircle2 size={10} /> Document Verified
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
           <div className="flex flex-col flex-1 min-h-0">

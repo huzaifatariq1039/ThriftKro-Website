@@ -392,37 +392,44 @@ function StepProductsProof({
             
             <Field label="Sizes Available">
               <div className="flex flex-wrap gap-2">
-                {["XS", "S", "M", "L", "XL", "XXL", "One Size"].map(s => {
-                  const selectedSizes = prod.sizes ? prod.sizes.split(",").map(x => x.trim()).filter(Boolean) : [];
-                  const isSelected = selectedSizes.includes(s);
-                  return (
-                    <button
-                      key={s}
-                      onClick={() => {
-                        let next = [...selectedSizes];
-                        if (isSelected) {
-                          next = next.filter(x => x !== s);
-                        } else {
-                          if (s === "One Size") next = ["One Size"];
-                          else {
-                            next = next.filter(x => x !== "One Size");
-                            next.push(s);
+                {(() => {
+                  const cat = prod.category;
+                  let availableSizes = ["XS", "S", "M", "L", "XL", "XXL", "One Size"];
+                  if (cat === "Pants" || cat === "Trousers") availableSizes = ["28", "30", "32", "34", "36", "38", "40"];
+                  else if (cat === "Shoes") availableSizes = ["US 6", "US 7", "US 8", "US 9", "US 10", "US 11", "US 12"];
+                  
+                  return availableSizes.map(s => {
+                    const selectedSizes = prod.sizes ? prod.sizes.split(",").map(x => x.trim()).filter(Boolean) : [];
+                    const isSelected = selectedSizes.includes(s);
+                    return (
+                      <button
+                        key={s}
+                        onClick={() => {
+                          let next = [...selectedSizes];
+                          if (isSelected) {
+                            next = next.filter(x => x !== s);
+                          } else {
+                            if (s === "One Size") next = ["One Size"];
+                            else {
+                              next = next.filter(x => x !== "One Size");
+                              next.push(s);
+                            }
                           }
-                        }
-                        updateProduct(idx, { sizes: next.join(", ") });
-                      }}
-                      className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all border"
-                      style={{
-                        background: isSelected ? ORANGE : "transparent",
-                        color: isSelected ? "white" : "rgba(26,17,8,0.5)",
-                        borderColor: isSelected ? ORANGE : "rgba(26,17,8,0.1)",
-                        fontFamily: FONT
-                      }}
-                    >
-                      {s}
-                    </button>
-                  );
-                })}
+                          updateProduct(idx, { sizes: next.join(", ") });
+                        }}
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all border"
+                        style={{
+                          background: isSelected ? ORANGE : "transparent",
+                          color: isSelected ? "white" : "rgba(26,17,8,0.5)",
+                          borderColor: isSelected ? ORANGE : "rgba(26,17,8,0.1)",
+                          fontFamily: FONT
+                        }}
+                      >
+                        {s}
+                      </button>
+                    );
+                  });
+                })()}
               </div>
             </Field>
 

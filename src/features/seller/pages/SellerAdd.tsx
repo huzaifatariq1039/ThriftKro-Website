@@ -151,20 +151,26 @@ export default function SellerAdd({ s }: { s: Store }) {
           </div>
           <Field label="Sizes Available">
             <div className="flex gap-2 flex-wrap">
-              {["XS", "S", "M", "L", "XL", "XXL", "One Size"].map(s => {
-                const isSelected = sizes.includes(s);
-                return (
-                  <button 
-                    key={s} 
-                    type="button" 
-                    onClick={() => setSizes(prev => isSelected ? prev.filter(x => x !== s) : [...prev, s])} 
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold transition-colors" 
-                    style={{ background: isSelected ? INK : "#F5F2EE", color: isSelected ? "white" : INK }}
-                  >
-                    {s}
-                  </button>
-                );
-              })}
+              {(() => {
+                let availableSizes = ["XS", "S", "M", "L", "XL", "XXL", "One Size"];
+                if (category === "Pants" || category === "Trousers") availableSizes = ["28", "30", "32", "34", "36", "38", "40"];
+                else if (category === "Shoes") availableSizes = ["US 6", "US 7", "US 8", "US 9", "US 10", "US 11", "US 12"];
+                
+                return availableSizes.map(s => {
+                  const isSelected = sizes.includes(s);
+                  return (
+                    <button 
+                      key={s} 
+                      type="button" 
+                      onClick={() => setSizes(prev => isSelected ? prev.filter(x => x !== s) : [...prev, s])} 
+                      className="px-4 py-2.5 rounded-xl text-xs font-bold transition-colors" 
+                      style={{ background: isSelected ? INK : "#F5F2EE", color: isSelected ? "white" : INK }}
+                    >
+                      {s}
+                    </button>
+                  );
+                });
+              })()}
             </div>
           </Field>
           <Field label="Condition">
