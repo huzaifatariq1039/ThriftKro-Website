@@ -12,11 +12,15 @@ export default function SellerAdd({ s }: { s: Store }) {
   const [price, setPrice] = useState("");
   const [condition, setCondition] = useState("Excellent");
   const [sizes, setSizes] = useState<string[]>([]);
-  const [imgUrl, setImgUrl] = useState("");
+  const [images, setImages] = useState<{ file: File, preview: string, base64: string }[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiDone, setAiDone] = useState(false);
 
   const simulateAi = () => {
+    if (images.length === 0) {
+      s.showToast("Please upload an image first!");
+      return;
+    }
     setAiLoading(true);
     setTimeout(() => {
       setName("Nike Dunk Low Retro Panda (2024)");
@@ -28,6 +32,36 @@ export default function SellerAdd({ s }: { s: Store }) {
     }, 1200);
   };
 
+  const handleImageUpload = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.multiple = true;
+    input.onchange = async (e: any) => {
+      const files = Array.from(e.target.files) as File[];
+      if (files.length > 0) {
+        const newImages = await Promise.all(
+          files.map(
+            (file) =>
+              new Promise<{ file: File; preview: string; base64: string }>((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                  resolve({
+                    file,
+                    preview: URL.createObjectURL(file),
+                    base64: e.target?.result as string,
+                  });
+                };
+                reader.readAsDataURL(file);
+              })
+          )
+        );
+        setImages(prev => [...prev, ...newImages]);
+      }
+    };
+    input.click();
+  };
+
   const submit = async () => {
     if (!name || !price) {
       s.showToast("Please enter item title and price.");
@@ -35,7 +69,9 @@ export default function SellerAdd({ s }: { s: Store }) {
     }
 
     try {
-      const finalImg = imgUrl.trim() || "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop&auto=format";
+      const finalImages = images.map(i => i.base64);
+      const finalImg = finalImages.length > 0 ? finalImages[0] : "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop&auto=format";
+      
       const res = await productService.createProduct({
         name,
         price: Number(price),
@@ -44,7 +80,7 @@ export default function SellerAdd({ s }: { s: Store }) {
         condition,
         size: sizes.length > 0 ? sizes.join(", ") : "One Size",
         img: finalImg,
-        images: [finalImg],
+        images: finalImages.length > 0 ? finalImages : [finalImg],
         description: `High quality ${category.toLowerCase()} - ${condition} condition.`,
       });
 
@@ -70,19 +106,41 @@ export default function SellerAdd({ s }: { s: Store }) {
       <Label>NEW LISTING</Label>
       <h1 className="font-extrabold mt-1 mb-8" style={{ fontSize: 32, letterSpacing: "-0.03em", color: INK }}>Add an item</h1>
       <div className="max-w-2xl bg-white p-8 rounded-3xl" style={{ boxShadow: "0 0 0 1px rgba(26,17,8,0.06)" }}>
-        <div className="border-2 border-dashed rounded-2xl p-8 text-center mb-6" style={{ borderColor: "rgba(26,17,8,0.15)" }}>
-          <Upload size={32} style={{ color: ORANGE }} className="mx-auto mb-2" />
-          <p className="font-bold text-sm" style={{ color: INK }}>Upload photos of your item</p>
-          <p className="text-xs mb-4" style={{ color: "rgba(26,17,8,0.5)" }}>PNG, JPG up to 10MB</p>
-          <button onClick={simulateAi} disabled={aiLoading} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-extrabold text-white" style={{ background: ORANGE }}>
-            <Sparkles size={14} /> {aiLoading ? "AI analyzing photo…" : "Auto-fill with AI"}
-          </button>
-          {aiDone && <p className="text-xs font-bold text-emerald-600 mt-2">✓ AI identified Nike Dunk Low Panda · Suggested PKR 18,500</p>}
-        </div>
+        
+        {images.length > 0 ? (
+          <div className="flex flex-wrap gap-4 mb-6">
+            {images.map((img, idx) => (
+              <div key={idx} className="relative rounded-2xl overflow-hidden" style={{ width: 120, height: 120 }}>
+                <img src={img.preview} alt="upload" className="w-full h-full object-cover" />
+                <button
+                  onClick={() => setImages(prev => prev.filter((_, i) => i !== idx))}
+                  className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+                  style={{ background: "rgba(0,0,0,0.6)", color: "white" }}
+                >✕</button>
+              </div>
+            ))}
+            <button
+              onClick={handleImageUpload}
+              className="rounded-2xl flex flex-col items-center justify-center transition-opacity hover:opacity-80"
+              style={{ width: 120, height: 120, background: "rgba(255,87,34,0.08)", color: ORANGE }}
+            >
+              <Plus size={24} />
+            </button>
+          </div>
+        ) : (
+          <div onClick={handleImageUpload} className="border-2 border-dashed rounded-2xl p-8 text-center mb-6 cursor-pointer hover:bg-black/5 transition-colors" style={{ borderColor: "rgba(26,17,8,0.15)" }}>
+            <Upload size={32} style={{ color: ORANGE }} className="mx-auto mb-2" />
+            <p className="font-bold text-sm" style={{ color: INK }}>Upload photos of your item</p>
+            <p className="text-xs mb-4" style={{ color: "rgba(26,17,8,0.5)" }}>PNG, JPG up to 10MB</p>
+            <button onClick={(e) => { e.stopPropagation(); simulateAi(); }} disabled={aiLoading} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-extrabold text-white" style={{ background: ORANGE }}>
+              <Sparkles size={14} /> {aiLoading ? "AI analyzing photo…" : "Auto-fill with AI"}
+            </button>
+            {aiDone && <p className="text-xs font-bold text-emerald-600 mt-2">✓ AI identified Nike Dunk Low Panda · Suggested PKR 18,500</p>}
+          </div>
+        )}
 
         <div className="space-y-4">
           <Field label="Item title"><input className={inputCls} style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Vintage Denim Jacket" /></Field>
-          <Field label="Photo URL (Optional)"><input className={inputCls} style={inputStyle} value={imgUrl} onChange={e => setImgUrl(e.target.value)} placeholder="https://images.unsplash.com/..." /></Field>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Category">
               <select className={inputCls} style={inputStyle} value={category} onChange={e => setCategory(e.target.value)}>

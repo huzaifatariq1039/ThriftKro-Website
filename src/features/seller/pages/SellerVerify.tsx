@@ -227,12 +227,17 @@ function StepCnicUpload({
     input.onchange = (e: any) => {
       const file = e.target.files?.[0];
       if (file) {
-        const preview = URL.createObjectURL(file);
-        if (side === "front") {
-          setForm(f => ({ ...f, cnicFrontFile: file, cnicFrontPreview: preview }));
-        } else {
-          setForm(f => ({ ...f, cnicBackFile: file, cnicBackPreview: preview }));
-        }
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const base64 = ev.target?.result as string;
+          const preview = URL.createObjectURL(file);
+          if (side === "front") {
+            setForm(f => ({ ...f, cnicFrontFile: file, cnicFrontPreview: preview, cnicFrontBase64: base64 }));
+          } else {
+            setForm(f => ({ ...f, cnicBackFile: file, cnicBackPreview: preview, cnicBackBase64: base64 }));
+          }
+        };
+        reader.readAsDataURL(file);
       }
     };
     input.click();
@@ -781,8 +786,8 @@ export default function SellerVerify({ s }: { s: Store }) {
         address: form.streetAddress,
         city: form.city,
         cnic_number: form.cnicNumber || undefined,
-        cnic_front_url: form.cnicFrontFile ? "https://placeholder.thriftkro.pk/cnic_front.jpg" : "",
-        cnic_back_url: form.cnicBackFile ? "https://placeholder.thriftkro.pk/cnic_back.jpg" : "",
+        cnic_front_url: form.cnicFrontBase64 || "",
+        cnic_back_url: form.cnicBackBase64 || "",
         shop_photo_urls: [],
         products_proof: form.products
           .filter(p => p.name.trim())

@@ -82,8 +82,10 @@ export type SellerVerificationFormData = {
   // Step 2 — CNIC Photos
   cnicFrontFile: File | null;
   cnicFrontPreview: string | null;
+  cnicFrontBase64?: string;
   cnicBackFile: File | null;
   cnicBackPreview: string | null;
+  cnicBackBase64?: string;
 
   // Step 3 — Products & proof
   products: VerificationProductProof[];
