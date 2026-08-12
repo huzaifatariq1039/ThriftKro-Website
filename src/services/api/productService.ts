@@ -33,6 +33,22 @@ function mapBackendProduct(bp: any): Product {
 
 export const productService = {
   async getProducts(params: { category?: string; q?: string; sort_by?: string; min_price?: number; max_price?: number } = {}): Promise<ApiResponse<Product[]>> {
+    let localFiltered: Product[] = [];
+    try {
+      const mockProducts = JSON.parse(localStorage.getItem("mock_products") || "[]");
+      if (Array.isArray(mockProducts) && mockProducts.length > 0) {
+        localFiltered = mockProducts.map(mapBackendProduct);
+        if (params.category && params.category !== "All") {
+          localFiltered = localFiltered.filter(p => p.category === params.category);
+        }
+        if (params.q) {
+          localFiltered = localFiltered.filter(p => p.name.toLowerCase().includes(params.q!.toLowerCase()));
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+
     try {
       const query = new URLSearchParams();
       if (params.category && params.category !== "All") query.set("category", params.category);
@@ -44,27 +60,12 @@ export const productService = {
       const qs = query.toString();
       const res = await request<any[]>(`/products/${qs ? `?${qs}` : ""}`);
       if (Array.isArray(res.data)) {
-        return { data: res.data.map(mapBackendProduct), status: res.status };
+        return { data: [...localFiltered, ...res.data.map(mapBackendProduct)], status: res.status };
       }
-      return { data: [], status: 200 };
+      return { data: localFiltered, status: 200 };
     } catch (err) {
       console.warn("Error in getProducts API, using mock fallback:", err);
-      try {
-        const mockProducts = JSON.parse(localStorage.getItem("mock_products") || "[]");
-        if (Array.isArray(mockProducts) && mockProducts.length > 0) {
-          let filtered = mockProducts.map(mapBackendProduct);
-          if (params.category && params.category !== "All") {
-            filtered = filtered.filter(p => p.category === params.category);
-          }
-          if (params.q) {
-            filtered = filtered.filter(p => p.name.toLowerCase().includes(params.q!.toLowerCase()));
-          }
-          return { data: filtered, status: 200 };
-        }
-      } catch (e) {
-        // ignore
-      }
-      return { data: [], status: 500 };
+      return { data: localFiltered, status: 500 };
     }
   },
 
