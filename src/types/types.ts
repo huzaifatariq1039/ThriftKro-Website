@@ -65,7 +65,7 @@ export type VerificationProductProof = {
   sizes: string;
   price: string;
   description: string;
-  images: { file: File | null; preview: string | null }[];
+  images: { file: File | null; preview: string | null; base64?: string }[];
 };
 
 export type SellerVerificationFormData = {

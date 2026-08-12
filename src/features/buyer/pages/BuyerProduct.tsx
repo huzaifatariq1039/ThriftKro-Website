@@ -84,8 +84,8 @@ export default function BuyerProduct({ s }: { s: Store }) {
             <div className="mt-6">
               <Label>Select size</Label>
               <div className="flex gap-2 mt-2">
-                {[p.size, "S", "M", "L"].filter((v, i, a) => a.indexOf(v) === i).map(sz => (
-                  <button key={sz} onClick={() => setSize(sz)} className="px-4 py-2.5 rounded-xl text-sm font-bold" style={{ background: size === sz ? INK : "white", color: size === sz ? "white" : INK, boxShadow: "0 0 0 1px rgba(26,17,8,0.1)" }}>{sz}</button>
+                {(p.size ? p.size.split(",").map(s => s.trim()).filter(Boolean) : ["One Size"]).map((sz, idx) => (
+                  <button key={idx} onClick={() => setSize(sz)} className="px-4 py-2.5 rounded-xl text-sm font-bold" style={{ background: size === sz ? INK : "white", color: size === sz ? "white" : INK, boxShadow: "0 0 0 1px rgba(26,17,8,0.1)" }}>{sz}</button>
                 ))}
               </div>
             </div>

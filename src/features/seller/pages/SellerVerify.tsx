@@ -319,15 +319,31 @@ function StepProductsProof({
     input.type = "file";
     input.accept = "image/*";
     input.multiple = true;
-    input.onchange = (e: any) => {
+    input.onchange = async (e: any) => {
       const files = Array.from(e.target.files) as File[];
       if (files.length > 0) {
-        const newImages = files.map(file => ({
-          file,
-          preview: URL.createObjectURL(file)
-        }));
-        const existing = form.products[idx].images || [];
-        updateProduct(idx, { images: [...existing, ...newImages] });
+        const newImages = await Promise.all(
+          files.map(
+            (file) =>
+              new Promise<{ file: File; preview: string; base64: string }>((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                  resolve({
+                    file,
+                    preview: URL.createObjectURL(file),
+                    base64: e.target?.result as string,
+                  });
+                };
+                reader.readAsDataURL(file);
+              })
+          )
+        );
+        setForm(f => {
+          const products = [...f.products];
+          const existing = products[idx].images || [];
+          products[idx] = { ...products[idx], images: [...existing, ...newImages] };
+          return { ...f, products };
+        });
       }
     };
     input.click();
@@ -776,7 +792,7 @@ export default function SellerVerify({ s }: { s: Store }) {
             sizes: p.sizes,
             price: p.price,
             description: p.description,
-            images: p.images.map((_, j) => `https://placeholder.thriftkro.pk/proof_${i + 1}_${j + 1}.jpg`)
+            images: p.images.map(img => img.base64 || "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=800")
           })),
         ai_verified: form.aiVerified,
       });
