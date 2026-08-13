@@ -5,24 +5,41 @@ import { mockSellerListings } from "../mockData";
 export const sellerService = {
   async getSellerListings(): Promise<ApiResponse<SellerListing[]>> {
     try {
-      const res = await request<any[]>("/products/", {}, mockSellerListings);
+      const res = await request<any[]>("/products/?include_deleted=true");
+      let listings: SellerListing[] = [];
       if (Array.isArray(res.data) && res.data.length > 0) {
-        const listings: SellerListing[] = res.data.map((p, i) => ({
-          id: typeof p.id === "number" ? p.id : i + 1,
+        listings = res.data.map((p, i) => ({
+          id: typeof p.id === "number" ? p.id : (p.id || i + 1),
           name: p.name || "Apparel Item",
           price: p.price || 2000,
           views: p.views || Math.floor(Math.random() * 200) + 10,
           likes: p.likes || Math.floor(Math.random() * 50),
           category: p.category || "Men",
-          status: p.status === "Active" || p.status === "APPROVED" ? "Active" : "Pending",
+          status: p.deleted_at ? "Trashed" : (p.status || (p.is_ai_verified ? "Active" : "Pending")),
           img: p.image_url || p.img || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800",
         }));
         return { data: listings, status: res.status };
       }
       return { data: [], status: 200 };
     } catch (err) {
-      console.warn("Failed to get seller listings", err);
-      return { data: [], status: 500 };
+      console.warn("Backend failed, checking local mock_products...", err);
+      // Offline fallback: Use local mock_products only
+      try {
+        const mockProducts = JSON.parse(localStorage.getItem("mock_products") || "[]");
+        const listings = mockProducts.map((p: any, i: number) => ({
+          id: typeof p.id === "number" ? p.id : (p.id || i + 1),
+          name: p.name || "Apparel Item",
+          price: p.price || 2000,
+          views: Math.floor(Math.random() * 200) + 10,
+          likes: Math.floor(Math.random() * 50),
+          category: p.category || "Men",
+          status: p.status || "Active",
+          img: p.image_url || p.img || p.images?.[0] || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800",
+        }));
+        return { data: listings, status: 200 };
+      } catch (e) {
+        return { data: [], status: 500 };
+      }
     }
   },
 
@@ -96,9 +113,28 @@ export const sellerService = {
     };
   },
 
-  async deleteListing(id: number): Promise<ApiResponse<{ success: boolean }>> {
-    const res = await request<{ success: boolean }>(`/products/${id}`, { method: "DELETE" });
-    return { data: { success: true }, status: res.status };
+  async deleteListing(id: string | number): Promise<ApiResponse<{ success: boolean }>> {
+    try {
+      const res = await request<{ success: boolean }>(`/products/${id}`, { method: "DELETE" });
+      return { data: { success: true }, status: res.status };
+    } catch {
+      const mockProducts = JSON.parse(localStorage.getItem("mock_products") || "[]");
+      const updated = mockProducts.map((p: any) => p.id === id ? { ...p, status: "Trashed" } : p);
+      localStorage.setItem("mock_products", JSON.stringify(updated));
+      return { data: { success: true }, status: 200 };
+    }
+  },
+
+  async restoreListing(id: string | number): Promise<ApiResponse<{ success: boolean }>> {
+    try {
+      const res = await request<{ success: boolean }>(`/products/${id}/restore`, { method: "POST" });
+      return { data: { success: true }, status: res.status };
+    } catch {
+      const mockProducts = JSON.parse(localStorage.getItem("mock_products") || "[]");
+      const updated = mockProducts.map((p: any) => p.id === id ? { ...p, status: "Active" } : p);
+      localStorage.setItem("mock_products", JSON.stringify(updated));
+      return { data: { success: true }, status: 200 };
+    }
   },
 
   /**
