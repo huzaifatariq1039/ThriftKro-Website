@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { ArrowLeft, Sparkles, Camera, Upload, Loader2, RefreshCw, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Sparkles, Camera, Upload, Loader2, RefreshCw, AlertCircle, CheckCircle2, X } from "lucide-react";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import { ORANGE, YELLOW, INK, PAPER, FONT, MONO } from "@/constants/theme";
 import type { Store } from "@/hooks/useStore";
@@ -172,7 +172,16 @@ export default function BuyerVto({ s }: { s: Store }) {
 
               {personPreview ? (
                 <div className="flex items-center gap-4">
-                  <img src={personPreview} alt="Your Photo" className="w-24 h-24 rounded-2xl object-cover border" />
+                  <div className="relative">
+                    <img src={personPreview} alt="Your Photo" className="w-24 h-24 rounded-2xl object-cover border" />
+                    <button
+                      onClick={() => { setPersonFile(null); setPersonPreview(""); }}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
+                      title="Remove image"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
                   <div>
                     <p className="font-bold text-sm" style={{ color: INK }}>{personFile?.name || "Person Photo"}</p>
                     <div className="flex gap-2 mt-2">
@@ -234,7 +243,16 @@ export default function BuyerVto({ s }: { s: Store }) {
 
               <div className="flex items-center gap-4">
                 {garmentPreview ? (
-                  <img src={garmentPreview} alt="Garment" className="w-24 h-24 rounded-2xl object-cover border" />
+                  <div className="relative">
+                    <img src={garmentPreview} alt="Garment" className="w-24 h-24 rounded-2xl object-cover border" />
+                    <button
+                      onClick={() => { setGarmentFile(null); setGarmentPreview(""); }}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
+                      title="Remove image"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
                 ) : (
                   <div className="w-24 h-24 rounded-2xl bg-gray-100 flex items-center justify-center text-xs text-gray-400">No Image</div>
                 )}
