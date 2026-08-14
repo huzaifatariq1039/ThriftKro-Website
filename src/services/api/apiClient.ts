@@ -15,7 +15,10 @@ export async function request<T>(
   options: RequestInit = {},
   mockFallback?: T
 ): Promise<ApiResponse<T>> {
-  const baseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
+  let baseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
+  if (baseUrl && baseUrl.endsWith("/")) {
+    baseUrl = baseUrl.slice(0, -1);
+  }
   const token = localStorage.getItem("thrift_kro_token") || sessionStorage.getItem("thrift_kro_token") || localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
 
   const isFormData = options.body instanceof FormData;
