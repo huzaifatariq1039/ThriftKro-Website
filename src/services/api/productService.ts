@@ -33,49 +33,24 @@ function mapBackendProduct(bp: any): Product {
 
 export const productService = {
   async getProducts(params: { category?: string; q?: string; sort_by?: string; min_price?: number; max_price?: number } = {}): Promise<ApiResponse<Product[]>> {
-    let localFiltered: Product[] = [];
-    try {
-      const mockProducts = JSON.parse(localStorage.getItem("mock_products") || "[]");
-      if (Array.isArray(mockProducts) && mockProducts.length > 0) {
-        localFiltered = mockProducts.map(mapBackendProduct);
-        if (params.category && params.category !== "All") {
-          localFiltered = localFiltered.filter(p => p.category === params.category);
-        }
-        if (params.q) {
-          localFiltered = localFiltered.filter(p => p.name.toLowerCase().includes(params.q!.toLowerCase()));
-        }
-      }
-    } catch (e) {
-      // ignore
-    }
+    const query = new URLSearchParams();
+    if (params.category && params.category !== "All") query.set("category", params.category);
+    if (params.q) query.set("q", params.q);
+    if (params.sort_by) query.set("sort_by", params.sort_by);
+    if (params.min_price !== undefined) query.set("min_price", String(params.min_price));
+    if (params.max_price !== undefined) query.set("max_price", String(params.max_price));
 
-    try {
-      const query = new URLSearchParams();
-      if (params.category && params.category !== "All") query.set("category", params.category);
-      if (params.q) query.set("q", params.q);
-      if (params.sort_by) query.set("sort_by", params.sort_by);
-      if (params.min_price !== undefined) query.set("min_price", String(params.min_price));
-      if (params.max_price !== undefined) query.set("max_price", String(params.max_price));
-
-      const qs = query.toString();
-      const res = await request<any[]>(`/products/${qs ? `?${qs}` : ""}`);
-      if (Array.isArray(res.data)) {
-        return { data: [...localFiltered, ...res.data.map(mapBackendProduct)], status: res.status };
-      }
-      return { data: localFiltered, status: 200 };
-    } catch (err) {
-      console.warn("Error in getProducts API, using mock fallback:", err);
-      return { data: localFiltered, status: 500 };
+    const qs = query.toString();
+    const res = await request<any[]>(`/products/${qs ? `?${qs}` : ""}`);
+    if (Array.isArray(res.data)) {
+      return { data: res.data.map(mapBackendProduct), status: res.status };
     }
+    return { data: [], status: 200 };
   },
 
   async getProductById(id: string): Promise<ApiResponse<Product | undefined>> {
-    try {
-      const res = await request<any>(`/products/${id}`);
-      return { data: res.data ? mapBackendProduct(res.data) : undefined, status: res.status };
-    } catch {
-      return { data: undefined, status: 500 };
-    }
+    const res = await request<any>(`/products/${id}`);
+    return { data: res.data ? mapBackendProduct(res.data) : undefined, status: res.status };
   },
 
   async getProductsByCategory(category: string): Promise<ApiResponse<Product[]>> {
@@ -87,58 +62,29 @@ export const productService = {
   },
 
   async createProduct(productData: Partial<Product> & { image_url?: string; images?: string[]; description?: string }): Promise<ApiResponse<Product>> {
-      const payload = {
-        name: productData.name,
-        description: productData.description || "Uploaded from Website Seller Dashboard",
-        price: productData.price,
-        original_price: productData.originalPrice,
-        category: productData.category || "Jackets",
-        department: "Men",
-        size: productData.size || "M",
-        brand: productData.brand || "Generic",
-        condition: productData.condition || "Good",
-        image_url: productData.img || productData.image_url || (productData.images && productData.images.length > 0 ? productData.images[0] : "https://example.com/img.jpg"),
-        images: productData.images || [],
-        tags: [],
-      };
+    const payload = {
+      name: productData.name,
+      description: productData.description || "Uploaded from Website Seller Dashboard",
+      price: productData.price,
+      original_price: productData.originalPrice,
+      category: productData.category || "Jackets",
+      department: "Men",
+      size: productData.size || "M",
+      brand: productData.brand || "Generic",
+      condition: productData.condition || "Good",
+      image_url: productData.img || productData.image_url || (productData.images && productData.images.length > 0 ? productData.images[0] : "https://example.com/img.jpg"),
+      images: productData.images || [],
+      tags: [],
+    };
 
-    try {
-      const res = await request<any>(
-        "/products/",
-        {
-          method: "POST",
-          body: JSON.stringify(payload)
-        }
-      );
-      return { data: mapBackendProduct(res.data), status: res.status };
-    } catch (err) {
-      console.warn("Backend rejected createProduct (likely offline/unverified), using offline fallback", err);
-      // Fallback: Add to mock_products so it appears in the UI
-      const newProduct = { ...payload, id: `mock-prod-${Date.now()}` };
-      try {
-        const mockProducts = JSON.parse(localStorage.getItem("mock_products") || "[]");
-        mockProducts.push({
-          id: newProduct.id,
-          name: payload.name,
-          description: payload.description,
-          price: payload.price,
-          original_price: payload.original_price,
-          category: payload.category,
-          department: payload.department,
-          sizes: payload.size,
-          brand: payload.brand,
-          condition: payload.condition,
-          image_url: payload.image_url,
-          images: payload.images,
-          is_ai_verified: true,
-          seller_id: 999, // mock seller id
-        });
-        localStorage.setItem("mock_products", JSON.stringify(mockProducts));
-      } catch (e) {
-        console.error("Failed to save mock product", e);
+    const res = await request<any>(
+      "/products/",
+      {
+        method: "POST",
+        body: JSON.stringify(payload)
       }
-      return { data: mapBackendProduct(newProduct), status: 201 };
-    }
+    );
+    return { data: mapBackendProduct(res.data), status: res.status };
   },
 
   async importProductsCsv(file: File): Promise<ApiResponse<{ success: boolean; message: string }>> {
@@ -149,9 +95,8 @@ export const productService = {
       "/products/import-csv",
       {
         method: "POST",
-        body: formData,
-      },
-      { success: true, message: "CSV imported successfully (Mock)" }
+        body: formData as any, // Bypass TypeScript strict checking for fetch body
+      }
     );
   },
 };

@@ -37,6 +37,12 @@ export const routeToPath: Record<Route, string> = {
   press: "/press",
   "seller-guide": "/seller-guide",
   blog: "/blog",
+  "about-us": "/about-us",
+  "privacy-policy": "/privacy-policy",
+  "terms-of-service": "/terms-of-service",
+  "buyer-protection": "/buyer-protection",
+  "authentication": "/authentication",
+  "contact": "/contact",
 };
 
 export function useStore() {
@@ -111,6 +117,20 @@ export function useStore() {
     navigate("/role-select");
   };
 
+  const googleAuth = async (token: string, forRole: "buyer" | "seller") => {
+    const { authAPI } = await import("../services/api");
+    const { access_token } = await authAPI.googleAuth(token, forRole);
+    // Directly authenticate using the returned token
+    auth.loginWithToken(access_token, forRole);
+    if (forRole === "seller") {
+      await store.fetchVerificationStatus();
+      const v = useAppStore.getState().sellerVerified;
+      navigate(v === "verified" || v === "pending" ? "/seller/dashboard" : "/seller/verify");
+    } else {
+      navigate("/buyer/home");
+    }
+  };
+
   return {
     ...store,
     route: currentRoute,
@@ -123,6 +143,7 @@ export function useStore() {
     login,
     loginWithCredentials,
     signupWithCredentials,
+    googleAuth,
     signupSeller,
     logout,
     requestRoleSwitch,

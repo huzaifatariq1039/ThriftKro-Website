@@ -12,6 +12,7 @@ type AuthContextType = {
   authMode: "login" | "signup";
   setAuthMode: (mode: "login" | "signup") => void;
   login: (email: string, pass: string, forRole: "buyer" | "seller") => Promise<void>;
+  loginWithToken: (token: string, forRole: Role) => void;
   signupSeller: () => Promise<void>;
   adminLogin: (email: string, pass: string) => Promise<void>;
   logout: () => void;
@@ -70,6 +71,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Token & user are already saved by authService based on Remember Me preference
   };
 
+  const loginWithToken = (tokenStr: string, forRole: Role) => {
+    const storedUser = localStorage.getItem("thrift_kro_user") || sessionStorage.getItem("thrift_kro_user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    setToken(tokenStr);
+    setRoleState(forRole);
+    setUnlockedRoles(prev => new Set([...prev, forRole]));
+    useAppStore.getState().syncProfile();
+  };
+
   const signupSeller = async () => {
     const res = await authAPI.signup({ email: "seller@thriftkro.pk", name: "New Seller", role: "seller" });
     setUser(res.user);
@@ -109,6 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       authMode,
       setAuthMode,
       login,
+      loginWithToken,
       signupSeller,
       adminLogin,
       logout,

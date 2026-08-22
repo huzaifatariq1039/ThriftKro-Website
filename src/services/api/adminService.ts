@@ -2,272 +2,132 @@ import { request, ApiResponse } from "./apiClient";
 
 export const adminService = {
   async getOverviewMetrics() {
-    const fallbackMetrics = {
-      gmv: "PKR 4,820,000",
-      revenue: "PKR 96,400",
-      activeListings: 1420,
-      kycPending: 12,
-      escrowHold: "PKR 380,000",
-      usersTotal: 250,
-      ordersTotal: 120,
-      ordersInProgress: 15,
+    const res = await request<any>("/admin/stats");
+    return {
+      data: {
+        gmv: res.data?.revenue?.gross_merchandise_value_pkr || 0,
+        revenue: res.data?.revenue?.total_platform_revenue_pkr || 0,
+        activeListings: res.data?.products?.live_available || 0,
+        kycPending: 0, 
+        escrowHold: (res.data?.revenue?.total_platform_revenue_pkr || 0) * (1 / 0.02),
+        usersTotal: res.data?.users?.total_users || 0,
+        ordersTotal: res.data?.orders?.total_orders || 0,
+        ordersInProgress: res.data?.orders?.in_progress || 0,
+      },
+      status: res.status,
     };
-
-    try {
-      const res = await request<any>("/admin/stats");
-      if (res.data && res.data.revenue) {
-        return {
-          data: {
-            gmv: res.data.revenue.gross_merchandise_value_pkr || 0,
-            revenue: res.data.revenue.total_platform_revenue_pkr || 0,
-            activeListings: res.data.products.live_available || 0,
-            kycPending: 0, // Not provided directly in stats, we can fetch via kyc queue length
-            escrowHold: res.data.revenue.total_platform_revenue_pkr * (1 / 0.02) || 0, // Roughly inferring total escrow hold
-            
-            // Additional metrics for pulse
-            usersTotal: res.data.users.total_users || 0,
-            ordersTotal: res.data.orders.total_orders || 0,
-            ordersInProgress: res.data.orders.in_progress || 0,
-          },
-          status: res.status,
-        };
-      }
-    } catch {
-      // Fallback
-    }
-
-    return { data: fallbackMetrics, status: 200 };
   },
 
   async getKycQueue() {
-    // ── Read any locally-submitted KYC requests from localStorage ──
-    let localQueue: any[] = [];
-    try {
-      localQueue = JSON.parse(localStorage.getItem("mock_kyc_queue") || "[]");
-    } catch {}
-
-    // Map localStorage items into the standard KycReq shape
-    const localMapped = localQueue.map((item: any, idx: number) => ({
-      id: item.id || `LOCAL-${idx + 1}`,
-      shop: item.shop || item.business_name || "Thrift Shop",
-      type: item.type || item.business_type || "Shop",
-      name: item.name || item.shop || "Seller",
-      cnic: item.cnic || item.cnic_number || "35202-0000000-1",
-      phone: item.phone || item.phone_number || "+92 000 0000000",
-      city: item.city || "Unknown",
-      address: item.address || "",
-      revenue: item.revenue || "PKR 0",
-      submitted: item.submitted || "Recently",
-      status: (item.status || "PENDING").toUpperCase(),
-      cnicFront: item.cnicFront || item.cnic_front_url || "",
-      cnicBack: item.cnicBack || item.cnic_back_url || "",
-      aiVerified: item.aiVerified ?? item.ai_verified ?? false,
-      productsProof: item.productsProof || item.products_proof || [],
-    }));
-
-    // Static fallback entries (demo data)
-    const fallbackKyc = [
-      { id: 1, shop: "KicksCentral", name: "Hamza Malik", cnic: "35202-1234567-1", submitted: "10 mins ago", status: "PENDING", type: "Shop", phone: "+92 300 1234567", city: "Lahore", address: "", revenue: "PKR 0", cnicFront: "", cnicBack: "", aiVerified: false, productsProof: [] },
-      { id: 2, shop: "VintageVault", name: "Ayesha Khan", cnic: "42101-9876543-2", submitted: "45 mins ago", status: "PENDING", type: "Individual", phone: "+92 321 9876543", city: "Karachi", address: "", revenue: "PKR 0", cnicFront: "", cnicBack: "", aiVerified: false, productsProof: [] },
-    ];
-
-    // Try the real backend first
-    try {
-      const res = await request<any[]>("/sellers/verification/pending");
-      if (Array.isArray(res.data) && res.data.length > 0) {
-        const backendQueue = res.data.map((item, idx) => ({
-          id: item.id || idx + 1,
-          shop: item.business_name || "Thrift Shop",
-          type: item.business_type || "Shop",
-          name: item.seller_name || "Seller",
-          cnic: item.cnic_number || "35202-0000000-1",
-          phone: item.phone_number || "+92 000 0000000",
-          city: item.city || "Unknown",
-          address: item.address || "",
-          revenue: "PKR 0",
-          submitted: item.created_at ? new Date(item.created_at).toLocaleTimeString() : "Recently",
-          status: (item.status || "PENDING").toUpperCase(),
-          cnicFront: item.cnic_front_url || "",
-          cnicBack: item.cnic_back_url || "",
-          aiVerified: item.ai_verified ?? false,
-          productsProof: item.products_proof || [],
-        }));
-        // Merge: local submissions on top, then backend, then fallback demo
-        return { data: [...localMapped, ...backendQueue], status: res.status };
-      }
-    } catch {
-      // Backend offline — fall through to local + fallback
+    const res = await request<any[]>("/sellers/verification/pending");
+    let backendQueue: any[] = [];
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      backendQueue = res.data.map((item, idx) => ({
+        id: item.id || idx + 1,
+        shop: item.business_name || "Thrift Shop",
+        type: item.business_type || "Shop",
+        name: item.seller_name || "Seller",
+        cnic: item.cnic_number || "35202-0000000-1",
+        phone: item.phone_number || "+92 000 0000000",
+        city: item.city || "Unknown",
+        address: item.address || "",
+        revenue: "PKR 0",
+        submitted: item.created_at ? new Date(item.created_at).toLocaleTimeString() : "Recently",
+        status: (item.status || "PENDING").toUpperCase(),
+        cnicFront: item.cnic_front_url || "",
+        cnicBack: item.cnic_back_url || "",
+        aiVerified: item.ai_verified ?? false,
+        productsProof: item.products_proof || [],
+      }));
     }
-
-    // Backend offline: show local submissions + static demo data
-    return { data: [...localMapped, ...fallbackKyc], status: 200 };
+    return { data: backendQueue, status: res.status };
   },
 
   async approveKyc(id: number | string, notes: string = "Approved by admin") {
-    try {
-      return await request(
-        `/sellers/verification/${id}`,
-        {
-          method: "PUT",
-          body: JSON.stringify({ status: "APPROVED", admin_notes: notes }),
-        },
-        { success: true }
-      );
-    } catch {
-      // Offline fallback: Update local storage
-      try {
-        const mockQueue = JSON.parse(localStorage.getItem("mock_kyc_queue") || "[]");
-        const idx = mockQueue.findIndex((q: any) => q.id === id || q.id === `LOCAL-${id}` || q.id === `KYC-${id}`);
-        if (idx !== -1) {
-          mockQueue[idx].status = "APPROVED";
-          localStorage.setItem("mock_kyc_queue", JSON.stringify(mockQueue));
-
-          if (mockQueue[idx].productsProof && Array.isArray(mockQueue[idx].productsProof)) {
-            const mockProducts = JSON.parse(localStorage.getItem("mock_products") || "[]");
-            mockQueue[idx].productsProof.forEach((p: any) => {
-              mockProducts.push({
-                id: `PROD-${Math.floor(10000 + Math.random() * 90000)}`,
-                name: p.name,
-                category: p.category || "All",
-                size: p.sizes ? p.sizes.split(",")[0] : "M",
-                price: parseFloat(p.price) || 0,
-                description: p.description,
-                image_url: p.images && p.images.length > 0 ? p.images[0] : "https://placeholder.thriftkro.pk/prod.jpg",
-                brand: "Thrift",
-                condition: "Excellent",
-                is_ai_verified: true,
-                status: "ACTIVE",
-                seller: mockQueue[idx].shop,
-              });
-            });
-            localStorage.setItem("mock_products", JSON.stringify(mockProducts));
-          }
-        }
-      } catch {}
-      return { data: { success: true }, status: 200 };
-    }
+    return await request(
+      `/sellers/verification/${id}`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ status: "APPROVED", admin_notes: notes }),
+      },
+      { success: true }
+    );
   },
 
   async rejectKyc(id: number | string, notes: string = "Rejected by admin") {
-    try {
-      return await request(
-        `/sellers/verification/${id}`,
-        {
-          method: "PUT",
-          body: JSON.stringify({ status: "REJECTED", admin_notes: notes }),
-        },
-        { success: true }
-      );
-    } catch {
-      // Offline fallback: Update local storage
-      try {
-        const mockQueue = JSON.parse(localStorage.getItem("mock_kyc_queue") || "[]");
-        const idx = mockQueue.findIndex((q: any) => q.id === id || q.id === `LOCAL-${id}` || q.id === `KYC-${id}`);
-        if (idx !== -1) {
-          mockQueue[idx].status = "REJECTED";
-          localStorage.setItem("mock_kyc_queue", JSON.stringify(mockQueue));
-        }
-      } catch {}
-      return { data: { success: true }, status: 200 };
-    }
+    return await request(
+      `/sellers/verification/${id}`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ status: "REJECTED", admin_notes: notes }),
+      },
+      { success: true }
+    );
   },
 
   async getCatalog() {
-    const fallbackCatalog = [
-      { id: 101, title: "Nike Air Jordan 1 Retro", seller: "KicksCentral", price: "PKR 18,500", status: "Active", flagged: false },
-      { id: 102, title: "Supreme Box Logo Hoodie", seller: "HypeBeastPK", price: "PKR 24,000", status: "Flagged", flagged: true },
-    ];
-
-    try {
-      const res = await request<any[]>("/products/", {}, fallbackCatalog);
-      if (Array.isArray(res.data) && res.data.length > 0) {
-        const catalog = res.data.map((p, i) => ({
-          id: typeof p.id === "number" ? p.id : i + 101,
-          title: p.name || "Apparel Item",
-          seller: p.seller || "Thrift Seller",
-          price: `PKR ${p.price || 5000}`,
-          status: p.status === "ACTIVE" || p.status === "Active" ? "Active" : "Flagged",
-          flagged: p.status === "FLAGGED",
-        }));
-        return { data: catalog, status: res.status };
-      }
-    } catch {
-      // Fallback
+    const res = await request<any[]>("/products/");
+    let catalog: any[] = [];
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      catalog = res.data.map((p, i) => ({
+        id: typeof p.id === "number" ? p.id : i + 101,
+        title: p.name || "Apparel Item",
+        seller: p.seller || "Thrift Seller",
+        price: `PKR ${p.price || 5000}`,
+        status: p.status === "ACTIVE" || p.status === "Active" ? "Active" : "Flagged",
+        flagged: p.status === "FLAGGED",
+      }));
     }
-
-    return { data: fallbackCatalog, status: 200 };
+    return { data: catalog, status: res.status };
   },
 
   async getTickets() {
-    const fallbackTickets = [
-      { id: "DIS-8902", order: "ORD-5432", buyer: "Ali M.", seller: "VintageVault", item: "Nike Dunk Low Panda", amount: 12500, reason: "Item not as described (Condition)", status: "OPEN", opened: "2h ago" },
-      { id: "DIS-8895", order: "ORD-5211", buyer: "Sarah K.", seller: "KicksCentral", item: "Carhartt WIP Detroit Jacket", amount: 8900, reason: "Never received item", status: "OPEN", opened: "1d ago" },
-    ];
-
-    try {
-      const res = await request<any[]>("/admin/tickets", {}, fallbackTickets);
-      if (Array.isArray(res.data) && res.data.length > 0) {
-        const tickets = res.data.map(t => ({
-          id: `DIS-${t.id.substring(0, 4)}`,
-          realId: t.id,
-          order: `ORD-${t.order_id ? t.order_id.substring(0, 4) : "0000"}`,
-          buyer: "Buyer",
-          seller: "Seller",
-          item: t.subject || "Support Ticket",
-          amount: 0,
-          reason: t.description || "No description provided",
-          status: (t.status || "OPEN").toUpperCase(),
-          opened: new Date(t.created_at).toLocaleDateString(),
-        }));
-        return { data: tickets, status: res.status };
-      }
-    } catch {
-      // Fallback
+    const res = await request<any[]>("/admin/tickets");
+    let tickets: any[] = [];
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      tickets = res.data.map(t => ({
+        id: `DIS-${t.id.substring(0, 4)}`,
+        realId: t.id,
+        order: `ORD-${t.order_id ? t.order_id.substring(0, 4) : "0000"}`,
+        buyer: "Buyer",
+        seller: "Seller",
+        item: t.subject || "Support Ticket",
+        amount: 0,
+        reason: t.description || "No description provided",
+        status: (t.status || "OPEN").toUpperCase(),
+        opened: new Date(t.created_at).toLocaleDateString(),
+      }));
     }
-
-    return { data: fallbackTickets, status: 200 };
+    return { data: tickets, status: res.status };
   },
 
   async updateTicketStatus(ticketId: string, status: string, notes: string = "") {
-    try {
-      return await request(
-        `/admin/tickets/${ticketId}`,
-        {
-          method: "PUT",
-          body: JSON.stringify({ status, resolution_notes: notes }),
-        },
-        { success: true }
-      );
-    } catch {
-      return { data: { success: true }, status: 200 };
-    }
+    return await request(
+      `/admin/tickets/${ticketId}`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ status, resolution_notes: notes }),
+      },
+      { success: true }
+    );
   },
 
   async getOrders() {
-    const fallbackOrders = [
-      { id: "ORD-9999", buyer: "System", seller: "System", item: "Fallback Item", amount: 0, escrow: "LOCKED", status: "PROCESSING", date: "Today" }
-    ];
-
-    try {
-      const res = await request<any[]>("/admin/orders");
-      if (Array.isArray(res.data) && res.data.length > 0) {
-        const orders = res.data.map(o => ({
-          id: `ORD-${String(o.id).substring(0, 4).toUpperCase()}`,
-          realId: o.id,
-          buyer: o.buyer_id || "Buyer",
-          seller: o.seller_id || "Seller",
-          item: o.product_id || "Item", // We could fetch product details, but for now ID
-          amount: o.total_amount || 0,
-          escrow: o.status === "FUNDS_IN_ESCROW" || o.status === "SHIPPED" || o.status === "DELIVERED" ? "LOCKED" : o.status === "COMPLETED_PAYOUT" ? "RELEASED" : "PENDING",
-          status: o.status || "PROCESSING",
-          date: new Date(o.created_at).toLocaleDateString(),
-        }));
-        return { data: orders, status: res.status };
-      }
-    } catch {
-      // Fallback
+    const res = await request<any[]>("/admin/orders");
+    let orders: any[] = [];
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      orders = res.data.map(o => ({
+        id: `ORD-${String(o.id).substring(0, 4).toUpperCase()}`,
+        realId: o.id,
+        buyer: o.buyer_id || "Buyer",
+        seller: o.seller_id || "Seller",
+        item: o.product_id || "Item",
+        amount: o.total_amount || 0,
+        escrow: o.status === "FUNDS_IN_ESCROW" || o.status === "SHIPPED" || o.status === "DELIVERED" ? "LOCKED" : o.status === "COMPLETED_PAYOUT" ? "RELEASED" : "PENDING",
+        status: o.status || "PROCESSING",
+        date: new Date(o.created_at).toLocaleDateString(),
+      }));
     }
-
-    return { data: fallbackOrders, status: 200 };
+    return { data: orders, status: res.status };
   }
 };

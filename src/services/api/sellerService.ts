@@ -4,43 +4,21 @@ import { mockSellerListings } from "../mockData";
 
 export const sellerService = {
   async getSellerListings(): Promise<ApiResponse<SellerListing[]>> {
-    try {
-      const res = await request<any[]>("/products/?include_deleted=true");
-      let listings: SellerListing[] = [];
-      if (Array.isArray(res.data) && res.data.length > 0) {
-        listings = res.data.map((p, i) => ({
-          id: typeof p.id === "number" ? p.id : (p.id || i + 1),
-          name: p.name || "Apparel Item",
-          price: p.price || 2000,
-          views: p.views || Math.floor(Math.random() * 200) + 10,
-          likes: p.likes || Math.floor(Math.random() * 50),
-          category: p.category || "Men",
-          status: p.deleted_at ? "Trashed" : (p.status || (p.is_ai_verified ? "Active" : "Pending")),
-          img: p.image_url || p.img || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800",
-        }));
-        return { data: listings, status: res.status };
-      }
-      return { data: [], status: 200 };
-    } catch (err) {
-      console.warn("Backend failed, checking local mock_products...", err);
-      // Offline fallback: Use local mock_products only
-      try {
-        const mockProducts = JSON.parse(localStorage.getItem("mock_products") || "[]");
-        const listings = mockProducts.map((p: any, i: number) => ({
-          id: typeof p.id === "number" ? p.id : (p.id || i + 1),
-          name: p.name || "Apparel Item",
-          price: p.price || 2000,
-          views: Math.floor(Math.random() * 200) + 10,
-          likes: Math.floor(Math.random() * 50),
-          category: p.category || "Men",
-          status: p.status || "Active",
-          img: p.image_url || p.img || p.images?.[0] || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800",
-        }));
-        return { data: listings, status: 200 };
-      } catch (e) {
-        return { data: [], status: 500 };
-      }
+    const res = await request<any[]>("/products/?include_deleted=true");
+    let listings: SellerListing[] = [];
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      listings = res.data.map((p, i) => ({
+        id: typeof p.id === "number" ? p.id : (p.id || i + 1),
+        name: p.name || "Apparel Item",
+        price: p.price || 2000,
+        views: p.views || Math.floor(Math.random() * 200) + 10,
+        likes: p.likes || Math.floor(Math.random() * 50),
+        category: p.category || "Men",
+        status: p.deleted_at ? "Trashed" : (p.status || (p.is_ai_verified ? "Active" : "Pending")),
+        img: p.image_url || p.img || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800",
+      }));
     }
+    return { data: listings, status: res.status };
   },
 
   async createListing(listing: Partial<SellerListing>): Promise<ApiResponse<any>> {
@@ -59,82 +37,35 @@ export const sellerService = {
       tags: [],
     };
 
-    let resData: any = null;
-    let resStatus = 201;
+    const res = await request<any>("/products/", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
 
-    try {
-      const res = await request<any>("/products/", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-      resData = res.data;
-      resStatus = res.status;
-    } catch (err) {
-      console.warn("Backend rejected createListing (likely offline/unverified), using offline fallback", err);
-      // Fallback: Add to mock_products so it appears in the UI
-      resData = { ...payload, id: `mock-prod-${Date.now()}` };
-      resStatus = 201;
-      try {
-        const mockProducts = JSON.parse(localStorage.getItem("mock_products") || "[]");
-        mockProducts.push({
-          id: resData.id,
-          name: payload.name,
-          description: payload.description,
-          price: payload.price,
-          original_price: payload.original_price,
-          category: payload.category,
-          department: payload.department,
-          sizes: payload.size,
-          brand: payload.brand,
-          condition: payload.condition,
-          image_url: payload.image_url,
-          images: payload.images,
-          is_ai_verified: true,
-          seller_id: 999, // mock seller id
-        });
-        localStorage.setItem("mock_products", JSON.stringify(mockProducts));
-      } catch (e) {
-        console.error("Failed to save mock product", e);
-      }
-    }
-
+    const resData = res.data;
     return {
       data: {
-        id: resData?.id || Date.now(),
-        name: resData?.name || listing.name,
-        price: resData?.price || listing.price,
+        id: resData?.id,
+        name: resData?.name,
+        price: resData?.price,
         views: 0,
         likes: 0,
-        category: resData?.category || listing.category,
-        status: "Active",
-        img: resData?.image_url || listing.img,
+        category: resData?.category,
+        status: resData?.is_ai_verified ? "Active" : "Pending",
+        img: resData?.image_url,
       },
-      status: resStatus,
+      status: res.status,
     };
   },
 
   async deleteListing(id: string | number): Promise<ApiResponse<{ success: boolean }>> {
-    try {
-      const res = await request<{ success: boolean }>(`/products/${id}`, { method: "DELETE" });
-      return { data: { success: true }, status: res.status };
-    } catch {
-      const mockProducts = JSON.parse(localStorage.getItem("mock_products") || "[]");
-      const updated = mockProducts.map((p: any) => p.id === id ? { ...p, status: "Trashed" } : p);
-      localStorage.setItem("mock_products", JSON.stringify(updated));
-      return { data: { success: true }, status: 200 };
-    }
+    const res = await request<{ success: boolean }>(`/products/${id}`, { method: "DELETE" });
+    return { data: { success: true }, status: res.status };
   },
 
   async restoreListing(id: string | number): Promise<ApiResponse<{ success: boolean }>> {
-    try {
-      const res = await request<{ success: boolean }>(`/products/${id}/restore`, { method: "POST" });
-      return { data: { success: true }, status: res.status };
-    } catch {
-      const mockProducts = JSON.parse(localStorage.getItem("mock_products") || "[]");
-      const updated = mockProducts.map((p: any) => p.id === id ? { ...p, status: "Active" } : p);
-      localStorage.setItem("mock_products", JSON.stringify(updated));
-      return { data: { success: true }, status: 200 };
-    }
+    const res = await request<{ success: boolean }>(`/products/${id}/restore`, { method: "POST" });
+    return { data: { success: true }, status: res.status };
   },
 
   /**
@@ -152,102 +83,33 @@ export const sellerService = {
     shop_photo_urls?: string[];
     business_reg_url?: string;
   }): Promise<ApiResponse<{ status: "pending" | "verified" | "approved" }>> {
-    // ── Always save to localStorage FIRST so Admin portal works offline ──
-    try {
-      const mockQueue = JSON.parse(localStorage.getItem("mock_kyc_queue") || "[]");
-      mockQueue.push({
-        id: `KYC-${Math.floor(1000 + Math.random() * 9000)}`,
-        shop: payload.business_name,
-        type: payload.business_type,
-        cnic: payload.cnic_number || "35202-0000000-1",
-        phone: payload.phone_number,
-        city: payload.city,
-        address: payload.address,
-        submitted: new Date().toLocaleString("en-PK"),
-        revenue: "PKR 0",
-        status: "PENDING",
-        cnicFront: payload.cnic_front_url,
-        cnicBack: payload.cnic_back_url,
-        aiVerified: (payload as any).ai_verified || false,
-        productsProof: (payload as any).products_proof || [],
-      });
-      localStorage.setItem("mock_kyc_queue", JSON.stringify(mockQueue));
-    } catch (err) {
-      console.warn("Failed to update mock KYC queue", err);
-    }
-
-    // ── Then attempt the real API call ──
-    try {
-      const res = await request<any>(
-        "/sellers/verify",
-        {
-          method: "POST",
-          body: JSON.stringify(payload),
-        }
-      );
-      const statusVal = res.data?.status?.toLowerCase() === "approved" ? "verified" : "pending";
-      return { data: { status: statusVal }, status: res.status };
-    } catch {
-      // Backend offline — return a mock "pending" response so the UI still works
-      return { data: { status: "pending" }, status: 201 };
-    }
+    const res = await request<any>(
+      "/sellers/verify",
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }
+    );
+    const statusVal = res.data?.status?.toLowerCase() === "approved" ? "verified" : "pending";
+    return { data: { status: statusVal }, status: res.status };
   },
 
   /**
    * Get the seller's current verification status including rate-limit info.
    */
   async getVerificationStatus(): Promise<ApiResponse<SellerVerificationStatusResponse>> {
-    const fallback: SellerVerificationStatusResponse = {
-      verification_status: "UNVERIFIED",
-      is_verified: false,
-      submissions_today: 0,
-      max_submissions_per_day: 3,
-      can_submit: true,
-      freeze_until: null,
-      latest_request: null,
+    const res = await request<any>("/sellers/verification/me");
+    return {
+      data: {
+        verification_status: res.data?.verification_status || "UNVERIFIED",
+        is_verified: res.data?.is_verified || false,
+        submissions_today: res.data?.submissions_today ?? 0,
+        max_submissions_per_day: res.data?.max_submissions_per_day ?? 3,
+        can_submit: res.data?.can_submit ?? true,
+        freeze_until: res.data?.freeze_until || null,
+        latest_request: res.data?.latest_request || null,
+      },
+      status: res.status,
     };
-
-    try {
-      const res = await request<any>("/sellers/verification/me");
-      return {
-        data: {
-          verification_status: res.data?.verification_status || "UNVERIFIED",
-          is_verified: res.data?.is_verified || false,
-          submissions_today: res.data?.submissions_today ?? 0,
-          max_submissions_per_day: res.data?.max_submissions_per_day ?? 3,
-          can_submit: res.data?.can_submit ?? true,
-          freeze_until: res.data?.freeze_until || null,
-          latest_request: res.data?.latest_request || null,
-        },
-        status: res.status,
-      };
-    } catch {
-      // ── Offline Fallback: Check local storage for mock status ──
-      try {
-        const mockQueue = JSON.parse(localStorage.getItem("mock_kyc_queue") || "[]");
-        if (mockQueue.length > 0) {
-          const latest = mockQueue[mockQueue.length - 1]; // Assume last submitted is the active one
-          const st = latest.status.toUpperCase();
-          let vStatus = "UNVERIFIED";
-          let isVer = false;
-          
-          if (st === "APPROVED") {
-            vStatus = "VERIFIED";
-            isVer = true;
-          } else if (st === "PENDING" || st === "UNDER_REVIEW") {
-            vStatus = "PENDING";
-          } else if (st === "REJECTED") {
-            vStatus = "REJECTED";
-          }
-
-          fallback.verification_status = vStatus as any;
-          fallback.is_verified = isVer;
-          fallback.submissions_today = mockQueue.length;
-          fallback.latest_request = latest;
-        }
-      } catch {}
-      
-      return { data: fallback, status: 200 };
-    }
   },
 };

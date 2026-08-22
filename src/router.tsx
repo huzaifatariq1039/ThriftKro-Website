@@ -14,6 +14,7 @@ const CareersPage = lazy(() => import("@/features/public-pages/pages/CareersPage
 const PressPage = lazy(() => import("@/features/public-pages/pages/PressPage"));
 const SellerGuidePage = lazy(() => import("@/features/public-pages/pages/SellerGuidePage"));
 const BlogPage = lazy(() => import("@/features/public-pages/pages/BlogPage"));
+const GenericPage = lazy(() => import("@/features/public-pages/pages/GenericPage"));
 
 const BuyerHome = lazy(() => import("@/features/buyer/pages/BuyerHome"));
 const BuyerProduct = lazy(() => import("@/features/buyer/pages/BuyerProduct"));
@@ -139,6 +140,12 @@ export const AppRoutes: React.FC = () => {
         <Route path="/press" element={<WebApp><PressPage s={store} /></WebApp>} />
         <Route path="/seller-guide" element={<WebApp><SellerGuidePage s={store} /></WebApp>} />
         <Route path="/blog" element={<WebApp><BlogPage s={store} /></WebApp>} />
+        <Route path="/about-us" element={<WebApp><GenericPage s={store} title="About Us" /></WebApp>} />
+        <Route path="/privacy-policy" element={<WebApp><GenericPage s={store} title="Privacy Policy" /></WebApp>} />
+        <Route path="/terms-of-service" element={<WebApp><GenericPage s={store} title="Terms of Service" /></WebApp>} />
+        <Route path="/buyer-protection" element={<WebApp><GenericPage s={store} title="Buyer Protection" /></WebApp>} />
+        <Route path="/authentication" element={<WebApp><GenericPage s={store} title="Authentication" /></WebApp>} />
+        <Route path="/contact" element={<WebApp><GenericPage s={store} title="Contact" /></WebApp>} />
 
         {/* Buyer Routes */}
         <Route path="/buyer/home" element={<WebApp><BuyerHome s={store} /></WebApp>} />

@@ -91,6 +91,34 @@ export const authService = {
     return { data: { email, role, token }, status: 200 };
   },
 
+  async googleAuth(googleToken: string, role: Role): Promise<{ access_token: string, user: User }> {
+    const res = await request<any>("/auth/google", {
+      method: "POST",
+      body: JSON.stringify({
+        id_token: googleToken,
+        role: role.toUpperCase(),
+      }),
+    });
+    
+    const token = res.data.access_token;
+    if (token) {
+      saveSession(token);
+    }
+    
+    // Fetch user profile
+    const userRes = await request<any>("/users/me");
+    const user: User = {
+      id: String(userRes.data.id),
+      name: userRes.data.full_name,
+      email: userRes.data.email,
+      role: (userRes.data.role?.toLowerCase() as Role) || role,
+      avatar: userRes.data.avatar_url || null,
+    };
+    saveSession(token, user);
+    
+    return { access_token: token, user };
+  },
+
   async signup(email: string, pass: string, fullName: string, role: Role = "buyer"): Promise<ApiResponse<UserSession>> {
     await request(
       "/auth/register",

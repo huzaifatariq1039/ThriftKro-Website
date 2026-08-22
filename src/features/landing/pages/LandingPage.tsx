@@ -224,6 +224,12 @@ export default function LandingPage({ s, onAdminClick }: { s: Store; onAdminClic
                     else if (l === "Press") s.setRoute("press");
                     else if (l === "Seller Guide") s.setRoute("seller-guide");
                     else if (l === "Blog") s.setRoute("blog");
+                    else if (l === "About Us") s.setRoute("about-us");
+                    else if (l === "Privacy Policy") s.setRoute("privacy-policy");
+                    else if (l === "Terms of Service") s.setRoute("terms-of-service");
+                    else if (l === "Buyer Protection") s.setRoute("buyer-protection");
+                    else if (l === "Authentication") s.setRoute("authentication");
+                    else if (l === "Contact") s.setRoute("contact");
                     else if (l === "Discover") s.setRoute("buyer-home");
                     else s.setRoute("landing");
                   }}>{l}</p>

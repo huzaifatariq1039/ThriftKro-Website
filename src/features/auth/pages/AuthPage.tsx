@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useGoogleLogin } from "@react-oauth/google";
 import { ArrowRight, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import { ORANGE, INK, PAPER, FONT, MONO } from "@/constants/theme";
@@ -57,6 +58,22 @@ export default function AuthPage({ s, forRole }: { s: Store; forRole: "buyer" | 
       setLoading(false);
     }
   };
+
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setLoading(true);
+      setError("");
+      try {
+        await s.googleAuth(tokenResponse.access_token, forRole);
+      } catch (err: any) {
+        setError(err.message || "Google authentication failed.");
+        setLoading(false);
+      }
+    },
+    onError: () => {
+      setError("Google authentication was cancelled or failed.");
+    },
+  });
 
   return (
     <div className="min-h-screen grid md:grid-cols-2" style={{ fontFamily: FONT }}>
@@ -181,7 +198,7 @@ export default function AuthPage({ s, forRole }: { s: Store; forRole: "buyer" | 
           </div>
 
           <button
-            onClick={submit}
+            onClick={() => googleLogin()}
             disabled={loading}
             className="w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 bg-white"
             style={{ boxShadow: "0 0 0 1px rgba(26,17,8,0.12)", color: INK }}
