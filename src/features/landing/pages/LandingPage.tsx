@@ -29,19 +29,7 @@ export default function LandingPage({ s, onAdminClick }: { s: Store; onAdminClic
     }
   };
 
-  useEffect(() => {
-    let isMounted = true;
-    productService.getProducts()
-      .then(res => {
-        if (isMounted && res.data && res.data.length > 0) {
-          setProductList(res.data);
-        }
-      })
-      .catch(err => {
-        console.warn("Could not load landing products:", err);
-      });
-    return () => { isMounted = false; };
-  }, []);
+
 
   return (
     <div className="min-h-screen" style={{ background: PAPER, fontFamily: FONT }}>
