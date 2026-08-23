@@ -7,4 +7,4 @@ export { Toast } from "./Toast";
 export { RoleSwitchModal } from "./RoleSwitchModal";
 export { SuccessModal } from "./SuccessModal";
 export { SecurityFlowModal } from "./SecurityFlowModal";
-export { PageLoader } from "./PageLoader";
+export { PageLoader, SectionLoader } from "./PageLoader";

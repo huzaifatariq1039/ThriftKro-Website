@@ -6,6 +6,7 @@ import type { Store } from "@/hooks/useStore";
 import { BuyerNav } from "../components/BuyerNav";
 import { buyerService } from "@/services/api/buyerService";
 import { BuyerOrder } from "@/types/types";
+import { SectionLoader } from "@/components/ui";
 
 function SubPage({ s, title, back, children }: { s: Store; title: string; back: any; children: React.ReactNode }) {
   return (
@@ -47,7 +48,7 @@ export default function BuyerOrders({ s }: { s: Store }) {
   return (
     <SubPage s={s} title="My Orders" back="buyer-profile">
       {loading ? (
-        <div className="text-center py-16 text-sm text-gray-500 font-bold">Loading your orders...</div>
+        <SectionLoader text="Loading your orders..." />
       ) : orders.length === 0 ? (
         <div className="text-center py-16">
           <PackageCheck size={40} className="mx-auto mb-3 text-gray-300" />

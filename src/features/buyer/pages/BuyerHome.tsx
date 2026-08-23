@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ORANGE, YELLOW, INK, PAPER, FONT } from "@/constants/theme";
 import { mockCategories as categories } from "@/services/mockData";
 import type { Store } from "@/hooks/useStore";
-import { Label } from "@/components/ui";
+import { Label, SectionLoader } from "@/components/ui";
 import { BuyerNav, ProductCard } from "../components/BuyerNav";
 import { productService } from "@/services/api/productService";
 import { Product } from "@/types/types";
@@ -56,7 +56,7 @@ export default function BuyerHome({ s }: { s: Store }) {
           <Label>{filtered.length} items</Label>
         </div>
         {loading ? (
-          <div className="text-center py-16 text-sm text-gray-500 font-bold">Loading live catalog...</div>
+          <SectionLoader text="Loading live catalog..." />
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {filtered.map(p => <ProductCard key={p.id} p={p} s={s} />)}

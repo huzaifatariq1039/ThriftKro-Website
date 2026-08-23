@@ -39,7 +39,12 @@ export default function LandingPage({ s, onAdminClick }: { s: Store; onAdminClic
           {["Discover", "Try Kro", "Sell", "About"].map(x => (
             <span 
               key={x} 
-              onClick={handleNav} 
+              onClick={() => {
+                if (x === "Discover") s.setRoute("buyer-home");
+                else if (x === "Try Kro") s.setRoute("buyer-vto");
+                else if (x === "About") s.setRoute("about-us");
+                else if (x === "Sell") handleNav(); // Keep the auth logic for Sell
+              }}
               className="text-sm font-semibold cursor-pointer hover:opacity-60" 
               style={{ color: INK }}
             >

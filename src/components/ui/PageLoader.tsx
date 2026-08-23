@@ -10,3 +10,14 @@ export function PageLoader() {
     </div>
   );
 }
+
+export function SectionLoader({ text = "Loading…" }: { text?: string }) {
+  return (
+    <div className="w-full flex flex-col items-center justify-center py-16" style={{ fontFamily: FONT }}>
+      <div className="w-8 h-8 rounded-full border-3 border-t-transparent animate-spin" style={{ borderColor: `${ORANGE}30`, borderTopColor: ORANGE }} />
+      <p className="mt-4 text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(26,17,8,0.4)", fontFamily: MONO }}>
+        {text}
+      </p>
+    </div>
+  );
+}

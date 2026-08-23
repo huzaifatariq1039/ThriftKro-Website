@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
 import { useAuth } from "../contexts/AuthContext";
 import { Route } from "../types/types";
+import { authService } from "../services/api/authService";
 
 // Route path mapping helper
 export const routeToPath: Record<Route, string> = {
@@ -84,8 +85,7 @@ export function useStore() {
   };
 
   const signupWithCredentials = async (email: string, pass: string, fullName: string, forRole: "buyer" | "seller") => {
-    const { authAPI } = await import("../services/api");
-    await authAPI.signup({ email, name: fullName, role: forRole, password: pass });
+    await authService.signup(email, pass, fullName, forRole);
     await auth.login(email, pass, forRole);
     if (forRole === "seller") {
       // New seller — ensure verification state is 'unverified' so the wizard shows
@@ -118,8 +118,7 @@ export function useStore() {
   };
 
   const googleAuth = async (token: string, forRole: "buyer" | "seller") => {
-    const { authAPI } = await import("../services/api");
-    const { access_token } = await authAPI.googleAuth(token, forRole);
+    const { access_token } = await authService.googleAuth(token, forRole);
     // Directly authenticate using the returned token
     auth.loginWithToken(access_token, forRole);
     if (forRole === "seller") {

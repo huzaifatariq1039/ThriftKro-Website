@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, Role } from "../types/types";
 import { authAPI } from "../services/api";
 import { useAppStore } from "@/store/useAppStore";
+import { toast } from "sonner";
 
 type AuthContextType = {
   user: User | null;
@@ -62,13 +63,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = async (email: string, pass: string, forRole: "buyer" | "seller") => {
-    const res = await authAPI.login(email, pass, forRole);
-    setUser(res.user);
-    setToken(res.token);
-    setRoleState(forRole);
-    setUnlockedRoles(prev => new Set([...prev, forRole]));
-    useAppStore.getState().syncProfile();
-    // Token & user are already saved by authService based on Remember Me preference
+    try {
+      const res = await authAPI.login(email, pass, forRole);
+      setUser(res.user);
+      setToken(res.token);
+      setRoleState(forRole);
+      setUnlockedRoles(prev => new Set([...prev, forRole]));
+      useAppStore.getState().syncProfile();
+      toast.success(`Successfully logged in as ${forRole}`);
+    } catch (error) {
+      toast.error("Login failed. Please check your credentials.");
+      throw error;
+    }
   };
 
   const loginWithToken = (tokenStr: string, forRole: Role) => {
@@ -83,19 +89,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signupSeller = async () => {
-    const res = await authAPI.signup({ email: "seller@thriftkro.pk", name: "New Seller", role: "seller" });
-    setUser(res.user);
-    setToken(res.token);
-    setRoleState("seller");
-    setUnlockedRoles(prev => new Set([...prev, "seller"]));
+    try {
+      const res = await authAPI.signup({ email: "seller@thriftkro.pk", name: "New Seller", role: "seller" });
+      setUser(res.user);
+      setToken(res.token);
+      setRoleState("seller");
+      setUnlockedRoles(prev => new Set([...prev, "seller"]));
+      toast.success("Seller account created successfully!");
+    } catch (error) {
+      toast.error("Signup failed.");
+      throw error;
+    }
   };
 
   const adminLogin = async (email: string, pass: string) => {
-    const res = await authAPI.adminLogin(email, pass);
-    setUser(res.user);
-    setToken(res.token);
-    setRoleState("admin");
-    setUnlockedRoles(prev => new Set([...prev, "admin"]));
+    try {
+      const res = await authAPI.adminLogin(email, pass);
+      setUser(res.user);
+      setToken(res.token);
+      setRoleState("admin");
+      setUnlockedRoles(prev => new Set([...prev, "admin"]));
+      toast.success("Admin login successful");
+    } catch (error) {
+      toast.error("Admin login failed.");
+      throw error;
+    }
   };
 
   const logout = () => {
@@ -104,6 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
     setRoleState(null);
     setUnlockedRoles(new Set());
+    toast.success("Logged out successfully");
   };
 
   const requestRoleSwitch = (target: "buyer" | "seller") => {
