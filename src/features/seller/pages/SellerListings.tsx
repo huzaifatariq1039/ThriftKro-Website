@@ -5,7 +5,7 @@ import { ORANGE, INK, pk } from "@/constants/theme";
 import type { Store } from "@/hooks/useStore";
 import { Label } from "@/components/ui";
 import { SellerShell } from "../components/SellerShell";
-import { sellerService } from "@/services/api/sellerService";
+import { productService } from "@/services/api/productService";
 import { SellerListing } from "@/types/types";
 
 export default function SellerListings({ s }: { s: Store }) {
@@ -15,9 +15,9 @@ export default function SellerListings({ s }: { s: Store }) {
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
-    sellerService.getSellerListings()
+    productService.getSellerListings()
       .then(res => {
-        if (isMounted && res.data && res.data.length > 0) {
+        if (isMounted && res.data) {
           setListings(res.data);
           s.setSellerListings(res.data);
         }
@@ -33,26 +33,26 @@ export default function SellerListings({ s }: { s: Store }) {
 
   const [tab, setTab] = useState<"active" | "trash">("active");
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string | number) => {
     try {
-      await sellerService.deleteListing(id);
-    } catch (err) {
-      console.warn("Delete API call error:", err);
+      await productService.deleteListing(id);
+      setListings(prev => prev.map(x => x.id === id ? { ...x, status: "Trashed" } : x));
+      s.setSellerListings(prev => prev.map(x => x.id === id ? { ...x, status: "Trashed" } : x));
+      s.showToast("Listing moved to Trash");
+    } catch (err: any) {
+      s.showToast(err?.message || "Could not move this listing to Trash.");
     }
-    setListings(prev => prev.map(x => x.id === id ? { ...x, status: "Trashed" } : x));
-    s.setSellerListings(prev => prev.map(x => x.id === id ? { ...x, status: "Trashed" } : x));
-    s.showToast("Listing moved to Trash");
   };
 
-  const handleRestore = async (id: number) => {
+  const handleRestore = async (id: string | number) => {
     try {
-      await sellerService.restoreListing(id);
-    } catch (err) {
-      console.warn("Restore API call error:", err);
+      await productService.restoreListing(id);
+      setListings(prev => prev.map(x => x.id === id ? { ...x, status: "Active" } : x));
+      s.setSellerListings(prev => prev.map(x => x.id === id ? { ...x, status: "Active" } : x));
+      s.showToast("Listing restored");
+    } catch (err: any) {
+      s.showToast(err?.message || "Could not restore this listing.");
     }
-    setListings(prev => prev.map(x => x.id === id ? { ...x, status: "Active" } : x));
-    s.setSellerListings(prev => prev.map(x => x.id === id ? { ...x, status: "Active" } : x));
-    s.showToast("Listing restored");
   };
 
   const activeListings = listings.filter(x => x.status !== "Trashed");

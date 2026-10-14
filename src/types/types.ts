@@ -37,13 +37,13 @@ export type VtoShoe = {
 };
 
 export type SellerListing = {
-  id: number;
+  id: string | number;
   name: string;
   price: number;
   views: number;
   likes?: number;
   category?: string;
-  status: "Active" | "Pending";
+  status: "Active" | "Pending" | "Trashed" | "Out of Stock" | "Archived";
   img: string;
 };
 

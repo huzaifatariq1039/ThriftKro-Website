@@ -1,5 +1,31 @@
 import { request, ApiResponse } from "./apiClient";
-import { Product, ProductVariant } from "@/types/types";
+import { Product, ProductVariant, SellerListing } from "@/types/types";
+
+export interface CategoryDto {
+  id: string;
+  name: string;
+  slug: string;
+  parent_id: string | null;
+  is_active: boolean;
+}
+
+export interface CreateProductInput {
+  name: string;
+  description?: string;
+  price: number;
+  originalPrice?: number;
+  categoryId: string;
+  brand?: string;
+  condition: string;
+  imageFiles: File[];
+  variants: Array<{
+    sku?: string;
+    attributes: Record<string, string>;
+    priceAdjustment?: number;
+    quantityInStock: number;
+  }>;
+  tags?: string[];
+}
 
 function hashCode(str: string): number {
   let hash = 0;
@@ -63,6 +89,41 @@ export function mapBackendProduct(bp: any): Product {
   };
 }
 
+function mapSellerListing(product: any): SellerListing {
+  const images = Array.isArray(product.images) ? product.images : [];
+  const primaryImage = images.find((image: any) => image.is_primary) || images[0];
+  const categoryName = typeof product.category === "object" && product.category
+    ? product.category.name
+    : product.category;
+  let status: SellerListing["status"] = "Pending";
+  if (product.deleted_at) status = "Trashed";
+  else if (product.status === "AVAILABLE") status = "Active";
+  else if (product.status === "OUT_OF_STOCK") status = "Out of Stock";
+  else if (product.status === "ARCHIVED") status = "Archived";
+
+  return {
+    id: String(product.id),
+    name: product.name || "Untitled listing",
+    price: Number(product.price) || 0,
+    views: 0,
+    likes: 0,
+    category: categoryName || "Uncategorized",
+    status,
+    img: primaryImage?.image_url || "",
+  };
+}
+
+async function uploadProductImage(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const response = await request<{ url: string }>("/upload/image", {
+    method: "POST",
+    body: formData,
+  });
+  if (!response.data?.url) throw new Error("Image upload did not return a URL");
+  return response.data.url;
+}
+
 export const productService = {
   async getProducts(params: { category?: string; q?: string; sort_by?: string; min_price?: number; max_price?: number } = {}): Promise<ApiResponse<Product[]>> {
     const query = new URLSearchParams();
@@ -95,20 +156,54 @@ export const productService = {
     return this.getProducts({ q: query });
   },
 
-  async createProduct(productData: Partial<Product> & { image_url?: string; images?: string[]; description?: string }): Promise<ApiResponse<Product>> {
+  async getCategories(): Promise<ApiResponse<CategoryDto[]>> {
+    const response = await request<CategoryDto[]>("/categories/?flat=true");
+    return {
+      data: Array.isArray(response.data)
+        ? response.data.filter(category => category.is_active)
+        : [],
+      status: response.status,
+    };
+  },
+
+  async getSellerListings(): Promise<ApiResponse<SellerListing[]>> {
+    const response = await request<any[]>("/products/seller/me");
+    return {
+      data: Array.isArray(response.data) ? response.data.map(mapSellerListing) : [],
+      status: response.status,
+    };
+  },
+
+  async createProduct(productData: CreateProductInput): Promise<ApiResponse<Product>> {
+    if (productData.imageFiles.length === 0) {
+      throw new Error("At least one product image is required");
+    }
+    if (productData.variants.length === 0) {
+      throw new Error("At least one product variant is required");
+    }
+
+    const imageUrls = await Promise.all(productData.imageFiles.map(uploadProductImage));
     const payload = {
       name: productData.name,
-      description: productData.description || "Uploaded from Website Seller Dashboard",
+      description: productData.description || null,
       price: productData.price,
       original_price: productData.originalPrice,
-      category: productData.category || "Jackets",
-      department: "Men",
-      size: productData.size || "M",
-      brand: productData.brand || "Generic",
-      condition: productData.condition || "Good",
-      image_url: productData.img || productData.image_url || (productData.images && productData.images.length > 0 ? productData.images[0] : "https://example.com/img.jpg"),
-      images: productData.images || [],
-      tags: [],
+      category_id: productData.categoryId,
+      brand: productData.brand || null,
+      condition: productData.condition,
+      images: imageUrls.map((imageUrl, index) => ({
+        image_url: imageUrl,
+        is_primary: index === 0,
+        display_order: index,
+      })),
+      variants: productData.variants.map(variant => ({
+        sku: variant.sku || null,
+        attributes: variant.attributes,
+        price_adjustment: variant.priceAdjustment || 0,
+        quantity_in_stock: variant.quantityInStock,
+      })),
+      tags: [...new Set((productData.tags || []).map(tag => tag.trim()).filter(Boolean))],
+      is_ai_verified: false,
     };
 
     const res = await request<any>(
@@ -119,6 +214,14 @@ export const productService = {
       }
     );
     return { data: mapBackendProduct(res.data), status: res.status };
+  },
+
+  async deleteListing(id: string | number): Promise<ApiResponse<{ detail: string }>> {
+    return request<{ detail: string }>(`/products/${id}`, { method: "DELETE" });
+  },
+
+  async restoreListing(id: string | number): Promise<ApiResponse<{ detail: string }>> {
+    return request<{ detail: string }>(`/products/${id}/restore`, { method: "POST" });
   },
 
   async importProductsCsv(file: File): Promise<ApiResponse<{ success: boolean; message: string }>> {
