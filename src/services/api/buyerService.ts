@@ -8,6 +8,102 @@ export interface CheckoutResponse {
   seller_orders_count: number;
 }
 
+export interface CartItemDto {
+  id: string;
+  product_variant_id: string;
+  quantity: number;
+  line_total: number;
+  variant: {
+    id: string;
+    sku: string | null;
+    attributes: Record<string, unknown>;
+    price_adjustment: number;
+    quantity_in_stock: number;
+  } | null;
+  product: {
+    id: string;
+    name: string;
+    price: number;
+    brand: string | null;
+    primary_image_url: string | null;
+    seller_name: string | null;
+  } | null;
+}
+
+export interface CartSummaryDto {
+  items: CartItemDto[];
+  total_price: number;
+  total_items: number;
+}
+
+type SellerOrderDto = {
+  id: string;
+  seller_name?: string | null;
+  status: string;
+  items?: Array<{
+    id: string;
+    product_variant_id: string;
+    quantity: number;
+    price_at_purchase: number;
+    product_name?: string | null;
+    product_image?: string | null;
+    variant_attributes?: Record<string, unknown> | null;
+  }>;
+};
+
+type OrderDto = {
+  id: string;
+  total_amount: number;
+  created_at?: string | null;
+  overall_status?: string | null;
+  seller_orders?: SellerOrderDto[];
+};
+
+function toDisplayStatus(order: OrderDto): BuyerOrder["status"] {
+  const statuses = order.seller_orders?.map(sellerOrder => sellerOrder.status) || [];
+  const aggregate = order.overall_status;
+
+  if (aggregate === "DISPUTED" || statuses.includes("DISPUTED")) return "Disputed";
+  if (aggregate === "REFUNDED" || (statuses.length > 0 && statuses.every(status => status === "REFUNDED"))) return "Refunded";
+  if (aggregate === "CANCELLED" || (statuses.length > 0 && statuses.every(status => status === "CANCELLED"))) return "Cancelled";
+  if (["COMPLETED", "COMPLETED_PAYOUT", "DELIVERED"].includes(aggregate || "") ||
+      (statuses.length > 0 && statuses.every(status => ["COMPLETED", "COMPLETED_PAYOUT", "DELIVERED"].includes(status)))) {
+    return "Delivered";
+  }
+  if (aggregate === "SHIPPED" || statuses.includes("SHIPPED")) return "In Transit";
+  if (aggregate === "PENDING_PAYMENT" || (statuses.length > 0 && statuses.every(status => status === "PENDING_PAYMENT"))) return "Pending Payment";
+  return "Processing";
+}
+
+function mapOrder(order: OrderDto): BuyerOrder {
+  const items = (order.seller_orders || []).flatMap(sellerOrder =>
+    (sellerOrder.items || []).map(item => ({
+      id: item.id,
+      name: item.product_name || "Order item",
+      price: `PKR ${Number(item.price_at_purchase || 0).toLocaleString()}`,
+      quantity: item.quantity,
+      size: String(item.variant_attributes?.size || item.variant_attributes?.Size || "One Size"),
+      seller: sellerOrder.seller_name || "Seller",
+      img: item.product_image || "",
+    })),
+  );
+  const firstItem = items[0];
+
+  return {
+    id: order.id,
+    orderNo: `TK-${order.id.slice(0, 8).toUpperCase()}`,
+    date: order.created_at
+      ? new Date(order.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+      : "Date unavailable",
+    total: `PKR ${Number(order.total_amount || 0).toLocaleString()}`,
+    itemsCount: items.reduce((total, item) => total + item.quantity, 0),
+    status: toDisplayStatus(order),
+    items,
+    name: firstItem ? (items.length > 1 ? `${firstItem.name} + ${items.length - 1} more` : firstItem.name) : "Order",
+    img: firstItem?.img || "",
+  };
+}
+
 const CHECKOUT_IDEMPOTENCY_KEY = "thrift_kro_checkout_idempotency_key";
 
 function getOrCreateCheckoutKey(): string {
@@ -30,51 +126,35 @@ function clearCheckoutKey(key: string): void {
 
 export const buyerService = {
   async getOrders(): Promise<ApiResponse<BuyerOrder[]>> {
-    try {
-      const res = await request<any[]>("/orders/");
-      if (Array.isArray(res.data) && res.data.length > 0) {
-        const orders: BuyerOrder[] = res.data.map((o, idx) => ({
-          id: String(o.id ?? idx + 1),
-          orderNo: o.order_number || `TK-${10300 + idx}`,
-          date: o.created_at ? new Date(o.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Today",
-          total: o.total_amount ? `PKR ${o.total_amount.toLocaleString()}` : "PKR 0",
-          itemsCount: o.items_count || 1,
-          status: o.status === "DELIVERED" ? "Delivered" : o.status === "SHIPPED" ? "In Transit" : "Processing",
-          items: (o.items || []).map((item: any) => ({
-            name: item.name || "Thrifted Item",
-            price: item.price ? `PKR ${item.price}` : "PKR 0",
-            size: item.size || "M",
-            condition: item.condition || "Good",
-            seller: item.seller || "Thrift Shop",
-            img: item.img || item.image_url || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800",
-          })),
-        }));
-        return { data: orders, status: 200 };
-      }
-      return { data: [], status: 200 };
-    } catch (err) {
-      console.warn("Could not fetch orders from API:", err);
-      return { data: [], status: 500 };
-    }
+    const response = await request<OrderDto[]>("/orders/");
+    return {
+      data: Array.isArray(response.data) ? response.data.map(mapOrder) : [],
+      status: response.status,
+    };
   },
 
   // ── Cart ──
 
-  async getCart(): Promise<ApiResponse<{ items: any[]; total_price: number; total_items: number }>> {
-    try {
-      const res = await request<any>("/shopping/cart");
-      return { data: res.data, status: res.status };
-    } catch {
-      return { data: { items: [], total_price: 0, total_items: 0 }, status: 200 };
-    }
+  async getCart(): Promise<ApiResponse<CartSummaryDto>> {
+    return request<CartSummaryDto>("/shopping/cart");
   },
 
-  async addToCart(productId: string): Promise<ApiResponse<{ detail: string }>> {
-    return request<{ detail: string }>(`/shopping/cart/add/${productId}`, { method: "POST" });
+  async addToCart(productVariantId: string, quantity = 1): Promise<ApiResponse<{ detail: string }>> {
+    return request<{ detail: string }>("/shopping/cart/add", {
+      method: "POST",
+      body: JSON.stringify({ product_variant_id: productVariantId, quantity }),
+    });
   },
 
-  async removeFromCart(productId: string): Promise<ApiResponse<{ detail: string }>> {
-    return request<{ detail: string }>(`/shopping/cart/remove/${productId}`, { method: "DELETE" });
+  async removeFromCart(cartItemId: string): Promise<ApiResponse<{ detail: string }>> {
+    return request<{ detail: string }>(`/shopping/cart/remove/${cartItemId}`, { method: "DELETE" });
+  },
+
+  async updateCartItem(cartItemId: string, quantity: number): Promise<ApiResponse<{ detail: string }>> {
+    return request<{ detail: string }>(`/shopping/cart/item/${cartItemId}`, {
+      method: "PUT",
+      body: JSON.stringify({ quantity }),
+    });
   },
 
   async checkoutCart(shippingAddressId: string | null = null): Promise<ApiResponse<CheckoutResponse>> {
@@ -160,14 +240,4 @@ export const buyerService = {
     return { data: { balance: res.data?.balance || 0 }, status: res.status };
   },
 
-  async depositWallet(amount: number): Promise<ApiResponse<{ balance: number }>> {
-    const res = await request<any>(
-      "/wallet/deposit",
-      {
-        method: "POST",
-        body: JSON.stringify({ amount }),
-      }
-    );
-    return { data: { balance: res.data?.balance || 0 }, status: res.status };
-  },
 };

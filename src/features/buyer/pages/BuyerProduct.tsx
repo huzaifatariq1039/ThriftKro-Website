@@ -11,7 +11,13 @@ import { Product } from "@/types/types";
 
 export default function BuyerProduct({ s }: { s: Store }) {
   const p = s.selectedProduct;
-  const [size, setSize] = useState(p.size);
+  const defaultVariant = p.variants?.find(variant => variant.id === p.variantId) || p.variants?.[0];
+  const defaultSize = defaultVariant?.attributes.size || defaultVariant?.attributes.Size || p.size.split(",")[0].trim();
+  const variantSizes = p.variants
+    ?.map(variant => variant.attributes.size || variant.attributes.Size)
+    .filter((value): value is string => Boolean(value)) || [];
+  const sizeOptions = variantSizes.length > 0 ? variantSizes : [defaultSize];
+  const [size, setSize] = useState(defaultSize);
   const [qty, setQty] = useState(1);
   const liked = s.likedProducts.has(p.id);
   const [related, setRelated] = useState<Product[]>([]);
@@ -22,6 +28,22 @@ export default function BuyerProduct({ s }: { s: Store }) {
   const [newComment, setNewComment] = useState("");
   const [showWriteReview, setShowWriteReview] = useState(false);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+  const selectedVariant = p.variants?.find(variant => {
+    const variantSize = variant.attributes.size || variant.attributes.Size;
+    return variantSize === size;
+  }) || p.variants?.find(variant => variant.id === p.variantId) || p.variants?.[0];
+  const selectedProduct: Product = {
+    ...p,
+    variantId: selectedVariant?.id || p.variantId,
+    size,
+    price: p.price - (defaultVariant?.priceAdjustment || 0) + (selectedVariant?.priceAdjustment || 0),
+  };
+  const canPurchase = Boolean(selectedProduct.variantId && (selectedVariant?.quantityInStock ?? 1) > 0);
+
+  useEffect(() => {
+    setSize(defaultSize);
+    setQty(1);
+  }, [p.id, defaultSize]);
 
   // Fetch reviews from backend
   useEffect(() => {
@@ -84,7 +106,7 @@ export default function BuyerProduct({ s }: { s: Store }) {
             <div className="mt-6">
               <Label>Select size</Label>
               <div className="flex gap-2 mt-2">
-                {(p.size ? p.size.split(",").map(s => s.trim()).filter(Boolean) : ["One Size"]).map((sz, idx) => (
+                {sizeOptions.map((sz, idx) => (
                   <button key={idx} onClick={() => setSize(sz)} className="px-4 py-2.5 rounded-xl text-sm font-bold" style={{ background: size === sz ? INK : "white", color: size === sz ? "white" : INK, boxShadow: "0 0 0 1px rgba(26,17,8,0.1)" }}>{sz}</button>
                 ))}
               </div>
@@ -94,7 +116,7 @@ export default function BuyerProduct({ s }: { s: Store }) {
               <div className="flex items-center gap-3 rounded-full px-2 py-1 bg-white" style={{ boxShadow: "0 0 0 1px rgba(26,17,8,0.1)" }}>
                 <button onClick={() => setQty(q => Math.max(1, q - 1))} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "#F2EFE9" }}><Minus size={15} /></button>
                 <span className="font-bold w-5 text-center" style={{ fontFamily: MONO }}>{qty}</span>
-                <button onClick={() => setQty(q => q + 1)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "#F2EFE9" }}><Plus size={15} /></button>
+                <button onClick={() => setQty(q => Math.min(selectedVariant?.quantityInStock || 100, q + 1))} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "#F2EFE9" }}><Plus size={15} /></button>
               </div>
             </div>
             <div className="flex items-center gap-3 mt-6 p-4 rounded-2xl bg-white" style={{ boxShadow: "0 0 0 1px rgba(26,17,8,0.08)" }}>
@@ -104,8 +126,24 @@ export default function BuyerProduct({ s }: { s: Store }) {
             </div>
             <div className="flex gap-3 mt-6">
               <button onClick={() => { s.setActiveVtoItem(0); s.setRoute("buyer-vto"); }} className="py-4 px-5 rounded-xl font-extrabold flex items-center gap-2" style={{ background: YELLOW, color: INK }}><Camera size={18} /> Try Kro</button>
-              <button onClick={() => s.addToCart(p)} className="flex-1 py-4 rounded-xl font-extrabold bg-white hover:bg-gray-50" style={{ boxShadow: "0 0 0 1.5px rgba(26,17,8,0.15)", color: INK }}>Add to Cart</button>
-              <button onClick={() => { s.addToCart(p); s.setRoute("buyer-cart"); }} className="flex-1 py-4 rounded-xl font-extrabold text-white hover:opacity-90" style={{ background: ORANGE }}>Buy Now</button>
+              <button
+                disabled={!canPurchase}
+                onClick={() => void s.addToCart(selectedProduct, qty)}
+                className="flex-1 py-4 rounded-xl font-extrabold bg-white hover:bg-gray-50 disabled:opacity-50"
+                style={{ boxShadow: "0 0 0 1.5px rgba(26,17,8,0.15)", color: INK }}
+              >
+                {canPurchase ? "Add to Cart" : "Unavailable"}
+              </button>
+              <button
+                disabled={!canPurchase}
+                onClick={async () => {
+                  if (await s.addToCart(selectedProduct, qty)) s.setRoute("buyer-cart");
+                }}
+                className="flex-1 py-4 rounded-xl font-extrabold text-white hover:opacity-90 disabled:opacity-50"
+                style={{ background: ORANGE }}
+              >
+                Buy Now
+              </button>
             </div>
             <div className="flex items-center gap-2 mt-4 text-xs" style={{ color: "rgba(26,17,8,0.5)" }}><Truck size={14} /> Delivery in 2-3 days · <Shield size={14} /> 7-day buyer protection</div>
           </div>

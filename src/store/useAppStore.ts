@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import {
-  Product, VerifyStatus, Role, SecurityFlow, Address, Card, Device, BuyerOrder, SellerListing, Message,
+  Product, CartEntry, VerifyStatus, Role, SecurityFlow, Address, Card, Device, BuyerOrder, SellerListing, Message,
   SellerVerificationStatusResponse,
 } from "../types/types";
 import {
@@ -15,7 +15,7 @@ type AppState = {
   activeCategory: string;
   searchQuery: string;
   likedProducts: Set<string>;
-  cart: { item: Product; qty: number }[];
+  cart: CartEntry[];
   activeVtoItem: number;
 
   // Modals & UI Controls
@@ -61,9 +61,10 @@ type AppState = {
   setActiveCategory: (cat: string) => void;
   setSearchQuery: (q: string) => void;
   toggleLike: (id: string) => void;
-  addToCart: (p: Product) => void;
-  updateCartQty: (id: string, qty: number) => void;
-  removeFromCart: (id: string) => void;
+  addToCart: (p: Product, quantity?: number) => Promise<boolean>;
+  updateCartQty: (id: string, qty: number) => Promise<void>;
+  removeFromCart: (id: string) => Promise<void>;
+  syncCart: () => Promise<void>;
   setActiveVtoItem: (idx: number) => void;
 
   setShowRoleSwitch: (show: boolean) => void;
@@ -177,26 +178,80 @@ export const useAppStore = create<AppState>((set, get) => ({
     });
   },
 
-  addToCart: (p) => {
-    set(state => {
-      if (state.cart.find(i => i.item.id === p.id)) return state;
-      return { cart: [...state.cart, { item: p, qty: 1 }] };
+  syncCart: async () => {
+    const response = await buyerService.getCart();
+    const cart: CartEntry[] = response.data.items.flatMap(cartItem => {
+      if (!cartItem.product || !cartItem.variant) return [];
+      const attributes = Object.fromEntries(
+        Object.entries(cartItem.variant.attributes || {}).map(([key, value]) => [key, String(value)]),
+      );
+      const unitPrice = Number(cartItem.product.price) + Number(cartItem.variant.price_adjustment || 0);
+      return [{
+        cartItemId: cartItem.id,
+        qty: cartItem.quantity,
+        item: {
+          id: cartItem.product.id,
+          variantId: cartItem.product_variant_id,
+          name: cartItem.product.name,
+          brand: cartItem.product.brand || "Thrifted",
+          price: unitPrice,
+          originalPrice: unitPrice,
+          condition: "Not specified",
+          size: attributes.size || attributes.Size || "One Size",
+          seller: cartItem.product.seller_name || "Seller",
+          sellerRating: 0,
+          img: cartItem.product.primary_image_url || "",
+          category: "Uncategorized",
+          variants: [{
+            id: cartItem.variant.id,
+            sku: cartItem.variant.sku,
+            attributes,
+            priceAdjustment: Number(cartItem.variant.price_adjustment || 0),
+            quantityInStock: Number(cartItem.variant.quantity_in_stock || 0),
+          }],
+        },
+      }];
     });
-    get().showToast("Added to cart ✓");
-    // Sync with backend
-    buyerService.addToCart(p.id).catch(err => {
-      console.warn("Cart add API failed:", err);
-    });
+    set({ cart });
   },
 
-  updateCartQty: (id, qty) => set((s) => ({ cart: s.cart.map(x => (x.item.id === id ? { ...x, qty } : x)) })),
+  addToCart: async (p, quantity = 1) => {
+    if (!p.variantId) {
+      get().showToast("This product has no purchasable variant.");
+      return false;
+    }
 
-  removeFromCart: (id) => {
-    set(state => ({ cart: state.cart.filter(i => i.item.id !== id) }));
-    // Sync with backend
-    buyerService.removeFromCart(id).catch(err => {
-      console.warn("Cart remove API failed:", err);
-    });
+    try {
+      await buyerService.addToCart(p.variantId, quantity);
+      await get().syncCart();
+      get().showToast("Added to cart ✓");
+      return true;
+    } catch (err: any) {
+      get().showToast(err?.message || "Could not add this item to your cart.");
+      return false;
+    }
+  },
+
+  updateCartQty: async (id, qty) => {
+    const cartEntry = get().cart.find(entry => entry.item.id === id);
+    if (!cartEntry) return;
+    try {
+      await buyerService.updateCartItem(cartEntry.cartItemId, qty);
+      await get().syncCart();
+    } catch (err: any) {
+      get().showToast(err?.message || "Could not update the cart quantity.");
+    }
+  },
+
+  removeFromCart: async (id) => {
+    const cartEntry = get().cart.find(entry => entry.item.id === id);
+    if (!cartEntry) return;
+    try {
+      await buyerService.removeFromCart(cartEntry.cartItemId);
+      await get().syncCart();
+    } catch (err: any) {
+      get().showToast(err?.message || "Could not remove this cart item.");
+    }
   },
 
   setActiveVtoItem: (idx) => set({ activeVtoItem: idx }),

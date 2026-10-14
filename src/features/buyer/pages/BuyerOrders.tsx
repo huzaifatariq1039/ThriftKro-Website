@@ -43,7 +43,13 @@ export default function BuyerOrders({ s }: { s: Store }) {
     return () => { isMounted = false; };
   }, []);
 
-  const color = (st: string) => st === "Delivered" ? "#2E7D32" : st === "In Transit" ? ORANGE : "#8A7E72";
+  const color = (st: string) => {
+    if (st === "Delivered") return "#2E7D32";
+    if (st === "In Transit") return ORANGE;
+    if (st === "Cancelled" || st === "Refunded") return "#DC2626";
+    if (st === "Disputed") return "#7C3AED";
+    return "#8A7E72";
+  };
 
   return (
     <SubPage s={s} title="My Orders" back="buyer-profile">

@@ -1,5 +1,5 @@
 import { request, ApiResponse } from "./apiClient";
-import { Product } from "@/types/types";
+import { Product, ProductVariant } from "@/types/types";
 
 function hashCode(str: string): number {
   let hash = 0;
@@ -11,30 +11,64 @@ function hashCode(str: string): number {
   return Math.abs(hash);
 }
 
-function mapBackendProduct(bp: any): Product {
+function mapAttributes(attributes: unknown): Record<string, string> {
+  if (!attributes || typeof attributes !== "object" || Array.isArray(attributes)) return {};
+  return Object.fromEntries(
+    Object.entries(attributes).map(([key, value]) => [key, String(value)]),
+  );
+}
+
+export function mapBackendProduct(bp: any): Product {
   if (!bp) throw new Error("Product data is missing");
   if (typeof bp.originalPrice === "number" && bp.img) {
     return bp as Product;
   }
+
+  const variants: ProductVariant[] = Array.isArray(bp.variants)
+    ? bp.variants.map((variant: any) => ({
+        id: String(variant.id),
+        sku: variant.sku ?? null,
+        attributes: mapAttributes(variant.attributes),
+        priceAdjustment: Number(variant.price_adjustment) || 0,
+        quantityInStock: Number(variant.quantity_in_stock) || 0,
+      }))
+    : [];
+  const defaultVariant = variants.find(variant => variant.quantityInStock > 0) || variants[0];
+  const images = Array.isArray(bp.images) ? bp.images : [];
+  const primaryImage = images.find((image: any) => image.is_primary) || images[0];
+  const categoryName = typeof bp.category === "object" && bp.category
+    ? bp.category.name
+    : bp.category;
+  const variantSize = defaultVariant?.attributes.size || defaultVariant?.attributes.Size;
+  const availableSizes = [...new Set(
+    variants
+      .map(variant => variant.attributes.size || variant.attributes.Size)
+      .filter((size): size is string => Boolean(size)),
+  )];
+
   return {
     id: typeof bp.id === "string" ? bp.id : String(bp.id || hashCode(String(bp.name))),
+    variantId: defaultVariant?.id,
     name: bp.name || "Vintage Apparel",
     brand: bp.brand || "Thrifted",
-    price: typeof bp.price === "number" ? bp.price : parseFloat(bp.price) || 0,
+    price: (typeof bp.price === "number" ? bp.price : parseFloat(bp.price) || 0) + (defaultVariant?.priceAdjustment || 0),
     originalPrice: typeof bp.original_price === "number" ? bp.original_price : (parseFloat(bp.original_price) || ((bp.price || 1000) * 1.4)),
     condition: bp.condition || "Good",
-    size: bp.size || "M",
-    seller: bp.seller || bp.seller_name || "Thrift Store",
-    sellerRating: bp.sellerRating || 4.8,
-    img: bp.image_url || bp.img || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800",
-    category: bp.category || "Men",
+    size: availableSizes.join(", ") || variantSize || "One Size",
+    seller: bp.seller_name || "Thrift Store",
+    sellerRating: Number(bp.seller_rating) || 0,
+    img: primaryImage?.image_url || "",
+    category: categoryName || "Uncategorized",
+    variants,
   };
 }
 
 export const productService = {
   async getProducts(params: { category?: string; q?: string; sort_by?: string; min_price?: number; max_price?: number } = {}): Promise<ApiResponse<Product[]>> {
     const query = new URLSearchParams();
-    if (params.category && params.category !== "All") query.set("category", params.category);
+    if (params.category && params.category !== "All") {
+      query.set("category", params.category.trim().toLowerCase().replace(/\s+/g, "-"));
+    }
     if (params.q) query.set("q", params.q);
     if (params.sort_by) query.set("sort_by", params.sort_by);
     if (params.min_price !== undefined) query.set("min_price", String(params.min_price));

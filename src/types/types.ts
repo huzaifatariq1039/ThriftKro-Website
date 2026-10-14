@@ -2,6 +2,7 @@
 
 export type Product = {
   id: string;
+  variantId?: string;
   name: string;
   brand: string;
   price: number;
@@ -12,6 +13,21 @@ export type Product = {
   sellerRating: number;
   img: string;
   category: string;
+  variants?: ProductVariant[];
+};
+
+export type ProductVariant = {
+  id: string;
+  sku?: string | null;
+  attributes: Record<string, string>;
+  priceAdjustment: number;
+  quantityInStock: number;
+};
+
+export type CartEntry = {
+  cartItemId: string;
+  item: Product;
+  qty: number;
 };
 
 export type VtoShoe = {
@@ -161,8 +177,16 @@ export type BuyerOrder = {
   price?: number;
   total?: string;
   itemsCount?: number;
-  items?: any[];
-  status: "Delivered" | "In Transit" | "Processing";
+  items?: {
+    id: string;
+    name: string;
+    price: string;
+    quantity: number;
+    size: string;
+    seller: string;
+    img: string;
+  }[];
+  status: "Delivered" | "In Transit" | "Processing" | "Pending Payment" | "Cancelled" | "Refunded" | "Disputed";
   date: string;
 };
 

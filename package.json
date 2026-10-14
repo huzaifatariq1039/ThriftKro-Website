@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test:frontend": "node --test tests/*.test.mjs",
     "test:checkout": "node --test tests/checkout-contract.test.mjs",
     "preview": "vite preview"
   },

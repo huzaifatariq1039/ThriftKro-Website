@@ -1,5 +1,5 @@
-import React from "react";
-import { ShoppingBag, Trash2, Shield } from "lucide-react";
+import React, { useEffect } from "react";
+import { Minus, Plus, ShoppingBag, Trash2, Shield } from "lucide-react";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import { ORANGE, INK, PAPER, FONT, pk } from "@/constants/theme";
 import type { Store } from "@/hooks/useStore";
@@ -8,8 +8,16 @@ import { BuyerNav } from "../components/BuyerNav";
 
 export default function BuyerCart({ s }: { s: Store }) {
   const subtotal = s.cart.reduce((a, i) => a + i.item.price * i.qty, 0);
-  const shipping = s.cart.length ? 199 : 0;
-  const total = subtotal + shipping;
+  const sellerCount = new Set(s.cart.map(entry => entry.item.seller)).size;
+  const shipping = sellerCount * 200;
+  const platformFee = Math.round(subtotal * 0.05 * 100) / 100;
+  const total = subtotal + shipping + platformFee;
+
+  useEffect(() => {
+    s.syncCart().catch((err: any) => {
+      s.showToast(err?.message || "Could not load your cart.");
+    });
+  }, []);
   return (
     <div style={{ background: PAPER, minHeight: "100vh", fontFamily: FONT }}>
       <BuyerNav s={s} />
@@ -32,15 +40,20 @@ export default function BuyerCart({ s }: { s: Store }) {
                     <Label>{c.item.brand.toUpperCase()} · {c.item.condition}</Label>
                     <p className="font-bold" style={{ color: INK }}>{c.item.name}</p>
                     <p className="text-xs" style={{ color: "rgba(26,17,8,0.5)" }}>Size {c.item.size} · {c.item.seller}</p>
-                    <p className="font-extrabold mt-2" style={{ color: ORANGE }}>{pk(c.item.price)} <span className="text-sm font-normal">x {c.qty}</span></p>
+                    <p className="font-extrabold mt-2" style={{ color: ORANGE }}>{pk(c.item.price)}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <button onClick={() => void s.updateCartQty(c.item.id, Math.max(0, c.qty - 1))} className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: "#F2EFE9" }}><Minus size={13} /></button>
+                      <span className="text-sm font-bold w-5 text-center">{c.qty}</span>
+                      <button onClick={() => void s.updateCartQty(c.item.id, c.qty + 1)} className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: "#F2EFE9" }}><Plus size={13} /></button>
+                    </div>
                   </div>
-                  <button onClick={() => s.removeFromCart(c.item.id)} className="self-start w-9 h-9 rounded-full flex items-center justify-center" style={{ background: "#FDECEA" }}><Trash2 size={16} style={{ color: "#DC2626" }} /></button>
+                  <button onClick={() => void s.removeFromCart(c.item.id)} className="self-start w-9 h-9 rounded-full flex items-center justify-center" style={{ background: "#FDECEA" }}><Trash2 size={16} style={{ color: "#DC2626" }} /></button>
                 </div>
               ))}
             </div>
             <div className="rounded-2xl p-6 bg-white h-fit" style={{ boxShadow: "0 0 0 1px rgba(26,17,8,0.06)" }}>
               <h3 className="font-extrabold mb-4" style={{ color: INK }}>Order Summary</h3>
-              {[["Subtotal", subtotal], ["Shipping", shipping]].map(([l, v]) => (
+              {[["Subtotal", subtotal], ["Shipping", shipping], ["Platform fee", platformFee]].map(([l, v]) => (
                 <div key={l as string} className="flex justify-between text-sm py-1.5" style={{ color: "rgba(26,17,8,0.6)" }}><span>{l as string}</span><span className="font-semibold" style={{ color: INK }}>{pk(v as number)}</span></div>
               ))}
               <div className="border-t my-3" style={{ borderColor: "rgba(26,17,8,0.08)" }} />
