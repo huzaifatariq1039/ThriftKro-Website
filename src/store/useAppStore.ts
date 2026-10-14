@@ -352,25 +352,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   checkoutAsync: async (items: Product[]) => {
-    try {
-      // Use cart checkout endpoint if items are in the server cart
-      const res = await buyerService.checkoutCart();
-      if (res.data?.order_ids) {
-        get().handlePurchaseComplete(items);
-        return true;
-      }
-    } catch (err) {
-      // Fallback to legacy single-product checkout
-      try {
-        const res = await buyerService.checkout(items);
-        if (res.data?.success) {
-          get().handlePurchaseComplete(items);
-          return true;
-        }
-      } catch (err2) {
-        console.warn("Checkout API call failed, completing locally:", err2);
-      }
+    const response = await buyerService.checkoutCart();
+    if (!response.data.order_id) {
+      throw new Error("Checkout failed: the server did not create an order");
     }
+
     get().handlePurchaseComplete(items);
     return true;
   },
@@ -396,4 +382,3 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 }));
-

@@ -1,5 +1,32 @@
 import { request, ApiResponse } from "./apiClient";
-import { BuyerOrder, Address, Card, Product } from "@/types/types";
+import { BuyerOrder, Address, Card } from "@/types/types";
+
+export interface CheckoutResponse {
+  detail: string;
+  order_id: string;
+  total_amount: number;
+  seller_orders_count: number;
+}
+
+const CHECKOUT_IDEMPOTENCY_KEY = "thrift_kro_checkout_idempotency_key";
+
+function getOrCreateCheckoutKey(): string {
+  const existing = sessionStorage.getItem(CHECKOUT_IDEMPOTENCY_KEY);
+  if (existing) return existing;
+
+  const randomPart = typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const key = `checkout-${randomPart}`;
+  sessionStorage.setItem(CHECKOUT_IDEMPOTENCY_KEY, key);
+  return key;
+}
+
+function clearCheckoutKey(key: string): void {
+  if (sessionStorage.getItem(CHECKOUT_IDEMPOTENCY_KEY) === key) {
+    sessionStorage.removeItem(CHECKOUT_IDEMPOTENCY_KEY);
+  }
+}
 
 export const buyerService = {
   async getOrders(): Promise<ApiResponse<BuyerOrder[]>> {
@@ -50,31 +77,26 @@ export const buyerService = {
     return request<{ detail: string }>(`/shopping/cart/remove/${productId}`, { method: "DELETE" });
   },
 
-  async checkoutCart(shippingAddress?: string): Promise<ApiResponse<{ detail: string; order_ids: string[] }>> {
-    return request<{ detail: string; order_ids: string[] }>(
+  async checkoutCart(shippingAddressId: string | null = null): Promise<ApiResponse<CheckoutResponse>> {
+    const idempotencyKey = getOrCreateCheckoutKey();
+    const response = await request<CheckoutResponse>(
       "/shopping/cart/checkout",
       {
         method: "POST",
-        body: JSON.stringify({ shipping_address: shippingAddress || "Default User Address" }),
-      }
-    );
-  },
-
-  // Legacy single-product checkout (kept for backward compatibility)
-  async checkout(items: Product[]): Promise<ApiResponse<{ success: boolean; orderIds: string[] }>> {
-    const firstProduct = items[0];
-    const res = await request<any>(
-      "/orders/checkout",
-      {
-        method: "POST",
+        headers: { "Idempotency-Key": idempotencyKey },
         body: JSON.stringify({
-          product_id: firstProduct?.id ? String(firstProduct.id) : "00000000-0000-0000-0000-000000000000",
-          shipping_address: "Default Buyer Address, Lahore",
-          payment_method: "WALLET",
+          shipping_address_id: shippingAddressId,
+          payment_method: "CASH_ON_DELIVERY",
         }),
       }
     );
-    return { data: { success: true, orderIds: [res.data.id ? String(res.data.id) : "TK-10001"] }, status: 200 };
+
+    if (!response.data?.order_id) {
+      throw new Error("Checkout response did not include an order ID");
+    }
+
+    clearCheckoutKey(idempotencyKey);
+    return response;
   },
 
   // ── Wishlist ──
