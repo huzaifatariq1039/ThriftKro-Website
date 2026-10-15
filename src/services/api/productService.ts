@@ -203,7 +203,6 @@ export const productService = {
         quantity_in_stock: variant.quantityInStock,
       })),
       tags: [...new Set((productData.tags || []).map(tag => tag.trim()).filter(Boolean))],
-      is_ai_verified: false,
     };
 
     const res = await request<any>(

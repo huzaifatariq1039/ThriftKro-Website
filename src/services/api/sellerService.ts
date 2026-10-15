@@ -1,73 +1,7 @@
 import { request, ApiResponse } from "./apiClient";
-import { SellerListing, SellerVerificationStatusResponse } from "@/types/types";
-import { mockSellerListings } from "../mockData";
+import { SellerVerificationStatusResponse } from "@/types/types";
 
 export const sellerService = {
-  async getSellerListings(): Promise<ApiResponse<SellerListing[]>> {
-    const res = await request<any[]>("/products/?include_deleted=true");
-    let listings: SellerListing[] = [];
-    if (Array.isArray(res.data) && res.data.length > 0) {
-      listings = res.data.map((p, i) => ({
-        id: typeof p.id === "number" ? p.id : (p.id || i + 1),
-        name: p.name || "Apparel Item",
-        price: p.price || 2000,
-        views: p.views || Math.floor(Math.random() * 200) + 10,
-        likes: p.likes || Math.floor(Math.random() * 50),
-        category: p.category || "Men",
-        status: p.deleted_at ? "Trashed" : (p.status || (p.is_ai_verified ? "Active" : "Pending")),
-        img: p.image_url || p.img || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800",
-      }));
-    }
-    return { data: listings, status: res.status };
-  },
-
-  async createListing(listing: Partial<SellerListing>): Promise<ApiResponse<any>> {
-    const payload = {
-      name: listing.name,
-      description: "Seller dashboard created item",
-      price: listing.price,
-      original_price: (listing.price || 0) * 1.3,
-      category: listing.category || "Jackets",
-      department: "Men",
-      size: "M",
-      brand: "Thrifted",
-      condition: "Good",
-      image_url: listing.img,
-      images: [],
-      tags: [],
-    };
-
-    const res = await request<any>("/products/", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-
-    const resData = res.data;
-    return {
-      data: {
-        id: resData?.id,
-        name: resData?.name,
-        price: resData?.price,
-        views: 0,
-        likes: 0,
-        category: resData?.category,
-        status: resData?.is_ai_verified ? "Active" : "Pending",
-        img: resData?.image_url,
-      },
-      status: res.status,
-    };
-  },
-
-  async deleteListing(id: string | number): Promise<ApiResponse<{ success: boolean }>> {
-    const res = await request<{ success: boolean }>(`/products/${id}`, { method: "DELETE" });
-    return { data: { success: true }, status: res.status };
-  },
-
-  async restoreListing(id: string | number): Promise<ApiResponse<{ success: boolean }>> {
-    const res = await request<{ success: boolean }>(`/products/${id}/restore`, { method: "POST" });
-    return { data: { success: true }, status: res.status };
-  },
-
   /**
    * Submit a full verification request matching the backend SellerVerificationCreate schema.
    */

@@ -14,6 +14,10 @@ const sellerListings = await readFile(
   new URL("../src/features/seller/pages/SellerListings.tsx", import.meta.url),
   "utf8",
 );
+const sellerService = await readFile(
+  new URL("../src/services/api/sellerService.ts", import.meta.url),
+  "utf8",
+);
 
 test("listing images are uploaded before product creation", () => {
   assert.match(productService, /new FormData\(\)/);
@@ -27,7 +31,7 @@ test("product creation uses the normalized backend contract", () => {
   assert.match(productService, /category_id: productData\.categoryId/);
   assert.match(productService, /quantity_in_stock: variant\.quantityInStock/);
   assert.match(productService, /attributes: variant\.attributes/);
-  assert.match(productService, /is_ai_verified: false/);
+  assert.doesNotMatch(productService, /is_ai_verified:/);
   assert.doesNotMatch(productService, /department:|image_url: productData\.img/);
 });
 
@@ -46,4 +50,9 @@ test("seller inventory uses the authenticated endpoint and truthful mutations", 
   assert.match(sellerListings, /await productService\.deleteListing\(id\)/);
   assert.match(sellerListings, /await productService\.restoreListing\(id\)/);
   assert.doesNotMatch(sellerListings, /Math\.random/);
+});
+
+test("the legacy flat seller catalog adapter is removed", () => {
+  assert.doesNotMatch(sellerService, /getSellerListings|createListing|image_url: listing\.img/);
+  assert.doesNotMatch(sellerService, /Math\.random|mockSellerListings/);
 });
