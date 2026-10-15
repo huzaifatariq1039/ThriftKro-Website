@@ -1,16 +1,40 @@
 import { request, ApiResponse } from "./apiClient";
 import { Role, User } from "../../types/types";
 
+type AccountRole = Exclude<Role, null>;
+
 export interface UserSession {
   email: string;
-  role: Role;
+  role: AccountRole;
   token: string;
-  user?: User;
+  user: User;
 }
 
 export interface TokenResponse {
   access_token: string;
   token_type: string;
+  refresh_token?: string;
+  expires_in?: number;
+}
+
+function mapServerUser(data: any): User {
+  const role = String(data?.role || "").toLowerCase();
+  if (!data?.id || !["buyer", "seller", "admin"].includes(role)) {
+    throw new Error("The server returned an invalid authenticated user profile");
+  }
+
+  return {
+    id: String(data.id),
+    name: data.full_name || data.email,
+    email: data.email,
+    role: role as AccountRole,
+    avatar: data.avatar_url || null,
+  };
+}
+
+async function fetchAuthenticatedUser(): Promise<User> {
+  const response = await request<any>("/users/me");
+  return mapServerUser(response.data);
 }
 
 /**
@@ -50,7 +74,7 @@ function clearSession() {
 }
 
 export const authService = {
-  async login(email: string, pass: string, role: Role = "buyer"): Promise<ApiResponse<UserSession>> {
+  async login(email: string, pass: string, _requestedRole: AccountRole = "buyer"): Promise<ApiResponse<UserSession>> {
     // FastAPI OAuth2PasswordRequestForm expects URL-encoded form data with 'username' and 'password'
     const params = new URLSearchParams();
     params.append("username", email);
@@ -66,32 +90,20 @@ export const authService = {
     );
 
     const token = tokenRes.data.access_token;
-    if (token) {
-      saveSession(token);
-    }
+    if (!token) throw new Error("The server did not return an access token");
+    saveSession(token);
 
-    // Fetch current user profile from /users/me
     try {
-      const userRes = await request<any>("/users/me");
-      if (userRes.data) {
-        const user: User = {
-          id: String(userRes.data.id),
-          name: userRes.data.full_name || email,
-          email: userRes.data.email || email,
-          role: (userRes.data.role?.toLowerCase() as Role) || role,
-          avatar: userRes.data.avatar_url || null,
-        };
-        saveSession(token, user);
-        return { data: { email: user.email, role: user.role, token, user }, status: 200 };
-      }
-    } catch (err) {
-      console.warn("Could not fetch user profile after login:", err);
+      const user = await fetchAuthenticatedUser();
+      saveSession(token, user);
+      return { data: { email: user.email, role: user.role as AccountRole, token, user }, status: 200 };
+    } catch (error) {
+      clearSession();
+      throw error;
     }
-
-    return { data: { email, role, token }, status: 200 };
   },
 
-  async googleAuth(googleToken: string, role: Role): Promise<{ access_token: string, user: User }> {
+  async googleAuth(googleToken: string, role: AccountRole): Promise<{ access_token: string, user: User }> {
     const res = await request<any>("/auth/google", {
       method: "POST",
       body: JSON.stringify({
@@ -106,20 +118,13 @@ export const authService = {
     }
     
     // Fetch user profile
-    const userRes = await request<any>("/users/me");
-    const user: User = {
-      id: String(userRes.data.id),
-      name: userRes.data.full_name,
-      email: userRes.data.email,
-      role: (userRes.data.role?.toLowerCase() as Role) || role,
-      avatar: userRes.data.avatar_url || null,
-    };
+    const user = await fetchAuthenticatedUser();
     saveSession(token, user);
     
     return { access_token: token, user };
   },
 
-  async signup(email: string, pass: string, fullName: string, role: Role = "buyer"): Promise<ApiResponse<UserSession>> {
+  async signup(email: string, pass: string, fullName: string, role: AccountRole = "buyer"): Promise<ApiResponse<UserSession>> {
     await request(
       "/auth/register",
       {
@@ -144,21 +149,15 @@ export const authService = {
     if (!token) return null;
 
     try {
-      const res = await request<any>("/users/me");
-      if (res.data && res.data.id) {
-        return {
-          id: String(res.data.id),
-          name: res.data.full_name,
-          email: res.data.email,
-          role: res.data.role?.toLowerCase() || "buyer",
-          avatar: res.data.avatar_url || null,
-        };
-      }
+      return await fetchAuthenticatedUser();
     } catch {
-      // Fall back to stored user
+      clearSession();
+      return null;
     }
-    const stored = getStored("thrift_kro_user");
-    return stored ? JSON.parse(stored) : null;
+  },
+
+  async fetchCurrentUser(): Promise<User> {
+    return fetchAuthenticatedUser();
   },
 
   async updateProfile(data: { full_name?: string; email?: string; phone_number?: string; avatar_url?: string }): Promise<ApiResponse<any>> {
@@ -182,7 +181,13 @@ export const authService = {
   },
 
   async logout(): Promise<ApiResponse<{ success: boolean }>> {
-    clearSession();
+    try {
+      if (getStored("thrift_kro_token")) {
+        await request("/auth/logout", { method: "POST" });
+      }
+    } finally {
+      clearSession();
+    }
     return { data: { success: true }, status: 200 };
   },
 

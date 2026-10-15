@@ -774,7 +774,7 @@ export default function SellerVerify({ s }: { s: Store }) {
 
   // Fetch verification status on mount
   useEffect(() => {
-    s.fetchVerificationStatus();
+    void s.fetchVerificationStatus().catch(() => undefined);
   }, []);
 
   const goNext = () => {
@@ -808,6 +808,8 @@ export default function SellerVerify({ s }: { s: Store }) {
           })),
         ai_verified: form.aiVerified,
       });
+    } catch {
+      // The store preserves the server error and never converts it to success.
     } finally {
       setSubmitting(false);
     }
@@ -830,6 +832,12 @@ export default function SellerVerify({ s }: { s: Store }) {
   const isFrozen = verifyState === "frozen";
   const isVerified = verifyState === "verified";
   const isRejected = verifyState === "rejected";
+  const isStatusLoading = s.sellerVerificationLoadState === "idle" || s.sellerVerificationLoadState === "loading";
+  const hasStatusError = s.sellerVerificationLoadState === "error";
+  const isUnavailable = s.sellerVerificationLoadState === "loaded"
+    && !statusData?.can_submit
+    && (verifyState === "unverified" || verifyState === "rejected");
+  const canRenderWorkflow = s.sellerVerificationLoadState === "loaded" && !isUnavailable;
 
   return (
     <div className="min-h-screen" style={{ background: PAPER, fontFamily: FONT }}>
@@ -863,7 +871,41 @@ export default function SellerVerify({ s }: { s: Store }) {
         </p>
 
         {/* Conditional content */}
-        {isVerified && (
+        {isStatusLoading && (
+          <div className="text-center py-12" role="status">
+            <Clock size={36} className="mx-auto mb-4" style={{ color: ORANGE }} />
+            <p className="font-bold" style={{ color: INK }}>Checking verification status…</p>
+          </div>
+        )}
+
+        {hasStatusError && (
+          <div className="text-center py-12" role="alert">
+            <AlertCircle size={36} className="mx-auto mb-4" style={{ color: "#D93025" }} />
+            <h2 className="font-extrabold text-xl mb-2" style={{ color: INK }}>Status unavailable</h2>
+            <p className="text-sm mb-6" style={{ color: "rgba(26,17,8,0.55)" }}>
+              {s.sellerVerificationError || "We could not confirm your verification status."}
+            </p>
+            <button
+              onClick={() => void s.fetchVerificationStatus().catch(() => undefined)}
+              className="px-8 py-3.5 rounded-xl font-extrabold text-white"
+              style={{ background: ORANGE }}
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {isUnavailable && (
+          <div className="text-center py-12" role="status">
+            <ShieldCheck size={36} className="mx-auto mb-4" style={{ color: ORANGE }} />
+            <h2 className="font-extrabold text-xl mb-2" style={{ color: INK }}>Verification is temporarily unavailable</h2>
+            <p className="text-sm max-w-lg mx-auto" style={{ color: "rgba(26,17,8,0.55)", lineHeight: 1.6 }}>
+              We are not collecting identity documents until private storage and retention safeguards are ready. No verification request has been submitted.
+            </p>
+          </div>
+        )}
+
+        {canRenderWorkflow && isVerified && (
           <div className="text-center py-12">
             <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: "rgba(46,158,79,0.1)" }}>
               <Check size={36} style={{ color: "#2E9E4F" }} strokeWidth={3} />
@@ -880,18 +922,18 @@ export default function SellerVerify({ s }: { s: Store }) {
           </div>
         )}
 
-        {isPending && (
+        {canRenderWorkflow && isPending && (
           <>
             <StepIndicator step={5} completedSteps={new Set([1, 2, 3, 4, 5])} />
             <PendingScreen />
           </>
         )}
 
-        {isFrozen && (
+        {canRenderWorkflow && isFrozen && (
           <FrozenScreen freezeUntil={statusData?.freeze_until || null} />
         )}
 
-        {isRejected && !showWizard ? null : isRejected && (
+        {canRenderWorkflow && (isRejected && !showWizard ? null : isRejected) && (
           <RejectedScreen
             reason={statusData?.latest_request?.rejection_reason || null}
             attemptsLeft={Math.max(0, (statusData?.max_submissions_per_day ?? 3) - (statusData?.submissions_today ?? 0))}
@@ -899,7 +941,7 @@ export default function SellerVerify({ s }: { s: Store }) {
           />
         )}
 
-        {verifyState === "unverified" && (
+        {canRenderWorkflow && verifyState === "unverified" && (
           <>
             <StepIndicator step={step} completedSteps={completedSteps} />
             {step === 1 && <StepStoreDetails form={form} setForm={setForm} onNext={goNext} />}

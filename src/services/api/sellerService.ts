@@ -33,13 +33,17 @@ export const sellerService = {
    */
   async getVerificationStatus(): Promise<ApiResponse<SellerVerificationStatusResponse>> {
     const res = await request<any>("/sellers/verification/me");
+    const verificationStatus = String(res.data?.verification_status || "").toUpperCase();
+    if (!["UNVERIFIED", "PENDING", "APPROVED", "REJECTED"].includes(verificationStatus)) {
+      throw new Error("The server returned an invalid seller verification state");
+    }
     return {
       data: {
-        verification_status: res.data?.verification_status || "UNVERIFIED",
-        is_verified: res.data?.is_verified || false,
+        verification_status: verificationStatus as SellerVerificationStatusResponse["verification_status"],
+        is_verified: res.data?.is_verified === true,
         submissions_today: res.data?.submissions_today ?? 0,
         max_submissions_per_day: res.data?.max_submissions_per_day ?? 3,
-        can_submit: res.data?.can_submit ?? true,
+        can_submit: res.data?.can_submit === true,
         freeze_until: res.data?.freeze_until || null,
         latest_request: res.data?.latest_request || null,
       },

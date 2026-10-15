@@ -125,7 +125,7 @@ export type SellerVerificationStatusResponse = {
   latest_request: {
     id: string;
     status: string;
-    rejection_reason: string | null;
+    rejection_reason?: string | null;
     created_at: string;
   } | null;
 };

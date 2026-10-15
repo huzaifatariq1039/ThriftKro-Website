@@ -11,7 +11,7 @@ export function RoleSwitchModal({ s }: { s: Store }) {
         <div className="flex items-center gap-3 mb-1">
           <Logo size={40} />
         </div>
-        <p className="text-sm mt-3 mb-5" style={{ fontFamily: FONT, color: "rgba(26,17,8,0.55)" }}>You have both a Buyer & Seller account. Pick one to continue — you'll log in to confirm.</p>
+        <p className="text-sm mt-3 mb-5" style={{ fontFamily: FONT, color: "rgba(26,17,8,0.55)" }}>Choose another portal. Switching signs out the current account so the next account can be authenticated by the server.</p>
         <button onClick={() => s.requestRoleSwitch("buyer")} disabled={s.role === "buyer"} className="w-full flex items-center gap-4 p-4 rounded-2xl mb-3 transition-all" style={{ boxShadow: `0 0 0 2px ${s.role === "buyer" ? "rgba(26,17,8,0.1)" : ORANGE}`, background: "#FFF3E0", opacity: s.role === "buyer" ? 0.55 : 1 }}>
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: ORANGE }}><ShoppingBag size={22} color="white" /></div>
           <div className="flex-1 text-left">

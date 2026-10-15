@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import {
-  Product, CartEntry, VerifyStatus, Role, SecurityFlow, Address, Card, Device, BuyerOrder, SellerListing, Message,
+  Product, CartEntry, VerifyStatus, SecurityFlow, Address, Card, Device, BuyerOrder, SellerListing, Message, User,
   SellerVerificationStatusResponse,
 } from "../types/types";
 import {
@@ -37,6 +37,8 @@ type AppState = {
   sellerVerified: VerifyStatus;
   sellerKycApproved: boolean;
   sellerVerificationStatus: SellerVerificationStatusResponse | null;
+  sellerVerificationLoadState: "idle" | "loading" | "loaded" | "error";
+  sellerVerificationError: string | null;
 
   // Buyer Profile State
   buyerProfile: { name: string; email: string; phone: string; gender: string; avatar: string | null };
@@ -77,7 +79,8 @@ type AppState = {
   setSellerNotifs: (notifs: { id: string; msg: string; type: "sold" | "low" | "oos" }[] | ((prev: { id: string; msg: string; type: "sold" | "low" | "oos" }[]) => { id: string; msg: string; type: "sold" | "low" | "oos" }[])) => void;
   setSellerProfile: (profile: any | ((prev: any) => any)) => void;
   setActiveShopField: (field: "shopName" | "location" | "shipping") => void;
-  setSellerVerified: (v: VerifyStatus) => void;
+  resetSellerVerification: () => void;
+  hydrateAuthenticatedProfile: (user: User) => void;
 
   setBuyerProfile: (profile: any | ((prev: any) => any)) => void;
   setAddresses: (addrs: Address[] | ((prev: Address[]) => Address[])) => void;
@@ -93,10 +96,9 @@ type AppState = {
   setDevices: (devs: Device[] | ((prev: Device[]) => Device[])) => void;
   showToast: (msg: string) => void;
   handlePurchaseComplete: (items: Product[]) => void;
-  submitSellerVerification: () => void;
   fetchProducts: (category?: string) => Promise<void>;
   submitSellerVerificationAsync: (payload: any) => Promise<void>;
-  fetchVerificationStatus: () => Promise<void>;
+  fetchVerificationStatus: () => Promise<VerifyStatus>;
   checkoutAsync: (items: Product[]) => Promise<boolean>;
   syncProfile: () => Promise<void>;
 };
@@ -137,6 +139,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   sellerVerified: "unverified",
   sellerKycApproved: false,
   sellerVerificationStatus: null,
+  sellerVerificationLoadState: "idle",
+  sellerVerificationError: null,
 
   buyerProfile: {
     name: "Aryan Kapoor",
@@ -281,7 +285,28 @@ export const useAppStore = create<AppState>((set, get) => ({
   })),
 
   setActiveShopField: (field) => set({ activeShopField: field }),
-  setSellerVerified: (v) => set({ sellerVerified: v }),
+  resetSellerVerification: () => set({
+    sellerVerified: "unverified",
+    sellerKycApproved: false,
+    sellerVerificationStatus: null,
+    sellerVerificationLoadState: "idle",
+    sellerVerificationError: null,
+  }),
+  hydrateAuthenticatedProfile: (user) => set((state) => ({
+    buyerProfile: {
+      ...state.buyerProfile,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar || state.buyerProfile.avatar,
+    },
+    sellerProfile: {
+      ...state.sellerProfile,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar || state.sellerProfile.avatar,
+      shopName: user.name + "'s Shop",
+    },
+  })),
 
   setBuyerProfile: (updater) => set(state => ({
     buyerProfile: typeof updater === "function" ? updater(state.buyerProfile) : updater
@@ -342,11 +367,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     get().setSellerNotifs(prev => [...newNotifs, ...prev].slice(0, 10));
   },
 
-  submitSellerVerification: () => {
-    set({ sellerVerified: "pending", sellerKycApproved: true });
-    get().showToast("Verification submitted — under review ✓");
-  },
-
   fetchProducts: async (category?: string) => {
     try {
       const res = await productService.getProducts({ category });
@@ -361,48 +381,57 @@ export const useAppStore = create<AppState>((set, get) => ({
   submitSellerVerificationAsync: async (payload: any) => {
     try {
       await sellerService.submitVerification(payload);
-      set({ sellerVerified: "pending", sellerKycApproved: false });
-      get().showToast("Verification submitted — under review ✓");
-      // Re-fetch the status to get accurate server state
-      get().fetchVerificationStatus();
-    } catch (err: any) {
-      const msg = err?.message || "";
-      if (msg.includes("429") || msg.includes("maximum")) {
-        set({ sellerVerified: "frozen" });
-        get().showToast("Maximum attempts reached. Please wait before retrying.");
-      } else if (msg.includes("pending")) {
-        set({ sellerVerified: "pending" });
-        get().showToast("You already have a pending request.");
-      } else {
-        // Offline / network error — still show pending locally
-        set({ sellerVerified: "pending", sellerKycApproved: false });
-        get().showToast("Verification submitted — under review ✓");
+      const serverState = await get().fetchVerificationStatus();
+      if (serverState !== "pending") {
+        throw new Error("The server did not confirm a pending verification request");
       }
+      get().showToast("Verification submitted — under review");
+    } catch (err: any) {
+      const message = err?.message || "Verification could not be submitted.";
+      set({ sellerVerificationError: message });
+      get().showToast(message);
+      throw err;
     }
   },
 
   fetchVerificationStatus: async () => {
+    set({ sellerVerificationLoadState: "loading", sellerVerificationError: null });
     try {
       const res = await sellerService.getVerificationStatus();
       const data = res.data;
-      set({ sellerVerificationStatus: data });
-
-      // Sync local verify state from server
+      let sellerVerified: VerifyStatus;
       if (data.is_verified || data.verification_status === "APPROVED") {
-        set({ sellerVerified: "verified", sellerKycApproved: true });
+        sellerVerified = "verified";
       } else if (data.verification_status === "PENDING") {
-        set({ sellerVerified: "pending", sellerKycApproved: false });
+        sellerVerified = "pending";
       } else if (data.verification_status === "REJECTED") {
         if (!data.can_submit && data.freeze_until) {
-          set({ sellerVerified: "frozen", sellerKycApproved: false });
+          sellerVerified = "frozen";
         } else {
-          set({ sellerVerified: "rejected", sellerKycApproved: false });
+          sellerVerified = "rejected";
         }
       } else {
-        set({ sellerVerified: "unverified", sellerKycApproved: false });
+        sellerVerified = "unverified";
       }
-    } catch {
-      // Can't reach server, keep local state as-is
+
+      set({
+        sellerVerificationStatus: data,
+        sellerVerified,
+        sellerKycApproved: sellerVerified === "verified",
+        sellerVerificationLoadState: "loaded",
+        sellerVerificationError: null,
+      });
+      return sellerVerified;
+    } catch (err: any) {
+      const message = err?.message || "Could not load seller verification status.";
+      set({
+        sellerVerified: "unverified",
+        sellerKycApproved: false,
+        sellerVerificationStatus: null,
+        sellerVerificationLoadState: "error",
+        sellerVerificationError: message,
+      });
+      throw err;
     }
   },
 
@@ -417,23 +446,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   syncProfile: async () => {
-    const user = await authService.getCurrentUser();
-    if (user) {
-      set((state) => ({
-        buyerProfile: {
-          ...state.buyerProfile,
-          name: user.name,
-          email: user.email,
-          avatar: user.avatar || state.buyerProfile.avatar,
-        },
-        sellerProfile: {
-          ...state.sellerProfile,
-          name: user.name,
-          email: user.email,
-          avatar: user.avatar || state.sellerProfile.avatar,
-          shopName: user.name + "'s Shop",
-        }
-      }));
-    }
+    const user = await authService.fetchCurrentUser();
+    get().hydrateAuthenticatedProfile(user);
   },
 }));

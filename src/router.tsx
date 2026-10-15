@@ -1,9 +1,8 @@
 import React, { Suspense, lazy } from "react";
-import { Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import { WebApp } from "@/layouts/WebApp";
 import { PageLoader } from "@/components/ui";
 import { useStore } from "@/hooks/useStore";
-import { useAppStore } from "@/store/useAppStore";
 
 // Lazy-loaded Feature Screens
 const LandingPage = lazy(() => import("@/features/landing/pages/LandingPage"));
@@ -45,80 +44,63 @@ import { useAuth } from "@/contexts/AuthContext";
 const AdminLogin = lazy(() => import("@/features/admin/pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("@/features/admin/pages/AdminDashboard"));
 
-const SellerGuard: React.FC<{ s: ReturnType<typeof useStore>; children: React.ReactNode }> = ({ s, children }) => {
-  const navigate = useNavigate();
-  const mustVerify = s.role === "seller" && (s.sellerVerified === "unverified" || s.sellerVerified === "rejected" || s.sellerVerified === "frozen");
-  React.useEffect(() => {
-    if (mustVerify) {
-      navigate("/seller/verify");
-    }
-  }, [mustVerify, navigate]);
+const homeForRole = (role: ReturnType<typeof useAuth>["role"]) => {
+  if (role === "admin") return "/admin/dashboard";
+  if (role === "seller") return "/seller/verify";
+  return "/buyer/home";
+};
 
-  if (mustVerify) {
-    return null;
+const RoleGuard: React.FC<{
+  requiredRole: "buyer" | "seller" | "admin";
+  children: React.ReactNode;
+}> = ({ requiredRole, children }) => {
+  const { authStatus, isAuthenticated, role } = useAuth();
+
+  if (authStatus === "restoring") return <PageLoader />;
+  if (!isAuthenticated) return <Navigate to={requiredRole === "admin" ? "/admin/login" : `/auth/${requiredRole}`} replace />;
+  if (role !== requiredRole) return <Navigate to={homeForRole(role)} replace />;
+  return <>{children}</>;
+};
+
+const SellerGuard: React.FC<{ s: ReturnType<typeof useStore>; children: React.ReactNode }> = ({ s, children }) => {
+  const { authStatus, isAuthenticated, role } = useAuth();
+
+  React.useEffect(() => {
+    if (
+      authStatus === "authenticated"
+      && isAuthenticated
+      && role === "seller"
+      && s.sellerVerificationLoadState === "idle"
+    ) {
+      void s.fetchVerificationStatus().catch(() => undefined);
+    }
+  }, [authStatus, isAuthenticated, role, s.sellerVerificationLoadState, s.fetchVerificationStatus]);
+
+  if (authStatus === "restoring") return <PageLoader />;
+  if (!isAuthenticated) return <Navigate to="/auth/seller" replace />;
+  if (role !== "seller") return <Navigate to={homeForRole(role)} replace />;
+  if (s.sellerVerificationLoadState === "idle" || s.sellerVerificationLoadState === "loading") return <PageLoader />;
+  if (s.sellerVerificationLoadState === "error" || s.sellerVerified !== "verified") {
+    return <Navigate to="/seller/verify" replace />;
   }
   return <>{children}</>;
 };
 
-const GuestGuard: React.FC<{ s: ReturnType<typeof useStore>; children: React.ReactNode }> = ({ s, children }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { isAuthenticated, role, unlockedRoles } = useAuth();
-  const [checking, setChecking] = React.useState(false);
-
-  React.useEffect(() => {
-    if (isAuthenticated) {
-      // Allow authenticated users to view the login page for roles they HAVEN'T unlocked yet
-      if (location.pathname === "/auth/seller" && !unlockedRoles.has("seller")) return;
-      if (location.pathname === "/auth/buyer" && !unlockedRoles.has("buyer")) return;
-
-      if (role === "seller") {
-        setChecking(true);
-        s.fetchVerificationStatus().then(() => {
-          const v = useAppStore.getState().sellerVerified;
-          navigate(v === "verified" || v === "pending" ? "/seller/dashboard" : "/seller/verify");
-        }).finally(() => setChecking(false));
-      } else if (role === "admin") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/buyer/home");
-      }
-    }
-  }, [isAuthenticated, role, location.pathname, unlockedRoles, navigate, s]);
-
-  // If checking verification status, render nothing to avoid flash of content
-  if (checking) return null;
-  
-  // If authenticated and trying to access an auth page they ALREADY have the role for, render nothing because useEffect will redirect them
-  if (isAuthenticated) {
-    if (location.pathname === "/auth/seller" && unlockedRoles.has("seller")) return null;
-    if (location.pathname === "/auth/buyer" && unlockedRoles.has("buyer")) return null;
-    if (location.pathname !== "/auth/seller" && location.pathname !== "/auth/buyer" && location.pathname !== "/role-select") return null;
-  }
-
+const GuestGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { authStatus, isAuthenticated, role } = useAuth();
+  if (authStatus === "restoring") return <PageLoader />;
+  if (isAuthenticated) return <Navigate to={homeForRole(role)} replace />;
   return <>{children}</>;
 };
 
 const AdminGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, role } = useAuth();
-  if (!isAuthenticated || role !== "admin") {
-    return <Navigate to="/admin/login" replace />;
-  }
-  return <>{children}</>;
+  return <RoleGuard requiredRole="admin">{children}</RoleGuard>;
 };
 
 const AdminGuestGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, role } = useAuth();
-  const navigate = useNavigate();
-  React.useEffect(() => {
-    if (isAuthenticated && role === "admin") {
-      navigate("/admin/dashboard");
-    }
-  }, [isAuthenticated, role, navigate]);
-
-  if (isAuthenticated && role === "admin") {
-    return null;
-  }
+  const { authStatus, isAuthenticated, role } = useAuth();
+  if (authStatus === "restoring") return <PageLoader />;
+  if (isAuthenticated) return <Navigate to={homeForRole(role)} replace />;
   return <>{children}</>;
 };
 
@@ -132,9 +114,9 @@ export const AppRoutes: React.FC = () => {
       <Routes>
         {/* Public Pages wrapped in WebApp layout for modals & toasts */}
         <Route path="/" element={<WebApp><LandingPage s={store} onAdminClick={() => navigate("/admin/login")} /></WebApp>} />
-        <Route path="/role-select" element={<WebApp><GuestGuard s={store}><RoleSelectPage s={store} /></GuestGuard></WebApp>} />
-        <Route path="/auth/buyer" element={<WebApp><GuestGuard s={store}><AuthPage s={store} forRole="buyer" /></GuestGuard></WebApp>} />
-        <Route path="/auth/seller" element={<WebApp><GuestGuard s={store}><AuthPage s={store} forRole="seller" /></GuestGuard></WebApp>} />
+        <Route path="/role-select" element={<WebApp><GuestGuard><RoleSelectPage s={store} /></GuestGuard></WebApp>} />
+        <Route path="/auth/buyer" element={<WebApp><GuestGuard><AuthPage s={store} forRole="buyer" /></GuestGuard></WebApp>} />
+        <Route path="/auth/seller" element={<WebApp><GuestGuard><AuthPage s={store} forRole="seller" /></GuestGuard></WebApp>} />
 
         <Route path="/careers" element={<WebApp><CareersPage s={store} /></WebApp>} />
         <Route path="/press" element={<WebApp><PressPage s={store} /></WebApp>} />
@@ -148,31 +130,31 @@ export const AppRoutes: React.FC = () => {
         <Route path="/contact" element={<WebApp><GenericPage s={store} title="Contact" /></WebApp>} />
 
         {/* Buyer Routes */}
-        <Route path="/buyer/home" element={<WebApp><BuyerHome s={store} /></WebApp>} />
-        <Route path="/buyer/product" element={<WebApp><BuyerProduct s={store} /></WebApp>} />
-        <Route path="/buyer/vto" element={<WebApp><BuyerVto s={store} /></WebApp>} />
-        <Route path="/buyer/cart" element={<WebApp><BuyerCart s={store} /></WebApp>} />
-        <Route path="/buyer/profile" element={<WebApp><BuyerProfile s={store} /></WebApp>} />
-        <Route path="/buyer/profile/edit" element={<WebApp><BuyerEditProfile s={store} /></WebApp>} />
-        <Route path="/buyer/orders" element={<WebApp><BuyerOrders s={store} /></WebApp>} />
-        <Route path="/buyer/wishlist" element={<WebApp><BuyerWishlist s={store} /></WebApp>} />
-        <Route path="/buyer/addresses" element={<WebApp><BuyerAddresses s={store} /></WebApp>} />
-        <Route path="/buyer/payments" element={<WebApp><BuyerPayments s={store} /></WebApp>} />
-        <Route path="/buyer/notifications" element={<WebApp><BuyerNotifications s={store} /></WebApp>} />
-        <Route path="/buyer/privacy" element={<WebApp><BuyerPrivacy s={store} /></WebApp>} />
-        <Route path="/buyer/search" element={<WebApp><BuyerSearch s={store} /></WebApp>} />
+        <Route path="/buyer/home" element={<WebApp><RoleGuard requiredRole="buyer"><BuyerHome s={store} /></RoleGuard></WebApp>} />
+        <Route path="/buyer/product" element={<WebApp><RoleGuard requiredRole="buyer"><BuyerProduct s={store} /></RoleGuard></WebApp>} />
+        <Route path="/buyer/vto" element={<WebApp><RoleGuard requiredRole="buyer"><BuyerVto s={store} /></RoleGuard></WebApp>} />
+        <Route path="/buyer/cart" element={<WebApp><RoleGuard requiredRole="buyer"><BuyerCart s={store} /></RoleGuard></WebApp>} />
+        <Route path="/buyer/profile" element={<WebApp><RoleGuard requiredRole="buyer"><BuyerProfile s={store} /></RoleGuard></WebApp>} />
+        <Route path="/buyer/profile/edit" element={<WebApp><RoleGuard requiredRole="buyer"><BuyerEditProfile s={store} /></RoleGuard></WebApp>} />
+        <Route path="/buyer/orders" element={<WebApp><RoleGuard requiredRole="buyer"><BuyerOrders s={store} /></RoleGuard></WebApp>} />
+        <Route path="/buyer/wishlist" element={<WebApp><RoleGuard requiredRole="buyer"><BuyerWishlist s={store} /></RoleGuard></WebApp>} />
+        <Route path="/buyer/addresses" element={<WebApp><RoleGuard requiredRole="buyer"><BuyerAddresses s={store} /></RoleGuard></WebApp>} />
+        <Route path="/buyer/payments" element={<WebApp><RoleGuard requiredRole="buyer"><BuyerPayments s={store} /></RoleGuard></WebApp>} />
+        <Route path="/buyer/notifications" element={<WebApp><RoleGuard requiredRole="buyer"><BuyerNotifications s={store} /></RoleGuard></WebApp>} />
+        <Route path="/buyer/privacy" element={<WebApp><RoleGuard requiredRole="buyer"><BuyerPrivacy s={store} /></RoleGuard></WebApp>} />
+        <Route path="/buyer/search" element={<WebApp><RoleGuard requiredRole="buyer"><BuyerSearch s={store} /></RoleGuard></WebApp>} />
 
         {/* Seller Routes */}
-        <Route path="/seller/verify" element={<WebApp><SellerVerify s={store} /></WebApp>} />
+        <Route path="/seller/verify" element={<WebApp><RoleGuard requiredRole="seller"><SellerVerify s={store} /></RoleGuard></WebApp>} />
         <Route path="/seller/dashboard" element={<WebApp><SellerGuard s={store}><SellerDashboard s={store} /></SellerGuard></WebApp>} />
         <Route path="/seller/listings" element={<WebApp><SellerGuard s={store}><SellerListings s={store} /></SellerGuard></WebApp>} />
         <Route path="/seller/add" element={<WebApp><SellerGuard s={store}><SellerAdd s={store} /></SellerGuard></WebApp>} />
         <Route path="/seller/messages" element={<WebApp><SellerGuard s={store}><SellerMessages s={store} /></SellerGuard></WebApp>} />
-        <Route path="/seller/profile" element={<WebApp><SellerProfile s={store} /></WebApp>} />
-        <Route path="/seller/profile/edit" element={<WebApp><SellerEditProfile s={store} /></WebApp>} />
+        <Route path="/seller/profile" element={<WebApp><RoleGuard requiredRole="seller"><SellerProfile s={store} /></RoleGuard></WebApp>} />
+        <Route path="/seller/profile/edit" element={<WebApp><RoleGuard requiredRole="seller"><SellerEditProfile s={store} /></RoleGuard></WebApp>} />
         <Route path="/seller/shop-settings" element={<WebApp><SellerGuard s={store}><SellerShopSetting s={store} /></SellerGuard></WebApp>} />
-        <Route path="/seller/notifications" element={<WebApp><SellerNotifications s={store} /></WebApp>} />
-        <Route path="/seller/privacy" element={<WebApp><SellerPrivacy s={store} /></WebApp>} />
+        <Route path="/seller/notifications" element={<WebApp><RoleGuard requiredRole="seller"><SellerNotifications s={store} /></RoleGuard></WebApp>} />
+        <Route path="/seller/privacy" element={<WebApp><RoleGuard requiredRole="seller"><SellerPrivacy s={store} /></RoleGuard></WebApp>} />
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminGuestGuard><AdminLogin onLogin={() => navigate("/admin/dashboard")} /></AdminGuestGuard>} />

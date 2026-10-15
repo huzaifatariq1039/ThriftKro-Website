@@ -2,7 +2,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
 import { useAuth } from "../contexts/AuthContext";
 import { Route } from "../types/types";
-import { authService } from "../services/api/authService";
 
 // Route path mapping helper
 export const routeToPath: Record<Route, string> = {
@@ -62,54 +61,38 @@ export function useStore() {
     navigate(targetPath);
   };
 
-  const login = async (forRole: "buyer" | "seller") => {
-    await auth.login("user@thriftkro.pk", "password", forRole);
-    if (forRole === "seller") {
-      const v = store.sellerVerified;
-      navigate(v === "verified" || v === "pending" ? "/seller/dashboard" : "/seller/verify");
-    } else {
-      navigate("/buyer/home");
-    }
-  };
-
   const loginWithCredentials = async (email: string, pass: string, forRole: "buyer" | "seller") => {
     await auth.login(email, pass, forRole);
     if (forRole === "seller") {
-      // Fetch real verification status from backend before deciding where to navigate
-      await store.fetchVerificationStatus();
-      const v = useAppStore.getState().sellerVerified;
-      navigate(v === "verified" || v === "pending" ? "/seller/dashboard" : "/seller/verify");
+      try {
+        const verification = await store.fetchVerificationStatus();
+        navigate(verification === "verified" ? "/seller/dashboard" : "/seller/verify");
+      } catch {
+        navigate("/seller/verify");
+      }
     } else {
       navigate("/buyer/home");
     }
   };
 
   const signupWithCredentials = async (email: string, pass: string, fullName: string, forRole: "buyer" | "seller") => {
-    await authService.signup(email, pass, fullName, forRole);
-    await auth.login(email, pass, forRole);
+    await auth.signup(email, pass, fullName, forRole);
     if (forRole === "seller") {
-      // New seller — ensure verification state is 'unverified' so the wizard shows
-      store.setSellerVerified("unverified");
       navigate("/seller/verify");
     } else {
       navigate("/buyer/home");
     }
   };
 
-  const signupSeller = async () => {
-    await auth.signupSeller();
-    navigate("/seller/verify");
-  };
-
-  const requestRoleSwitch = (target: "buyer" | "seller") => {
+  const requestRoleSwitch = async (target: "buyer" | "seller") => {
     store.setShowRoleSwitch(false);
-    if (auth.unlockedRoles.has(target)) {
-      auth.setRole(target);
-      navigate(target === "buyer" ? "/buyer/home" : "/seller/dashboard");
-    } else {
-      auth.setAuthMode("login");
-      navigate(target === "buyer" ? "/auth/buyer" : "/auth/seller");
+    if (auth.role === target) {
+      navigate(target === "buyer" ? "/buyer/home" : "/seller/verify");
+      return;
     }
+    await auth.logout();
+    auth.setAuthMode("login");
+    navigate(target === "buyer" ? "/auth/buyer" : "/auth/seller");
   };
 
   const logout = () => {
@@ -118,13 +101,14 @@ export function useStore() {
   };
 
   const googleAuth = async (token: string, forRole: "buyer" | "seller") => {
-    const { access_token } = await authService.googleAuth(token, forRole);
-    // Directly authenticate using the returned token
-    auth.loginWithToken(access_token, forRole);
+    await auth.googleLogin(token, forRole);
     if (forRole === "seller") {
-      await store.fetchVerificationStatus();
-      const v = useAppStore.getState().sellerVerified;
-      navigate(v === "verified" || v === "pending" ? "/seller/dashboard" : "/seller/verify");
+      try {
+        const verification = await store.fetchVerificationStatus();
+        navigate(verification === "verified" ? "/seller/dashboard" : "/seller/verify");
+      } catch {
+        navigate("/seller/verify");
+      }
     } else {
       navigate("/buyer/home");
     }
@@ -135,15 +119,11 @@ export function useStore() {
     route: currentRoute,
     setRoute,
     role: auth.role,
-    setRole: auth.setRole,
-    unlockedRoles: auth.unlockedRoles,
     authMode: auth.authMode,
     setAuthMode: auth.setAuthMode,
-    login,
     loginWithCredentials,
     signupWithCredentials,
     googleAuth,
-    signupSeller,
     logout,
     requestRoleSwitch,
   };

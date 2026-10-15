@@ -30,7 +30,7 @@ export async function fetchWithAuth<T>(endpoint: string, options: RequestInit = 
 import { authService } from "./api/authService";
 
 export const authAPI = {
-  login: async (email: string, pass: string, role: Role): Promise<{ user: User; token: string }> => {
+  login: async (email: string, pass: string, role: Exclude<Role, null>): Promise<{ user: User; token: string }> => {
     const res = await authService.login(email, pass, role);
     return { user: res.data.user!, token: res.data.token };
   },
@@ -40,7 +40,7 @@ export const authAPI = {
     return { user: res.data.user!, token: res.data.token };
   },
 
-  signup: async (data: { email: string; name?: string; role: Role; password?: string }): Promise<{ user: User; token: string }> => {
+  signup: async (data: { email: string; name?: string; role: Exclude<Role, null>; password?: string }): Promise<{ user: User; token: string }> => {
     const res = await authService.signup(data.email, data.password || "defaultPass123", data.name || "New User", data.role);
     return { user: res.data.user!, token: res.data.token };
   },

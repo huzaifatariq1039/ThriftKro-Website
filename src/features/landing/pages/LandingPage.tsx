@@ -21,7 +21,7 @@ export default function LandingPage({ s, onAdminClick }: { s: Store; onAdminClic
       if (role === "buyer") s.setRoute("buyer-home");
       else if (role === "seller") {
         const v = s.sellerVerified;
-        s.setRoute(v === "verified" || v === "pending" ? "seller-dashboard" : "seller-verify");
+        s.setRoute(v === "verified" ? "seller-dashboard" : "seller-verify");
       }
       else if (role === "admin" && onAdminClick) onAdminClick();
     } else {
