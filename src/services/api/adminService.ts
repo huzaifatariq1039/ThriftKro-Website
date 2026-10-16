@@ -1,18 +1,68 @@
-import { request, ApiResponse } from "./apiClient";
+import { request } from "./apiClient";
+
+type MoneyValue = number | string;
+
+interface AdminStatsResponse {
+  users: {
+    total_users: number;
+    buyers: number;
+    sellers: number;
+    admins: number;
+    verified_sellers: number;
+    pending_verifications: number;
+  };
+  products: {
+    total_products: number;
+    live_available: number;
+    out_of_stock: number;
+    draft: number;
+    archived: number;
+  };
+  orders: {
+    total_checkout_orders: number;
+    open_checkout_orders: number;
+    completed_checkout_orders: number;
+    closed_checkout_orders: number;
+    total_seller_orders: number;
+  };
+  revenue: {
+    settled_gmv_pkr: MoneyValue;
+    settled_payment_volume_pkr: MoneyValue;
+    recognized_platform_revenue_pkr: MoneyValue;
+    escrow_held_pkr: MoneyValue;
+    pending_payment_value_pkr: MoneyValue;
+  };
+}
+
+function asAmount(value: MoneyValue | null | undefined): number {
+  const amount = typeof value === "number" ? value : Number(value ?? 0);
+  return Number.isFinite(amount) ? amount : 0;
+}
 
 export const adminService = {
   async getOverviewMetrics() {
-    const res = await request<any>("/admin/stats");
+    const res = await request<AdminStatsResponse>("/admin/stats");
     return {
       data: {
-        gmv: res.data?.revenue?.gross_merchandise_value_pkr || 0,
-        revenue: res.data?.revenue?.total_platform_revenue_pkr || 0,
-        activeListings: res.data?.products?.live_available || 0,
-        kycPending: 0, 
-        escrowHold: (res.data?.revenue?.total_platform_revenue_pkr || 0) * (1 / 0.02),
-        usersTotal: res.data?.users?.total_users || 0,
-        ordersTotal: res.data?.orders?.total_orders || 0,
-        ordersInProgress: res.data?.orders?.in_progress || 0,
+        gmv: asAmount(res.data?.revenue.settled_gmv_pkr),
+        settledPaymentVolume: asAmount(
+          res.data?.revenue.settled_payment_volume_pkr,
+        ),
+        revenue: asAmount(
+          res.data?.revenue.recognized_platform_revenue_pkr,
+        ),
+        escrowHold: asAmount(res.data?.revenue.escrow_held_pkr),
+        pendingPaymentValue: asAmount(
+          res.data?.revenue.pending_payment_value_pkr,
+        ),
+        activeListings: res.data?.products.live_available ?? 0,
+        kycPending: res.data?.users.pending_verifications ?? 0,
+        usersTotal: res.data?.users.total_users ?? 0,
+        ordersTotal: res.data?.orders.total_checkout_orders ?? 0,
+        ordersInProgress: res.data?.orders.open_checkout_orders ?? 0,
+        ordersCompleted: res.data?.orders.completed_checkout_orders ?? 0,
+        ordersClosed: res.data?.orders.closed_checkout_orders ?? 0,
+        sellerOrdersTotal: res.data?.orders.total_seller_orders ?? 0,
       },
       status: res.status,
     };
