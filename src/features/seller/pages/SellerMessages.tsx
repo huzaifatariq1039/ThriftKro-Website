@@ -34,7 +34,9 @@ export default function SellerMessages({ s }: { s: Store }) {
       if (isMounted && user?.id) {
         setUserId(user.id);
         const wsUrl = chatService.getWebSocketUrl(user.id);
-        const ws = new WebSocket(wsUrl);
+        const token = authService.getToken();
+        if (!token) return;
+        const ws = new WebSocket(wsUrl, ["bearer", token]);
         
         ws.onmessage = (event) => {
           const parts = event.data.split("|", 1);

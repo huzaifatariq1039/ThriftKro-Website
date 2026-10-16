@@ -16,7 +16,6 @@ export default function SellerEditProfile({ s }: { s: Store }) {
     setLoading(true);
     try {
       await authService.updateProfile({
-        email: f.email,
         phone_number: f.phone,
         avatar_url: f.avatar
       });
@@ -59,7 +58,18 @@ export default function SellerEditProfile({ s }: { s: Store }) {
         </div>
         <Field label="Shop name"><input className={inputCls} style={inputStyle} value={f.shopName} onChange={e => setF({ ...f, shopName: e.target.value })} /></Field>
         <Field label="Bio / Description"><textarea className={inputCls} style={{ ...inputStyle, height: 80 }} value={f.bio} onChange={e => setF({ ...f, bio: e.target.value })} /></Field>
-        <Field label="Email"><input className={inputCls} style={inputStyle} value={f.email} onChange={e => setF({ ...f, email: e.target.value })} /></Field>
+        <Field label="Email">
+          <input
+            className={inputCls}
+            style={{ ...inputStyle, background: "#F2EFE9", cursor: "not-allowed" }}
+            value={f.email}
+            readOnly
+            aria-readonly="true"
+          />
+          <p className="mt-1 text-xs" style={{ color: "rgba(26,17,8,0.55)" }}>
+            Email changes require a verified account-recovery flow and are not available yet.
+          </p>
+        </Field>
         <Field label="Phone"><input className={inputCls} style={inputStyle} value={f.phone || ""} onChange={e => setF({ ...f, phone: e.target.value })} /></Field>
         <Field label="City"><input className={inputCls} style={inputStyle} value={f.city || ""} onChange={e => setF({ ...f, city: e.target.value })} /></Field>
         <button disabled={loading} onClick={handleSave} className="w-full py-4 rounded-xl font-extrabold text-white mt-4 transition-opacity disabled:opacity-50" style={{ background: ORANGE }}>

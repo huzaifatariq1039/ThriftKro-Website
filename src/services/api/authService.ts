@@ -160,7 +160,7 @@ export const authService = {
     return fetchAuthenticatedUser();
   },
 
-  async updateProfile(data: { full_name?: string; email?: string; phone_number?: string; avatar_url?: string }): Promise<ApiResponse<any>> {
+  async updateProfile(data: { full_name?: string; phone_number?: string; avatar_url?: string }): Promise<ApiResponse<any>> {
     const res = await request<any>(
       "/users/me",
       {

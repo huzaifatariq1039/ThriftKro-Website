@@ -30,7 +30,6 @@ export default function BuyerEditProfile({ s }: { s: Store }) {
     try {
       await authService.updateProfile({
         full_name: f.name,
-        email: f.email,
         phone_number: f.phone,
         avatar_url: f.avatar || undefined
       });
@@ -70,7 +69,18 @@ export default function BuyerEditProfile({ s }: { s: Store }) {
       </div>
       <div className="space-y-4 max-w-md">
         <Field label="Full name"><input className={inputCls} style={inputStyle} value={f.name} onChange={e => setF({ ...f, name: e.target.value })} /></Field>
-        <Field label="Email"><input className={inputCls} style={inputStyle} value={f.email} onChange={e => setF({ ...f, email: e.target.value })} /></Field>
+        <Field label="Email">
+          <input
+            className={inputCls}
+            style={{ ...inputStyle, background: "#F2EFE9", cursor: "not-allowed" }}
+            value={f.email}
+            readOnly
+            aria-readonly="true"
+          />
+          <p className="mt-1 text-xs" style={{ color: "rgba(26,17,8,0.55)" }}>
+            Email changes require a verified account-recovery flow and are not available yet.
+          </p>
+        </Field>
         <Field label="Phone"><input className={inputCls} style={inputStyle} value={f.phone || ""} onChange={e => setF({ ...f, phone: e.target.value })} /></Field>
         <Field label="Gender"><input className={inputCls} style={inputStyle} value={f.gender || ""} onChange={e => setF({ ...f, gender: e.target.value })} /></Field>
         <button disabled={loading} onClick={handleSave} className="w-full py-4 rounded-xl font-extrabold text-white transition-opacity disabled:opacity-50" style={{ background: ORANGE }}>
