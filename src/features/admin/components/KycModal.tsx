@@ -20,7 +20,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export function KycModal({ request, onClose, onSuccess }: { request: KycReq; onClose: () => void; onSuccess?: () => void }) {
-  const [tab, setTab] = useState<"cnic-front" | "cnic-back" | "shop" | "cert">("cnic-front");
+  const [tab, setTab] = useState<"cnic-front" | "cnic-back" | "products">("cnic-front");
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState("");
   const [approved, setApproved] = useState(false);
@@ -97,7 +97,7 @@ export function KycModal({ request, onClose, onSuccess }: { request: KycReq; onC
           <div className="flex flex-col border-r" style={{ width: "57%", borderColor: C.border }}>
             <div className="flex border-b px-4 pt-2 gap-0.5 flex-shrink-0" style={{ borderColor: C.border }}>
               {(["cnic-front", "cnic-back", "products"] as const).map(t => (
-                <button key={t} onClick={() => setTab(t as any)}
+                <button key={t} onClick={() => setTab(t)}
                   className="px-3 py-2 text-xs font-semibold transition-all"
                   style={{ borderBottom: `2px solid ${tab === t ? C.orange : "transparent"}`, color: tab === t ? C.orange : C.textDim, fontFamily: FONT, marginBottom: -1 }}>
                   {t === "cnic-front" ? "CNIC Front" : t === "cnic-back" ? "CNIC Back" : "Products"}

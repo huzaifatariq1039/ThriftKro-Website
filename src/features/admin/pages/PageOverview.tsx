@@ -102,6 +102,11 @@ function KpiCard({ title, value, sub, trend, trendVal, children, accent }: {
   );
 }
 
+function formatCurrency(value: unknown): string {
+  const amount = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(amount) ? `PKR ${amount.toLocaleString()}` : "PKR 0";
+}
+
 function AiStream() {
   const [logs, setLogs] = useState(aiLogs0);
   const [scanning, setScanning] = useState(false);
@@ -186,21 +191,12 @@ export default function PageOverview() {
         
         const prodCount = productsRes.data ? productsRes.data.length : 0;
         
-        let gmvVal = metricsRes.data?.gmv;
-        if (typeof gmvVal === 'number') gmvVal = `PKR ${gmvVal.toLocaleString()}`;
-        
-        let revVal = metricsRes.data?.revenue;
-        if (typeof revVal === 'number') revVal = `PKR ${revVal.toLocaleString()}`;
-        
-        let escrowVal = metricsRes.data?.escrowHold;
-        if (typeof escrowVal === 'number') escrowVal = `PKR ${escrowVal.toLocaleString()}`;
-
         setMetrics({
-          gmv: gmvVal || "PKR 0",
-          revenue: revVal || "PKR 0",
+          gmv: formatCurrency(metricsRes.data?.gmv),
+          revenue: formatCurrency(metricsRes.data?.revenue),
           totalProducts: prodCount,
           activeSellers: `${metricsRes.data?.activeListings || prodCount || 0} Products Listed`,
-          escrowHold: escrowVal || "PKR 0",
+          escrowHold: formatCurrency(metricsRes.data?.escrowHold),
           pulse: {
             users: String(metricsRes.data?.usersTotal || 0),
             orders: String(metricsRes.data?.ordersTotal || 0),

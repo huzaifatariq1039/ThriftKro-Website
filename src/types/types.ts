@@ -65,7 +65,9 @@ export type Route =
   | "seller-verify"
   | "seller-dashboard" | "seller-listings" | "seller-add" | "seller-messages"
   | "seller-profile" | "seller-edit-profile" | "seller-notifications" | "seller-privacy" | "seller-shop-setting" | "seller-shop-settings"
-  | "careers" | "press" | "seller-guide" | "blog";
+  | "careers" | "press" | "seller-guide" | "blog"
+  | "about-us" | "privacy-policy" | "terms-of-service"
+  | "buyer-protection" | "authentication" | "contact";
 
 export type VerifyStatus = "unverified" | "pending" | "verified" | "rejected" | "frozen";
 
