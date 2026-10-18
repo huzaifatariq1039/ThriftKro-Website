@@ -1,78 +1,87 @@
-# Thrift Kro — Website + Admin Panel
+# Thrift Kro Website
 
-Standalone codebase extracted from the Figma Make bundle. Contains the public
-buyer/seller website plus a separate admin panel (login + dashboard), reached
-via the "Admin Dashboard" button in the site footer.
+The Thrift Kro frontend is a React and TypeScript single-page application for buyers, sellers, and administrators. It uses the backend API for authentication and application data; browser route guards are a user-experience layer, not a security boundary.
 
 ## Stack
-- React 18 + TypeScript
+
+- React 18 and TypeScript
 - Vite 6
-- Tailwind CSS v4 (via `@tailwindcss/vite`)
-- lucide-react (icons)
-- recharts (admin dashboard charts)
+- React Router 7
+- Zustand 5
+- Tailwind CSS 4
+- Sonner, Lucide React, and Recharts
 
-## Demo admin login
+## Prerequisites
+
+- Node.js compatible with the committed lockfile
+- The backend running and migrated against PostgreSQL
+- A local environment file based on `.env.example`
+
+Configure the versioned API prefix:
+
+```env
+VITE_API_URL=http://localhost:8000/api/v1
 ```
-Email:    admin@thriftkro.pk
-Password: Admin@123
-```
-These credentials are hardcoded in `AdminPanel.tsx` for prototype purposes only
-— see "Known next steps" below.
 
-## Running it
+Do not place database passwords, backend signing secrets, or other server credentials in a `VITE_` variable. Vite exposes those values to the browser bundle.
 
-```bash
-npm install
+## Local development
+
+```powershell
+cd D:\FYP\Website
+npm ci
 npm run dev
 ```
 
-Then open the local URL Vite prints (usually http://localhost:5173).
+Vite prints the local URL, normally `http://localhost:5173`.
 
-To build for production:
-```bash
-npm run build
+Run the full frontend quality gate before committing:
+
+```powershell
+npm run check
 ```
 
-## Structure
+That command runs TypeScript checking, frontend contract tests, and the production build.
 
-```
+## Current structure
+
+```text
 src/
-  app/
-    Root.tsx             # top-level switch: site vs admin login vs admin dashboard
-    components/
-      web/
-        WebApp.tsx        # site component, routes to a screen based on store.route
-        Entry.tsx         # Landing, RoleSelect, Auth screens
-        BuyerScreens.tsx  # all buyer-side screens
-        SellerScreens.tsx # all seller-side screens
-        PublicPages.tsx   # Careers, Press, Seller Guide, Blog (footer links)
-        store.ts          # single hook holding all app state + mock data
-        ui.tsx            # shared small components (modals, toast, form fields, Logo)
-      admin/
-        AdminPanel.tsx    # AdminLogin + AdminDashboard (sidebar, KYC, catalog,
-                          # escrow, revenue, support, settings, careers admin)
-      figma/
-        ImageWithFallback.tsx  # <img> wrapper with an error fallback
-  imports/               # image assets
-  styles/                # tailwind.css, theme.css, fonts.css, globals.css
-  main.tsx               # entry point — renders <Root />
+  components/        shared route and UI components
+  contexts/          authenticated session state
+  features/          buyer, seller, admin, auth, landing, and public pages
+  layouts/           top-level application layouts
+  services/api/      backend service clients
+  store/             shared client state
+  router.tsx         browser routes and protected route composition
+tests/                frontend contract tests
 ```
 
-## Known next steps
-- All site state/routing lives in `store.ts`'s `useWebStore()` hook (a plain
-  `route` string, not real URLs). The admin panel similarly holds its own
-  local state in `AdminPanel.tsx`, entirely separate from the site's store.
-  Consider migrating both to `react-router` for real routes and shareable
-  admin URLs (e.g. `/admin/kyc`).
-- **The admin login is a hardcoded email/password check in `AdminPanel.tsx`
-  with no real authentication or session handling** — anyone who reads the
-  source can find the credentials. Before this goes anywhere near production,
-  this needs a real backend-checked login, and the admin routes need to be
-  inaccessible without a valid session (currently the "Admin Dashboard" button
-  is visible to every site visitor in the footer).
-- `products`, `messages`, `sellerListings`, etc. in `store.ts`, and all the
-  admin dashboard's KYC/catalog/escrow/revenue data, are hardcoded mock
-  arrays. When a backend exists, wrap these behind async functions so
-  swapping in real API calls doesn't require touching every screen.
-- The logo PNG in `src/imports/` is ~1.2MB uncompressed — compress before
-  deploying.
+## Authentication and authorization
+
+Buyer, seller, and administrator sign-in calls the backend. No default or demo administrator account is provisioned by the current application. Create and manage real accounts through approved backend operations; do not publish credentials in source code or documentation.
+
+Frontend protected routes improve navigation behavior, but every authorization decision must remain enforced by the backend. The current client persists access tokens in browser storage; this is a known security limitation tracked separately from this documentation update.
+
+## Backend contract
+
+- API requests use `VITE_API_URL` and the `/api/v1` backend prefix.
+- A `401` response clears the local session and returns the user to authentication.
+- Backend responses, generated OpenAPI, and backend tests are authoritative when fixture or presentation data disagrees.
+- Administrator reporting distinguishes buyer checkouts from per-seller orders.
+- Wallet and cash-on-delivery flows are supported. Card payments remain unavailable until a verified provider is integrated.
+
+## Release boundaries
+
+AI product verification and virtual try-on are deferred and must not be presented as approved production features. The VTON engine is intentionally not being implemented during this phase while a replacement AI architecture is designed.
+
+Some presentation screens may still contain fixture data. Do not treat fixture values as persisted backend records or production credentials.
+
+## Production build and deployment
+
+```powershell
+npm run build
+npm run preview
+```
+
+The production output is written to `dist/`. `vercel.json` rewrites browser routes to `index.html`; configure the production `VITE_API_URL` in the deployment environment before building.
