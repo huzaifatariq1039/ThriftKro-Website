@@ -27,5 +27,8 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
+      - name: Audit production and development dependencies
+        run: npm run audit:dependencies
+
       - name: Run frontend quality gate
         run: npm run check

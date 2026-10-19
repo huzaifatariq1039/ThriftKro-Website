@@ -43,6 +43,14 @@ npm run check
 
 That command runs TypeScript checking, frontend contract tests, and the production build.
 
+Check the locked dependency graph against the npm advisory database before a release:
+
+```powershell
+npm run audit:dependencies
+```
+
+CI installs the committed lockfile, blocks Moderate-or-higher dependency advisories, and then runs the frontend quality gate. Any temporary advisory exception must be documented with its advisory ID, reachability assessment, owner, and expiry date instead of weakening the audit threshold.
+
 ## Current structure
 
 ```text

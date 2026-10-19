@@ -20,5 +20,10 @@ test("the local quality gate requires types, contracts, and a production build",
 test("CI installs the lockfile and runs the same quality gate", () => {
   assert.match(workflow, /node-version: 22/);
   assert.match(workflow, /run: npm ci/);
+  assert.equal(
+    packageJson.scripts["audit:dependencies"],
+    "npm audit --audit-level=moderate",
+  );
+  assert.match(workflow, /run: npm run audit:dependencies/);
   assert.match(workflow, /run: npm run check/);
 });
