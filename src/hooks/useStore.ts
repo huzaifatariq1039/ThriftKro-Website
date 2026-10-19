@@ -121,6 +121,7 @@ export function useStore() {
     role: auth.role,
     authMode: auth.authMode,
     setAuthMode: auth.setAuthMode,
+    setRememberMe: auth.setRememberMe,
     loginWithCredentials,
     signupWithCredentials,
     googleAuth,

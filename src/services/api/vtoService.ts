@@ -1,4 +1,5 @@
-import { request, ApiResponse } from "./apiClient";
+import { ApiResponse } from "./apiClient";
+import { authService } from "./authService";
 
 export const vtoService = {
   async generateVton(personImage: File, garmentImage: File, garmentCategory: string): Promise<ApiResponse<Blob | string>> {
@@ -7,7 +8,7 @@ export const vtoService = {
     formData.append("garment_image", garmentImage);
     formData.append("category", garmentCategory);
     const baseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
-    const token = localStorage.getItem("thrift_kro_token") || sessionStorage.getItem("thrift_kro_token") || localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
+    const token = authService.getToken();
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 120000);

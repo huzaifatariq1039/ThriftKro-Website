@@ -61,12 +61,12 @@ tests/                frontend contract tests
 
 Buyer, seller, and administrator sign-in calls the backend. No default or demo administrator account is provisioned by the current application. Create and manage real accounts through approved backend operations; do not publish credentials in source code or documentation.
 
-Frontend protected routes improve navigation behavior, but every authorization decision must remain enforced by the backend. The current client persists access tokens in browser storage; this is a known security limitation tracked separately from this documentation update.
+Frontend protected routes improve navigation behavior, but every authorization decision remains enforced by the backend. The browser keeps the short-lived access token only in memory and rotates the refresh token through an `HttpOnly` cookie. No token or user profile is persisted in `localStorage` or `sessionStorage`. Session restoration always refreshes and fetches the authenticated server profile; any failure returns the UI to an anonymous state. "Remember me" changes only the refresh-cookie lifetime.
 
 ## Backend contract
 
 - API requests use `VITE_API_URL` and the `/api/v1` backend prefix.
-- A `401` response clears the local session and returns the user to authentication.
+- A `401` response attempts one synchronized refresh rotation, then clears the in-memory session and returns the user to authentication if rotation fails.
 - Backend responses, generated OpenAPI, and backend tests are authoritative when fixture or presentation data disagrees.
 - Administrator reporting distinguishes buyer checkouts from per-seller orders.
 - Wallet and cash-on-delivery flows are supported. Card payments remain unavailable until a verified provider is integrated.
@@ -84,4 +84,4 @@ npm run build
 npm run preview
 ```
 
-The production output is written to `dist/`. `vercel.json` rewrites browser routes to `index.html`; configure the production `VITE_API_URL` in the deployment environment before building.
+The production output is written to `dist/`. `vercel.json` rewrites browser routes to `index.html` and applies the production CSP and browser security headers. Configure the production `VITE_API_URL` in the deployment environment before building. The API must allow the exact frontend origin with credentials and must run over HTTPS so the production refresh cookie can use `Secure` and `SameSite=None`.

@@ -16,7 +16,7 @@ export default function AuthPage({ s, forRole }: { s: Store; forRole: "buyer" | 
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const isSignup = s.authMode === "signup";
   const accent = forRole === "buyer" ? ORANGE : INK;
@@ -43,8 +43,7 @@ export default function AuthPage({ s, forRole }: { s: Store; forRole: "buyer" | 
       }
     }
 
-    // Save the remember-me preference before login so authService can read it
-    localStorage.setItem("thrift_kro_remember", rememberMe ? "true" : "false");
+    s.setRememberMe(rememberMe);
 
     setLoading(true);
     try {
@@ -64,6 +63,7 @@ export default function AuthPage({ s, forRole }: { s: Store; forRole: "buyer" | 
       setLoading(true);
       setError("");
       try {
+        s.setRememberMe(rememberMe);
         await s.googleAuth(tokenResponse.access_token, forRole);
       } catch (err: any) {
         setError(err.message || "Google authentication failed.");

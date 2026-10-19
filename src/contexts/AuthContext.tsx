@@ -3,6 +3,7 @@ import { User, Role } from "../types/types";
 import { authService } from "../services/api/authService";
 import { useAppStore } from "@/store/useAppStore";
 import { toast } from "sonner";
+import { SESSION_CLEARED_EVENT, SESSION_UPDATED_EVENT } from "../services/api/sessionStore";
 
 type AccountRole = Exclude<Role, null>;
 export type AuthStatus = "restoring" | "authenticated" | "anonymous";
@@ -15,6 +16,7 @@ type AuthContextType = {
   isAuthenticated: boolean;
   authMode: "login" | "signup";
   setAuthMode: (mode: "login" | "signup") => void;
+  setRememberMe: (remember: boolean) => void;
   login: (email: string, pass: string, expectedRole: "buyer" | "seller") => Promise<User>;
   signup: (email: string, pass: string, fullName: string, expectedRole: "buyer" | "seller") => Promise<User>;
   googleLogin: (googleToken: string, expectedRole: "buyer" | "seller") => Promise<User>;
@@ -29,6 +31,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(null);
   const [authStatus, setAuthStatus] = useState<AuthStatus>("restoring");
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+
+  const setRememberMe = (remember: boolean) => {
+    authService.setRememberMe(remember);
+  };
 
   const clearState = () => {
     setUser(null);
@@ -58,22 +64,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let active = true;
 
-    const restore = async () => {
-      const storedToken = authService.getToken();
-      if (!storedToken) {
-        if (active) setAuthStatus("anonymous");
-        return;
-      }
+    authService.initializeBrowserSession();
 
+    const handleSessionUpdated = () => {
+      if (active) setToken(authService.getToken());
+    };
+    const handleSessionCleared = () => {
+      if (active) clearState();
+    };
+    window.addEventListener(SESSION_UPDATED_EVENT, handleSessionUpdated);
+    window.addEventListener(SESSION_CLEARED_EVENT, handleSessionCleared);
+
+    const restore = async () => {
       const restoredUser = await authService.getCurrentUser();
       if (!active) return;
-      if (!restoredUser || !restoredUser.role) {
+      const restoredToken = authService.getToken();
+      if (!restoredUser || !restoredUser.role || !restoredToken) {
         clearState();
         return;
       }
 
       setUser(restoredUser);
-      setToken(storedToken);
+      setToken(restoredToken);
       setAuthStatus("authenticated");
       useAppStore.getState().hydrateAuthenticatedProfile(restoredUser);
     };
@@ -81,6 +93,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     void restore();
     return () => {
       active = false;
+      window.removeEventListener(SESSION_UPDATED_EVENT, handleSessionUpdated);
+      window.removeEventListener(SESSION_CLEARED_EVENT, handleSessionCleared);
     };
   }, []);
 
@@ -140,6 +154,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isAuthenticated: authStatus === "authenticated" && Boolean(user && token),
       authMode,
       setAuthMode,
+      setRememberMe,
       login,
       signup,
       googleLogin,

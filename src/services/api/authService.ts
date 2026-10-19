@@ -1,5 +1,13 @@
-import { request, ApiResponse } from "./apiClient";
+import { request, ApiResponse, refreshAccessToken } from "./apiClient";
 import { Role, User } from "../../types/types";
+import {
+  clearAccessSession,
+  clearLegacyBrowserSession,
+  getAccessToken,
+  setAccessSession,
+  setRememberSession,
+  shouldRememberSession,
+} from "./sessionStore";
 
 type AccountRole = Exclude<Role, null>;
 
@@ -14,7 +22,7 @@ export interface TokenResponse {
   access_token: string;
   token_type: string;
   refresh_token?: string;
-  expires_in?: number;
+  expires_in: number;
 }
 
 function mapServerUser(data: any): User {
@@ -37,40 +45,12 @@ async function fetchAuthenticatedUser(): Promise<User> {
   return mapServerUser(response.data);
 }
 
-/**
- * Decides where to store tokens based on the "Remember Me" preference.
- * - "Remember Me" ON  → localStorage (persists after browser close)
- * - "Remember Me" OFF → sessionStorage (cleared when browser/tab closes)
- */
-function getStorage(): Storage {
-  const remember = localStorage.getItem("thrift_kro_remember");
-  return remember === "false" ? sessionStorage : localStorage;
-}
-
-/** Save auth tokens and user to the chosen storage */
-function saveSession(token: string, user?: User) {
-  const store = getStorage();
-  store.setItem("thrift_kro_token", token);
-  store.setItem("access_token", token);
-  if (user) {
-    store.setItem("thrift_kro_user", JSON.stringify(user));
+function acceptTokenResponse(response: TokenResponse): string {
+  if (!response.access_token || !Number.isFinite(response.expires_in)) {
+    throw new Error("The server returned an invalid authenticated session");
   }
-  // Also keep in localStorage so the remember preference itself persists
-  localStorage.setItem("thrift_kro_remember", localStorage.getItem("thrift_kro_remember") || "true");
-}
-
-/** Read a value from whichever storage has it */
-function getStored(key: string): string | null {
-  return localStorage.getItem(key) || sessionStorage.getItem(key);
-}
-
-/** Clear session from both storages */
-function clearSession() {
-  ["thrift_kro_token", "access_token", "thrift_kro_user"].forEach(key => {
-    localStorage.removeItem(key);
-    sessionStorage.removeItem(key);
-  });
-  localStorage.removeItem("thrift_kro_remember");
+  setAccessSession(response.access_token, response.expires_in);
+  return response.access_token;
 }
 
 export const authService = {
@@ -84,21 +64,22 @@ export const authService = {
       "/auth/login",
       {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "X-Remember-Session": shouldRememberSession() ? "true" : "false",
+          "X-Session-Transport": "cookie",
+        },
         body: params.toString(),
       }
     );
 
-    const token = tokenRes.data.access_token;
-    if (!token) throw new Error("The server did not return an access token");
-    saveSession(token);
+    const token = acceptTokenResponse(tokenRes.data);
 
     try {
       const user = await fetchAuthenticatedUser();
-      saveSession(token, user);
       return { data: { email: user.email, role: user.role as AccountRole, token, user }, status: 200 };
     } catch (error) {
-      clearSession();
+      clearAccessSession();
       throw error;
     }
   },
@@ -106,22 +87,26 @@ export const authService = {
   async googleAuth(googleToken: string, role: AccountRole): Promise<{ access_token: string, user: User }> {
     const res = await request<any>("/auth/google", {
       method: "POST",
+      headers: {
+        "X-Remember-Session": shouldRememberSession() ? "true" : "false",
+        "X-Session-Transport": "cookie",
+      },
       body: JSON.stringify({
         id_token: googleToken,
         role: role.toUpperCase(),
       }),
     });
-    
-    const token = res.data.access_token;
-    if (token) {
-      saveSession(token);
-    }
-    
+
+    const token = acceptTokenResponse(res.data as TokenResponse);
+
     // Fetch user profile
-    const user = await fetchAuthenticatedUser();
-    saveSession(token, user);
-    
-    return { access_token: token, user };
+    try {
+      const user = await fetchAuthenticatedUser();
+      return { access_token: token, user };
+    } catch (error) {
+      clearAccessSession();
+      throw error;
+    }
   },
 
   async signup(email: string, pass: string, fullName: string, role: AccountRole = "buyer"): Promise<ApiResponse<UserSession>> {
@@ -138,20 +123,15 @@ export const authService = {
       }
     );
 
-    // Auto login after registration — signups always remember
-    localStorage.setItem("thrift_kro_remember", "true");
     return await this.login(email, pass, role);
   },
 
   async getCurrentUser(): Promise<User | null> {
-    // Only try to restore session if we have a stored token
-    const token = getStored("thrift_kro_token");
-    if (!token) return null;
-
     try {
+      if (!getAccessToken() && !await refreshAccessToken()) return null;
       return await fetchAuthenticatedUser();
     } catch {
-      clearSession();
+      clearAccessSession();
       return null;
     }
   },
@@ -168,31 +148,30 @@ export const authService = {
         body: JSON.stringify(data),
       }
     );
-    // After update, if we have a stored user, let's update it locally
-    const stored = getStored("thrift_kro_user");
-    if (stored && res.data) {
-      const parsed = JSON.parse(stored);
-      if (res.data.full_name) parsed.name = res.data.full_name;
-      if (res.data.email) parsed.email = res.data.email;
-      if (res.data.avatar_url) parsed.avatar = res.data.avatar_url;
-      saveSession(getStored("thrift_kro_token") || "", parsed);
-    }
     return res;
   },
 
   async logout(): Promise<ApiResponse<{ success: boolean }>> {
     try {
-      if (getStored("thrift_kro_token")) {
+      if (getAccessToken()) {
         await request("/auth/logout", { method: "POST" });
       }
     } finally {
-      clearSession();
+      clearAccessSession();
     }
     return { data: { success: true }, status: 200 };
   },
 
-  /** Utility: get token from whichever storage has it */
+  initializeBrowserSession(): void {
+    clearLegacyBrowserSession();
+  },
+
+  setRememberMe(remember: boolean): void {
+    setRememberSession(remember);
+  },
+
+  /** Short-lived access tokens exist only in memory. */
   getToken(): string | null {
-    return getStored("thrift_kro_token");
+    return getAccessToken();
   },
 };

@@ -26,7 +26,7 @@ test("session restoration fails closed on the authenticated server profile", () 
   assert.match(authContext, /"restoring" \| "authenticated" \| "anonymous"/);
   assert.match(authContext, /authStatus === "authenticated" && Boolean\(user && token\)/);
   assert.match(authService, /async function fetchAuthenticatedUser\(\)[\s\S]*return mapServerUser\(response\.data\)/);
-  assert.match(authService, /catch \{\s*clearSession\(\);\s*return null;/);
+  assert.match(authService, /catch \{\s*clearAccessSession\(\);\s*return null;/);
   assert.doesNotMatch(authService, /stored \? JSON\.parse\(stored\)/);
 });
 
